@@ -38,6 +38,7 @@ export interface TikTokSearchResponse {
     api_count: number;
     page: number;
     limit: number;
+    message: string;
   };
   remaining_quota: number;
   query: string;

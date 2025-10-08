@@ -1634,15 +1634,22 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                 </div>
               </div>
 
-              {supplier.main_products && supplier.main_products.length > 0 && (
+              {supplier.main_products && (
                 <div className="mt-3">
                   <span className="text-gray-600 text-sm">Main Products:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {supplier.main_products.map((product, idx) => (
-                      <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                        {product}
-                      </span>
-                    ))}
+                    {Array.isArray(supplier.main_products)
+                      ? supplier.main_products.map((product: string, idx: number) => (
+                          <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                            {product}
+                          </span>
+                        ))
+                      : (
+                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                            {supplier.main_products}
+                          </span>
+                        )
+                    }
                   </div>
                 </div>
               )}
