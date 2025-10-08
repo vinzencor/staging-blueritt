@@ -9,7 +9,7 @@ const api = axios.create({
   withCredentials: true,  // Ensure credentials (like cookies) are included
   headers: {
     'ngrok-skip-browser-warning': 'true',  // Skip the Ngrok browser warning page
-    'Access-Control-Allow-Origin': 'https://staging-blueritt.vercel.app',  // Allow the specific origin
+    'Access-Control-Allow-Origin': 'true',  // Allow the specific origin
   },
 });
 
