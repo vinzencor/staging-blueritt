@@ -86,6 +86,11 @@ export interface TikTokTrendingResponse {
   data: {
     products: TikTokTrendingProduct[];
     total: number;
+    trending_count: number;
+    api_count: number;
+    page: number;
+    limit: number;
+    message: string;
   };
   country: string;
   remaining_quota: number;
@@ -95,21 +100,26 @@ export interface TikTokTrendingResponse {
 export interface SupplierInfo {
   id: string;
   name: string;
+  supplier_name?: string; // Backend compatibility
   location: string;
   verification_status: string;
   verification_badge: string;
   years_in_business: number;
-  main_products: string;
+  main_products: string | string[];
   certifications: string[];
   contact_method: string;
   ai_match_score: number;
   match_explanation: string;
   moq: number;
+  min_order_quantity?: string; // Backend compatibility
   lead_time: string;
   estimated_price: string;
   contact_url: string;
   response_rate: string;
   trade_assurance: boolean;
+  verified_supplier?: boolean; // Backend compatibility
+  rating?: number; // Backend compatibility
+  total_transactions?: number; // Backend compatibility
   // Additional optional properties
   price_per_unit?: string;
   minimum_order?: number;
@@ -129,6 +139,11 @@ export interface SupplierDiscoveryResponse {
   analysis_summary: {
     criteria_analyzed: string[];
     top_match_score: number;
+  };
+  // Backend compatibility - some responses wrap data in a data property
+  data?: {
+    suppliers: SupplierInfo[];
+    analysis_time: number;
   };
 }
 
