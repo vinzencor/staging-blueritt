@@ -8,13 +8,12 @@ const api = axios.create({
   baseURL: baseUrl,
   withCredentials: true,  // Ensure credentials (like cookies) are included
   headers: {
-    'ngrok-skip-browser-warning': 'true',  // Skip the Ngrok browser warning page
     'Access-Control-Allow-Origin': 'true',  // Allow the specific origin
   },
 });
 
 // Example of setting the origin dynamically if needed:
-const allowedOrigins = ['https://staging-blueritt.vercel.app', 'https://85c0dd602168.ngrok-free.app'];
+const allowedOrigins = ['https://staging-blueritt.vercel.app', 'https://staging-api.ezyplus.in'];
 
 if (allowedOrigins.includes(window.location.origin)) {
   api.defaults.headers['Access-Control-Allow-Origin'] = window.location.origin;
