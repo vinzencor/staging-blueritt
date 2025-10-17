@@ -58,7 +58,7 @@ const AlibabaCard: React.FC<{ alibabaProduct: TAlibabaProduct }> = ({
         itemId={itemId}
         Currency={alibabaProduct.item?.sku?.def?.priceModule?.currencyCode || "USD"}
         StarRating={storeServiceScore?.toString() || "0"}
-        minOrderQuantity={sku?.def?.quantityModule?.minOrder?.quantityFormatted || "1"}
+        minOrderQuantity={sku?.def?.quantityModule?.minOrder?.quantity ? Number(sku.def.quantityModule.minOrder.quantity) : 1}
         isGoldMember={
           alibabaProduct.item?.company_details?.status?.gold || false
         }

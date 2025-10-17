@@ -2,12 +2,12 @@
 
 ## 🔧 Errors Fixed
 
-### Error 1: Type Mismatch in AlibabaCard.tsx
+### Error 1: Type Mismatch in AlibabaCard.tsx (storeAge)
 **File**: `src/pages/ListingDetail/components/AlibabaCard.tsx`
 **Line**: 56
 **Error**: `Type 'string | number' is not assignable to type 'string | undefined'. Type 'number' is not assignable to type 'string'.`
 
-**Root Cause**: 
+**Root Cause**:
 - The `storeAge` prop expects type `string | undefined`
 - But we were passing `seller_store?.storeAge || 0` which is `number | undefined`
 
@@ -27,7 +27,32 @@ storeAge={seller_store?.storeAge ? String(seller_store.storeAge) : undefined}
 
 ---
 
-### Error 2: Type Mismatch in AmazonTrends.tsx
+### Error 2: Type Mismatch in AlibabaCard.tsx (minOrderQuantity)
+**File**: `src/pages/ListingDetail/components/AlibabaCard.tsx`
+**Line**: 61
+**Error**: `Type 'string | number' is not assignable to type 'number | undefined'. Type 'string' is not assignable to type 'number'.`
+
+**Root Cause**:
+- The `minOrderQuantity` prop expects type `number | undefined`
+- But we were passing `sku?.def?.quantityModule?.minOrder?.quantityFormatted || "1"` which is `string | undefined`
+
+**Fix Applied**:
+```typescript
+// BEFORE:
+minOrderQuantity={sku?.def?.quantityModule?.minOrder?.quantityFormatted || "1"}
+
+// AFTER:
+minOrderQuantity={sku?.def?.quantityModule?.minOrder?.quantity ? Number(sku.def.quantityModule.minOrder.quantity) : 1}
+```
+
+**Explanation**:
+- Convert the quantity to number using `Number()` if it exists
+- Default to `1` if quantity doesn't exist (instead of "1")
+- This matches the expected type `number | undefined`
+
+---
+
+### Error 3: Type Mismatch in AmazonTrends.tsx
 **File**: `src/pages/Settings/SocialPulse/components/AmazonTrends/AmazonTrends.tsx`
 **Line**: 296
 **Error**: `This comparison appears to be unintentional because the types '"search" | "category" | "trending" | "deals" | "bestsellers"' and '"categories"' have no overlap.`
@@ -54,7 +79,7 @@ enabled: activeTab === 'category' && !!selectedCategoryId,
 
 ## ✅ Verification
 
-Both files now have:
+All files now have:
 - ✅ No TypeScript errors
 - ✅ Correct type assignments
 - ✅ Proper type matching
@@ -63,7 +88,7 @@ Both files now have:
 
 ## 🚀 Build Status
 
-**Before**: ❌ Build failed with 2 TypeScript errors
+**Before**: ❌ Build failed with 3 TypeScript errors
 **After**: ✅ Build should now succeed
 
 ---
@@ -73,6 +98,7 @@ Both files now have:
 | File | Line | Error | Fix |
 |------|------|-------|-----|
 | AlibabaCard.tsx | 56 | Type mismatch (number vs string) | Convert to string or undefined |
+| AlibabaCard.tsx | 61 | Type mismatch (string vs number) | Convert to number or default to 1 |
 | AmazonTrends.tsx | 296 | Wrong tab name ('categories' vs 'category') | Changed to correct tab name |
 
 ---
