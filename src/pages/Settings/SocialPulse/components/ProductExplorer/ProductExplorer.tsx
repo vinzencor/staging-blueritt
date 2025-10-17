@@ -30,6 +30,15 @@ import {
   getAmazonProductsByCategoryDirect,
 } from '@/api/amazonTrends';
 
+import {
+  loadAmazonCategories,
+  getRootCategories,
+  getSubcategories,
+  getCategoryById,
+  extractCategoryId,
+  AmazonCategoryItem,
+} from '@/utils/amazonCategories';
+
 import ProductDetailsModal from './ProductDetailsModal';
 
 interface ProductExplorerProps {}
@@ -54,6 +63,17 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const [selectedMainCategory, setSelectedMainCategory] = useState<string>('');
   const [currentSubcategories, setCurrentSubcategories] = useState<BestSellerCategory[]>([]);
   const [selectedType, setSelectedType] = useState<string>('BEST_SELLERS');
+
+  // Local Amazon categories from JSON
+  const [localRootCategories, setLocalRootCategories] = useState<AmazonCategoryItem[]>([]);
+  const [selectedLocalRootCategory, setSelectedLocalRootCategory] = useState<string>('');
+
+  // Load local Amazon categories on mount
+  React.useEffect(() => {
+    const { rootCategories } = loadAmazonCategories();
+    setLocalRootCategories(rootCategories);
+    console.log('📁 Loaded local Amazon categories:', rootCategories.length);
+  }, []);
 
   // Countries list
   const countries = [
@@ -118,8 +138,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     },
     enabled: viewMode === 'best-sellers',
     staleTime: 1000 * 60 * 10, // 10 minutes
-    retry: 2, // Only retry 2 times
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    retry: 1, // Only retry once to prevent broken pipe errors
+    retryDelay: 2000, // Fixed 2 second delay
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't refetch on mount if data exists
   });
 
   // Search Query
@@ -142,8 +164,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     },
     enabled: false, // Manual trigger only
     staleTime: 1000 * 60 * 10, // 10 minutes
-    retry: 2, // Only retry 2 times
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    retry: 1, // Only retry once
+    retryDelay: 2000, // Fixed 2 second delay
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Category Query
@@ -166,8 +190,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     },
     enabled: false, // Manual trigger only
     staleTime: 1000 * 60 * 10, // 10 minutes
-    retry: 2, // Only retry 2 times
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    retry: 1, // Only retry once
+    retryDelay: 2000, // Fixed 2 second delay
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // We use hardcoded working categories instead of API categories
@@ -181,38 +207,52 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   } = useQuery({
     queryKey: ['amazon-best-seller-products-explorer', selectedCategoryId, country, page, selectedType],
     queryFn: async () => {
-      console.log('🚀 Best Seller Products Query Starting:', {
+      console.log('🚀 Products Query Starting:', {
         categoryId: selectedCategoryId,
         country: country,
         page: page,
         type: selectedType,
-        enabled: !!selectedCategoryId,
-        isHierarchical: selectedCategoryId?.includes('/')
+        enabled: !!selectedCategoryId
       });
 
-      // Use Best Seller API for hierarchical categories (with /)
-      const result = await getAmazonBestSellerProducts({
-        category: selectedCategoryId,
+      // Extract actual category ID from full path (e.g., "appliances/3741261" -> "3741261")
+      const actualCategoryId = extractCategoryId(selectedCategoryId);
+
+      console.log('📦 Extracted Category ID:', {
+        original: selectedCategoryId,
+        extracted: actualCategoryId
+      });
+
+      // Use Real-Time Amazon Data API
+      const result = await getAmazonProductsByCategoryDirect({
+        categoryId: actualCategoryId,
         country: country,
         page: page,
-        type: selectedType
+        sortBy: 'RELEVANCE',
+        productCondition: 'ALL',
+        isPrime: false,
+        dealsAndDiscounts: 'NONE',
       });
 
-      console.log('🎯 Best Seller Products Query Result:', {
+      console.log('🎯 Products Query Result:', {
         categoryId: selectedCategoryId,
+        extractedId: actualCategoryId,
         hasResult: !!result,
         hasData: !!result?.data,
         hasProducts: !!result?.data?.products,
-        productsCount: result?.data?.products?.length || 0,
-        totalProducts: result?.data?.total || 0,
+        isProductsArray: Array.isArray(result?.data?.products),
+        productsCount: Array.isArray(result?.data?.products) ? result.data.products.length : 0,
         status: result?.status
       });
 
       return result;
     },
-    enabled: !!selectedCategoryId, // Only run when a category is selected
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    retry: 2,
+    enabled: viewMode === 'category' && !!selectedCategoryId, // Only run when in category mode and a category is selected
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: 1, // Only retry once
+    retryDelay: 2000, // Fixed 2 second delay
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Best Seller Categories Query - Fetch hierarchical categories dynamically from API
@@ -228,8 +268,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       console.log('📋 Best Seller Categories API response:', result);
       return result;
     },
+    enabled: false, // DISABLED - using local categories now
     staleTime: 1000 * 60 * 60, // 1 hour - categories don't change often
-    retry: 2,
+    retry: 0, // No retries since this is disabled
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Process best seller categories when data changes
@@ -256,13 +299,17 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   // Log query results when data changes
   React.useEffect(() => {
     if (directCategoryProductsData) {
+      const products = directCategoryProductsData?.data?.products;
+      const isProductsArray = Array.isArray(products);
+
       console.log('🎉 Direct Category Products Query SUCCESS:', {
         categoryId: selectedCategoryId,
         hasData: !!directCategoryProductsData,
-        hasProducts: !!directCategoryProductsData?.data?.products,
-        productsCount: directCategoryProductsData?.data?.products?.length || 0,
-        firstProduct: directCategoryProductsData?.data?.products?.[0]?.product_title || 'No products',
-        sampleProducts: directCategoryProductsData?.data?.products?.slice(0, 3)?.map((p: any) => p.product_title) || []
+        hasProducts: !!products,
+        isProductsArray,
+        productsCount: isProductsArray ? products.length : 0,
+        firstProduct: isProductsArray && products.length > 0 ? products[0]?.product_title : 'No products',
+        sampleProducts: isProductsArray ? products.slice(0, 3)?.map((p: any) => p.product_title) : []
       });
     }
   }, [directCategoryProductsData, selectedCategoryId]);
@@ -427,7 +474,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
 
   const getTotalProducts = () => {
     if (viewMode === 'category' && selectedCategoryId && directCategoryProductsData?.data?.products) {
-      return directCategoryProductsData.data.products.length;
+      const products = directCategoryProductsData.data.products;
+      return Array.isArray(products) ? products.length : 0;
     }
     return currentData?.data?.total || 0;
   };
@@ -701,109 +749,92 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 </div>
               </div>
 
-              {/* Category Chips */}
+              {/* Category Chips - Using Local JSON Categories */}
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                     <div className="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></div>
-                    Categories for {countries.find(c => c.code === country)?.name}
+                    Amazon Categories
                   </label>
                   <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    {bestSellerCategoriesLoading ? 'Loading...' : `${mainCategories.length} main categories`}
+                    {localRootCategories.length} main categories
                   </div>
                 </div>
 
-                {bestSellerCategoriesLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <AmazonLoader
-                      size="md"
-                      text={`Loading categories for ${countries.find(c => c.code === country)?.name}...`}
-                    />
-                  </div>
-                ) : bestSellerCategoriesError ? (
-                  <div className="flex items-center justify-center py-12">
-                    <div className="text-center">
-                      <p className="text-red-500 mb-2">Failed to load categories</p>
-                      <p className="text-gray-500 text-sm">Please try again later</p>
+                <div className="max-h-96 overflow-y-auto custom-scrollbar">
+                  {/* Main Categories */}
+                  {!selectedLocalRootCategory && (
+                    <div className="m-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Main Categories</h4>
+                      <div className="flex flex-wrap gap-3">
+                        {localRootCategories.map((category, index) => (
+                          <button
+                            key={category.id || index}
+                            onClick={() => {
+                              setSelectedLocalRootCategory(category.id);
+                            }}
+                            className="group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden bg-white border-2 border-blue-200 text-gray-700 hover:border-blue-400 hover:shadow-lg hover:transform hover:scale-102 hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100"
+                          >
+                            <div className="flex items-center gap-2 px-3 py-1">
+                              <span className="text-xs font-bold">{category.name}</span>
+                              {category.has_children && (
+                                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                                  {getSubcategories(category.id).length}
+                                </span>
+                              )}
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="max-h-96 overflow-y-auto custom-scrollbar">
-                    {/* Main Categories */}
-                    {!selectedMainCategory && (
-                      <div className="m-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Main Categories</h4>
-                        <div className="flex flex-wrap gap-3">
-                          {mainCategories.map((category, index) => (
+                  )}
+
+                  {/* Subcategories */}
+                  {selectedLocalRootCategory && (
+                    <div className="m-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <button
+                          onClick={() => {
+                            setSelectedLocalRootCategory('');
+                            setSelectedCategoryId('');
+                          }}
+                          className="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1"
+                        >
+                          ← Back to Main Categories
+                        </button>
+                      </div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                        {localRootCategories.find(cat => cat.id === selectedLocalRootCategory)?.name} Subcategories
+                      </h4>
+                      <div className="flex flex-wrap gap-3">
+                        {getSubcategories(selectedLocalRootCategory).map((category, index) => {
+                          const isSelected = selectedCategoryId === category.id;
+                          return (
                             <button
-                              key={category.category || index}
-                              onClick={() => {
-                                setSelectedMainCategory(category.category);
-                                setCurrentSubcategories(category.subcategories || []);
-                              }}
-                              className="group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden bg-white border-2 border-blue-200 text-gray-700 hover:border-blue-400 hover:shadow-lg hover:transform hover:scale-102 hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100"
+                              key={category.id || index}
+                              onClick={() => handleCategoryChipSelect(category.id)}
+                              className={`group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden ${
+                                isSelected
+                                  ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-xl transform scale-105 ring-4 ring-green-200'
+                                  : 'bg-white border-2 border-blue-200 text-gray-700 hover:border-blue-400 hover:shadow-lg hover:transform hover:scale-102 hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100'
+                              }`}
+                              title={`Click to browse ${category.name}`}
                             >
                               <div className="flex items-center gap-2 px-3 py-1">
                                 <span className="text-xs font-bold">{category.name}</span>
-                                {category.subcategories && category.subcategories.length > 0 && (
-                                  <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                                    {category.subcategories.length}
-                                  </span>
+                                {isSelected && (
+                                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                                 )}
                               </div>
                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                             </button>
-                          ))}
-                        </div>
+                          );
+                        })}
                       </div>
-                    )}
-
-                    {/* Subcategories */}
-                    {selectedMainCategory && (
-                      <div className="m-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <button
-                            onClick={() => {
-                              setSelectedMainCategory('');
-                              setCurrentSubcategories([]);
-                            }}
-                            className="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1"
-                          >
-                            ← Back to Main Categories
-                          </button>
-                        </div>
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                          {mainCategories.find(cat => cat.category === selectedMainCategory)?.name} Subcategories
-                        </h4>
-                        <div className="flex flex-wrap gap-3">
-                          {currentSubcategories.map((category, index) => {
-                            const isSelected = selectedCategoryId === category.category_path;
-                            return (
-                              <button
-                                key={category.category_path || index}
-                                onClick={() => handleCategoryChipSelect(category.category_path)}
-                                className={`group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden ${
-                                  isSelected
-                                    ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-xl transform scale-105 ring-4 ring-green-200'
-                                    : 'bg-white border-2 border-blue-200 text-gray-700 hover:border-blue-400 hover:shadow-lg hover:transform hover:scale-102 hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100'
-                                }`}
-                                title={`Click to browse ${category.name}`}
-                              >
-                                <div className="flex items-center gap-2 px-3 py-1">
-                                  <span className="text-xs font-bold">{category.name}</span>
-                                  {isSelected && (
-                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                                  )}
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Selected Category Display */}

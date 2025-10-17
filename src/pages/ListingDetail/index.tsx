@@ -95,7 +95,7 @@ const ListingDetail = () => {
             <div className="p-4 border rounded-md mt-10 bg-gray-200 h-32 w-full"></div>
           </div>
           {[...Array(1)].map((_, index) => (
-            <div className="border grid grid-cols-1 lg:grid-cols-2 gap-x-4 p-4 mb-4 rounded-md">
+            <div key={index} className="border grid grid-cols-1 lg:grid-cols-2 gap-x-4 p-4 mb-4 rounded-md">
               <div className="animate-pulse p-4">
                 <div className="flex gap-x-6 items-center w-full">
                   <div className="mt-2">
@@ -114,7 +114,7 @@ const ListingDetail = () => {
                   </div>
                 </div>
               </div>
-              <div key={index} className="rounded-md p-4 animate-pulse">
+              <div className="rounded-md p-4 animate-pulse">
                 <div className="animate-pulse p-4">
                   <div className="flex gap-x-6 items-center w-full">
                     <div className="mt-2">

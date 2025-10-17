@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
-import { Search, TrendingUp, Star, ShoppingCart, Award, Crown, Zap, Filter, X, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Search, TrendingUp, Star, ShoppingCart, Award, Crown, Zap, Filter, X, ChevronLeft, ChevronRight, Eye, FolderTree, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { Drawer } from '@mui/material';
 import LoadingSpinner from '../../../../../components/LoadingSpinner';
@@ -24,6 +24,17 @@ import {
   getTrendingBadge,
   sortProductsByTrending,
 } from '@/api/amazonTrends';
+
+import {
+  loadAmazonCategories,
+  getRootCategories,
+  getSubcategories,
+  getCategoryById,
+  searchCategories,
+  extractCategoryId,
+  formatCategoryDisplay,
+  AmazonCategoryItem,
+} from '@/utils/amazonCategories';
 
 import AmazonTrendsProductDetailsModal from './AmazonTrendsProductDetailsModal';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
@@ -65,6 +76,9 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const [bestSellersCategory, setBestSellersCategory] = useState('');
   const [bestSellersType, setBestSellersType] = useState('BEST_SELLERS');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [categorySearchTerm, setCategorySearchTerm] = useState('');
+  const [selectedRootCategory, setSelectedRootCategory] = useState<string | null>(null);
 
   // Country list with all supported countries
   const countries = [
@@ -109,6 +123,44 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     brand: '',
   });
 
+  // Load Amazon categories from local JSON file
+  const { rootCategories, allCategories } = useMemo(() => loadAmazonCategories(), []);
+
+  // Filter categories based on search term
+  const filteredCategories = useMemo(() => {
+    if (!categorySearchTerm.trim()) {
+      return rootCategories;
+    }
+    const searchResults = searchCategories(categorySearchTerm);
+    // Group search results by root category
+    const grouped = new Map<string, AmazonCategoryItem[]>();
+    searchResults.forEach(cat => {
+      if (cat.is_root) {
+        grouped.set(cat.id, [cat]);
+      } else if (cat.parent_id) {
+        const existing = grouped.get(cat.parent_id) || [];
+        existing.push(cat);
+        grouped.set(cat.parent_id, existing);
+      }
+    });
+
+    // Convert to root categories with filtered subcategories
+    return Array.from(grouped.entries()).map(([rootId, cats]) => {
+      const rootCat = cats.find(c => c.is_root) || getCategoryById(rootId);
+      const subcats = cats.filter(c => !c.is_root);
+      return {
+        ...rootCat!,
+        subcategories: subcats.length > 0 ? subcats : undefined
+      };
+    }).filter(Boolean);
+  }, [categorySearchTerm, rootCategories]);
+
+  // Get subcategories for selected root category
+  const displayedSubcategories = useMemo(() => {
+    if (!selectedRootCategory) return [];
+    return getSubcategories(selectedRootCategory);
+  }, [selectedRootCategory]);
+
   // Trending Products Query
   const {
     data: trendingData,
@@ -119,6 +171,10 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     queryFn: () => getTrendingProducts({ country: selectedCountry, limit: 20 }),
     enabled: activeTab === 'trending',
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
+    retryDelay: 2000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Search Results Query
@@ -154,6 +210,10 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     },
     enabled: false, // Manual trigger only
     staleTime: 1000 * 60 * 2, // 2 minutes - faster refresh for search results
+    retry: 1,
+    retryDelay: 2000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Best Sellers Query
@@ -181,6 +241,10 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     },
     enabled: activeTab === 'bestsellers',
     staleTime: 1000 * 60 * 30, // 30 minutes
+    retry: 1,
+    retryDelay: 2000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Deals Query
@@ -193,34 +257,48 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     queryFn: () => getAmazonDeals({ country: selectedCountry }),
     enabled: activeTab === 'deals',
     staleTime: 1000 * 60 * 15, // 15 minutes
+    retry: 1,
+    retryDelay: 2000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
-  // Category List Query - Using direct Amazon API
-  const {
-    data: categoryListData,
-    isLoading: categoryListLoading,
-    error: categoryListError,
-  } = useQuery({
-    queryKey: ['amazon-category-list-direct', selectedCountry],
-    queryFn: () => getAmazonCategoryListDirect({ country: selectedCountry }),
-    staleTime: 1000 * 60 * 60, // 1 hour
-    retry: 2,
-  });
-
-  // Products by Category Query - Using direct Amazon API
+  // Products by Category Query - Using direct Amazon API with extracted category ID
   const {
     data: categoryProductsData,
     isLoading: categoryProductsLoading,
     error: categoryProductsError,
   } = useQuery({
-    queryKey: ['amazon-products-by-category-direct', selectedCategoryId, selectedCountry],
-    queryFn: () => getAmazonProductsByCategoryDirect({
-      categoryId: selectedCategoryId,
-      country: selectedCountry
-    }),
-    enabled: !!selectedCategoryId, // Only run when a category is selected
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    retry: 2,
+    queryKey: ['amazon-products-by-category-direct', selectedCategoryId, selectedCountry, currentPage],
+    queryFn: async () => {
+      // Extract the actual category ID (e.g., "appliances/3741261" -> "3741261")
+      const actualCategoryId = extractCategoryId(selectedCategoryId);
+
+      console.log('🔍 Fetching products for category:', {
+        selectedCategoryId,
+        actualCategoryId,
+        country: selectedCountry,
+        page: currentPage
+      });
+
+      const response = await getAmazonProductsByCategoryDirect({
+        categoryId: actualCategoryId,
+        country: selectedCountry,
+        page: currentPage,
+        sortBy: filters.sort_by as any,
+        productCondition: filters.product_condition as any,
+        isPrime: filters.is_prime,
+        dealsAndDiscounts: filters.deals_and_discounts as any,
+      });
+
+      return response;
+    },
+    enabled: activeTab === 'categories' && !!selectedCategoryId, // Only run when in categories tab and a category is selected
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: 1,
+    retryDelay: 2000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Category Products Query
@@ -255,6 +333,10 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     },
     enabled: activeTab === 'category' && !!(selectedCategoryId || filters.category_id),
     staleTime: 1000 * 60 * 10, // 10 minutes
+    retry: 1,
+    retryDelay: 2000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const handleSearch = async () => {
@@ -305,14 +387,39 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const handleCategorySelect = (categoryId: string) => {
     console.log('🏷️ Category selected:', categoryId);
     setSelectedCategoryId(categoryId);
-    setActiveTab('category'); // Switch to category tab to enable the query
     setCurrentPage(1); // Reset to first page
 
     // Update filters to include the selected category
     setFilters(prev => ({ ...prev, category_id: categoryId }));
 
-    // The categoryData query will automatically refetch due to the dependency changes
-    console.log('✅ Switched to category tab, query should refetch');
+    // The categoryProductsData query will automatically refetch due to the dependency changes
+    console.log('✅ Category selected, query should refetch');
+  };
+
+  const toggleCategoryExpansion = (categoryId: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleRootCategoryClick = (categoryId: string) => {
+    // If clicking the same root category, collapse it
+    if (selectedRootCategory === categoryId) {
+      setSelectedRootCategory(null);
+      toggleCategoryExpansion(categoryId);
+    } else {
+      // Expand the new root category
+      setSelectedRootCategory(categoryId);
+      if (!expandedCategories.has(categoryId)) {
+        toggleCategoryExpansion(categoryId);
+      }
+    }
   };
 
   const handleFilterChange = (field: keyof FilterState, value: any) => {
@@ -733,80 +840,144 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
               </select>
             </div>
 
-            {/* Category Chips */}
+            {/* Category Search */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Categories for {countries.find(c => c.code === selectedCountry)?.name}
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Search Categories
               </label>
-              {categoryListLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <LoadingSpinner
-                    size="md"
-                    color="primary"
-                    text={`Loading categories for ${countries.find(c => c.code === selectedCountry)?.name}...`}
-                  />
-                </div>
-              ) : categoryListData?.data ? (
-                <div className="max-h-96 overflow-y-auto">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                    {categoryListData.data.slice(0, 100).map((category: any, index: number) => (
-                      <button
-                        key={category.category_id || category.id || index}
-                        onClick={() => handleCategorySelect(category.category_id || category.id || category.name)}
-                        className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 text-left ${
-                          selectedCategoryId === (category.category_id || category.id || category.name)
-                            ? 'bg-purple-600 text-white shadow-lg transform scale-105'
-                            : 'bg-white border border-gray-300 text-gray-700 hover:bg-purple-50 hover:border-purple-300 hover:shadow-md'
-                        }`}
-                        title={category.category_name || category.name}
-                      >
-                        <div className="truncate">
-                          {(category.category_name || category.name || 'Unknown Category').length > 40
-                            ? `${(category.category_name || category.name || 'Unknown Category').substring(0, 40)}...`
-                            : (category.category_name || category.name || 'Unknown Category')}
+              <input
+                type="text"
+                value={categorySearchTerm}
+                onChange={(e) => setCategorySearchTerm(e.target.value)}
+                placeholder="Search for a category..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Category Tree */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Amazon Categories ({rootCategories.length} main categories)
+                </label>
+                {categorySearchTerm && (
+                  <button
+                    onClick={() => setCategorySearchTerm('')}
+                    className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1"
+                  >
+                    <X className="w-3 h-3" />
+                    Clear Search
+                  </button>
+                )}
+              </div>
+
+              <div className="max-h-[500px] overflow-y-auto border border-gray-200 rounded-lg bg-white">
+                {filteredCategories.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {filteredCategories.map((rootCategory) => (
+                      <div key={rootCategory.id} className="hover:bg-gray-50">
+                        {/* Root Category */}
+                        <div
+                          className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
+                            selectedCategoryId === rootCategory.id
+                              ? 'bg-purple-100 border-l-4 border-purple-600'
+                              : 'hover:bg-purple-50'
+                          }`}
+                          onClick={() => {
+                            if (rootCategory.has_children) {
+                              handleRootCategoryClick(rootCategory.id);
+                            } else {
+                              handleCategorySelect(rootCategory.id);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-2 flex-1">
+                            <FolderTree className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                            <span className="font-medium text-gray-900 text-sm">
+                              {rootCategory.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {rootCategory.has_children && (
+                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                {getSubcategories(rootCategory.id).length} subcategories
+                              </span>
+                            )}
+                            {rootCategory.has_children && (
+                              expandedCategories.has(rootCategory.id) ? (
+                                <ChevronUp className="w-4 h-4 text-gray-400" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                              )
+                            )}
+                          </div>
                         </div>
-                      </button>
+
+                        {/* Subcategories */}
+                        {rootCategory.has_children && expandedCategories.has(rootCategory.id) && (
+                          <div className="bg-gray-50 border-t border-gray-100">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3">
+                              {getSubcategories(rootCategory.id).map((subCategory) => (
+                                <button
+                                  key={subCategory.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCategorySelect(subCategory.id);
+                                  }}
+                                  className={`p-2 rounded text-xs text-left transition-all ${
+                                    selectedCategoryId === subCategory.id
+                                      ? 'bg-purple-600 text-white shadow-md'
+                                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300'
+                                  }`}
+                                  title={subCategory.name}
+                                >
+                                  <div className="truncate">{subCategory.name}</div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
-                  {categoryListData.data.length > 100 && (
-                    <div className="mt-4 text-center text-sm text-gray-500">
-                      Showing first 100 of {categoryListData.data.length} categories
-                    </div>
-                  )}
-                </div>
-              ) : categoryListError ? (
-                <div className="text-center py-8">
-                  <div className="text-sm text-red-500">
-                    Error loading categories for {countries.find(c => c.code === selectedCountry)?.name}
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    {categorySearchTerm ? 'No categories found matching your search' : 'No categories available'}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Please try selecting a different country or refresh the page
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-sm text-gray-500">
-                    No categories available for {countries.find(c => c.code === selectedCountry)?.name}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {selectedCategoryId && (
               <div className="mt-4 p-3 bg-white rounded-lg border border-purple-200">
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Selected Category:</span>
-                  <div className="mt-1">
-                    <span className="inline-block bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-mono">
-                      ID: {selectedCategoryId}
-                    </span>
-                    <span className="ml-2 text-gray-700">
-                      {categoryListData?.data?.find((cat: any) =>
-                        (cat.category_id || cat.id || cat.name) === selectedCategoryId
-                      )?.category_name || categoryListData?.data?.find((cat: any) =>
-                        (cat.category_id || cat.id || cat.name) === selectedCategoryId
-                      )?.name || 'Selected Category'}
-                    </span>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {(() => {
+                      const category = getCategoryById(selectedCategoryId);
+                      if (!category) return null;
+
+                      return (
+                        <>
+                          {category.parent_name && (
+                            <>
+                              <span className="text-gray-500">{category.parent_name}</span>
+                              <ChevronRight className="w-3 h-3 text-gray-400" />
+                            </>
+                          )}
+                          <span className="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                            {category.name}
+                          </span>
+                          <button
+                            onClick={() => setSelectedCategoryId('')}
+                            className="ml-2 text-xs text-red-600 hover:text-red-800 flex items-center gap-1"
+                          >
+                            <X className="w-3 h-3" />
+                            Clear
+                          </button>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -837,58 +1008,89 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                       Please try selecting a different category or refresh the page
                     </div>
                   </div>
-                ) : categoryProductsData?.data?.products ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {categoryProductsData.data.products.slice(0, 12).map((product: any, index: number) => (
-                      <div
-                        key={product.asin || product.product_id || index}
-                        className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => {
-                          setSelectedProduct(product);
-                          setIsDetailsModalOpen(true);
-                        }}
-                      >
-                        {product.product_photo && (
-                          <img
-                            src={product.product_photo}
-                            alt={product.product_title || 'Product'}
-                            className="w-full h-32 object-cover rounded-lg mb-3"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        )}
-                        <h5 className="font-medium text-sm text-gray-900 mb-2 line-clamp-2">
-                          {product.product_title || 'Product Title'}
-                        </h5>
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-purple-600">
-                            {product.product_price || 'N/A'}
-                          </span>
-                          {product.product_star_rating && (
-                            <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-sm text-gray-600">
-                                {product.product_star_rating}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                ) : categoryProductsData?.data?.products && Array.isArray(categoryProductsData.data.products) ? (
+                  <>
+                    <div className="mb-4 flex items-center justify-between">
+                      <div className="text-sm text-gray-600">
+                        Found {categoryProductsData.data.products.length} products
                       </div>
-                    ))}
-                  </div>
+                      <div className="text-xs text-gray-500">
+                        Page {currentPage}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {categoryProductsData.data.products.map((product: any, index: number) => (
+                        <div
+                          key={product.asin || product.product_id || index}
+                          className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setIsDetailsModalOpen(true);
+                          }}
+                        >
+                          {product.product_photo && (
+                            <img
+                              src={product.product_photo}
+                              alt={product.product_title || 'Product'}
+                              className="w-full h-32 object-cover rounded-lg mb-3"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          )}
+                          <h5 className="font-medium text-sm text-gray-900 mb-2 line-clamp-2">
+                            {product.product_title || 'Product Title'}
+                          </h5>
+                          <div className="flex items-center justify-between">
+                            <span className="text-lg font-bold text-purple-600">
+                              {product.product_price || 'N/A'}
+                            </span>
+                            {product.product_star_rating && (
+                              <div className="flex items-center gap-1">
+                                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                <span className="text-sm text-gray-600">
+                                  {product.product_star_rating}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    <div className="mt-6 flex items-center justify-center gap-4">
+                      <button
+                        onClick={() => {
+                          if (currentPage > 1) {
+                            setCurrentPage(currentPage - 1);
+                          }
+                        }}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Previous
+                      </button>
+
+                      <span className="text-sm text-gray-600">
+                        Page {currentPage}
+                      </span>
+
+                      <button
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </>
                 ) : (
                   <div className="text-center py-8">
                     <div className="text-sm text-gray-500">
                       No products found for this category
-                    </div>
-                  </div>
-                )}
-
-                {categoryProductsData?.data?.products && categoryProductsData.data.products.length > 12 && (
-                  <div className="mt-4 text-center">
-                    <div className="text-sm text-gray-500">
-                      Showing first 12 of {categoryProductsData.data.products.length} products
                     </div>
                   </div>
                 )}

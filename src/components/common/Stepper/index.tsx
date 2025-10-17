@@ -150,6 +150,7 @@ const Stepper: React.FC<IStepperProps> = ({
           <ul className="relative lg:flex flex-row gap-x-2 sm:space-y-0 space-y-4 w-full mx-auto">
             {stepsInternal.map((step, i) => (
               <li
+                key={i}
                 className={`flex items-center gap-x-2 shrink basis-0 ${
                   i < stepsInternal.length - 1 ? "flex-1" : ""
                 } group active`}
@@ -175,9 +176,9 @@ const Stepper: React.FC<IStepperProps> = ({
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
-                      stroke-width="3"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     >
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>

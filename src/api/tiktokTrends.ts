@@ -18,9 +18,10 @@ export interface TikTokTrendingProduct {
   shares_count: number;
   views_count: number;
   image_url?: string;
+  cover_url?: string;  // TikTok Creative Center API field
   video_url?: string;
   trending_score: number;
-  source: 'trending' | 'api';
+  source: 'trending' | 'api' | 'tiktok_creative_center';
   country: string;
   last_searched?: string;
   seller_name?: string;
@@ -28,6 +29,10 @@ export interface TikTokTrendingProduct {
   commission_rate?: string;
   free_shipping?: boolean;
   stock?: number;
+  // Additional fields from TikTok Creative Center API
+  post_count?: number;
+  gmv?: number;
+  comments_count?: number;
 }
 
 export interface TikTokSearchResponse {
@@ -91,6 +96,7 @@ export interface TikTokTrendingResponse {
     api_count: number;
     page: number;
     limit: number;
+    has_more?: boolean;  // For pagination
     message: string;
   };
   country: string;
@@ -287,20 +293,32 @@ export const searchTikTokProductsPost = async (params: {
  */
 export const getTikTokTrendingProducts = async ({
   country = 'US',
-  limit = 20,
+  limit = 12,
   page = 1,
   category = '',
+  last = '7',
+  order_by = 'post',
+  order_type = 'desc',
+  keyword = '',
 }: {
   country?: string;
   limit?: number;
   page?: number;
   category?: string;
+  last?: string;
+  order_by?: string;
+  order_type?: string;
+  keyword?: string;
 } = {}): Promise<TikTokTrendingResponse> => {
   const searchParams = new URLSearchParams();
   searchParams.append('country', country);
   searchParams.append('limit', limit.toString());
   searchParams.append('page', page.toString());
+  searchParams.append('last', last);
+  searchParams.append('order_by', order_by);
+  searchParams.append('order_type', order_type);
   if (category) searchParams.append('category', category);
+  if (keyword) searchParams.append('keyword', keyword);
 
   const response = await api.get(`/products/tiktok-trends/trending/?${searchParams.toString()}`);
   return response.data;

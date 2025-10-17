@@ -12,14 +12,23 @@ const AlibabaCard: React.FC<{ alibabaProduct: TAlibabaProduct }> = ({
   alibabaProduct,
 
 }) => {
+  // Add null check for alibabaProduct and item
+  if (!alibabaProduct || !alibabaProduct.item) {
+    return (
+      <div className="h-full p-4 bg-gray-100 rounded-lg">
+        <p className="text-gray-500">Supplier data not available</p>
+      </div>
+    );
+  }
+
   const { images, title, itemId, company, sku, seller_store } =
     alibabaProduct.item;
-  const mainImage = images[0]?.startsWith("//")
+  const mainImage = images?.[0]?.startsWith("//")
     ? `${images[0]}`
     : "/api/placeholder/400/320";
 
   const storeServiceScore =
-    seller_store.storeEvaluates.find(
+    seller_store?.storeEvaluates?.find(
       (evaluate) => evaluate.title === "Store Service"
     )?.score || "N/A";
 
@@ -33,31 +42,31 @@ const AlibabaCard: React.FC<{ alibabaProduct: TAlibabaProduct }> = ({
         Price={
           Number(
             `${
-              alibabaProduct.item.sku.def.priceModule.priceList[0].price
+              alibabaProduct.item?.sku?.def?.priceModule?.priceList?.[0]?.price
                 ? alibabaProduct.item.sku.def.priceModule.priceList[0].price
-                : alibabaProduct.item.sku.def.priceModule.priceList[0].minPrice
+                : alibabaProduct.item?.sku?.def?.priceModule?.priceList?.[0]?.minPrice || 0
             }`
           ) || 0
         }
         Imgsrc={mainImage || ""}
-        companyName={company.companyName}
-        Country={alibabaProduct.item.company_details.companyAddress.country}
-        TradeAssurance={alibabaProduct.item.company_details.status.tradeAssurance || false}
-        contactName={company.companyContact?.name}
-        storeAge={seller_store.storeAge}
+        companyName={company?.companyName || "Unknown Company"}
+        Country={alibabaProduct.item?.company_details?.companyAddress?.country || "Unknown"}
+        TradeAssurance={alibabaProduct.item?.company_details?.status?.tradeAssurance || false}
+        contactName={company?.companyContact?.name || ""}
+        storeAge={seller_store?.storeAge || 0}
         Asin={itemId || ""}
         itemId={itemId}
-        Currency={alibabaProduct.item.sku.def.priceModule.currencyCode}
-        StarRating={storeServiceScore.toString() || "0"}
-        minOrderQuantity={sku.def.quantityModule.minOrder.quantityFormatted}
+        Currency={alibabaProduct.item?.sku?.def?.priceModule?.currencyCode || "USD"}
+        StarRating={storeServiceScore?.toString() || "0"}
+        minOrderQuantity={sku?.def?.quantityModule?.minOrder?.quantityFormatted || "1"}
         isGoldMember={
-          alibabaProduct.item.company_details?.status?.gold || false
+          alibabaProduct.item?.company_details?.status?.gold || false
         }
         isVerified={
-          alibabaProduct.item.company_details?.status?.verified || false
+          alibabaProduct.item?.company_details?.status?.verified || false
         }
         isAssessed={
-          alibabaProduct.item.company_details?.status?.assessed || false
+          alibabaProduct.item?.company_details?.status?.assessed || false
         }
         BestSeller={false}
         AmazonChoice={false}

@@ -50,7 +50,7 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
     }
   }, [isOpen, product.id]);
 
-  // Product Details Query
+  // Product Details Query - Fetch detailed product info including audience data
   const {
     data: details,
     isLoading: detailsLoading,
@@ -58,11 +58,11 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
   } = useQuery({
     queryKey: ['tiktok-product-details', product.id],
     queryFn: () => getTikTokProductDetails(product.id),
-    enabled: isOpen,
+    enabled: isOpen, // Enabled - fetch when modal opens
     staleTime: 1000 * 60 * 10, // 10 minutes
   });
 
-  // Product Trends Query - Get last 7 days by default
+  // Product Trends Query - DISABLED (endpoint doesn't exist, would return dummy data)
   const {
     data: trendsData,
     isLoading: trendsLoading,
@@ -74,7 +74,7 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
       const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       return getTikTokProductTrends(product.id, startDate, endDate);
     },
-    enabled: isOpen,
+    enabled: false, // Disabled - endpoint doesn't exist in backend
     staleTime: 1000 * 60 * 30, // 30 minutes (trends data changes more frequently)
   });
 
@@ -142,50 +142,68 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
 
             {/* Product Image */}
             <div className="relative mb-4 sm:mb-6 bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-lg">
-              {product.image_url && product.image_url.trim() !== '' ? (
-                <img
-                  src={(() => {
-                    let processedUrl = product.image_url.trim();
-                    // Handle protocol-relative URLs
-                    if (processedUrl.startsWith('//')) {
-                      processedUrl = `https:${processedUrl}`;
-                    }
-                    // Handle TikTok CDN URLs that might need processing
-                    if (processedUrl.includes('tiktokcdn') && !processedUrl.startsWith('http')) {
-                      processedUrl = `https://${processedUrl}`;
-                    }
-                    console.log('🖼️ TikTok Modal Image:', {
-                      original: product.image_url,
-                      processed: processedUrl,
-                      productId: product.id
-                    });
-                    return processedUrl;
-                  })()}
-                  alt={product.title}
-                  className="w-full h-32 sm:h-48 object-cover"
-                  onLoad={() => {
-                    console.log('✅ TikTok modal image loaded successfully');
-                  }}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    console.log('❌ TikTok modal image failed to load:', target.src);
-                    target.style.display = 'none';
-                    const placeholder = target.parentElement?.querySelector('.fallback-placeholder') as HTMLElement;
-                    if (placeholder) {
-                      placeholder.classList.remove('hidden');
-                    }
-                  }}
-                />
-              ) : null}
+              {(() => {
+                // Get image URL - prioritize cover_url from TikTok Creative Center API
+                const imageUrl = (product as any).cover_url || product.image_url || '';
+                const hasImage = imageUrl && imageUrl.trim() !== '';
 
-              {/* Fallback placeholder */}
-              <div className={`fallback-placeholder w-full h-32 sm:h-48 bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center ${product.image_url && product.image_url.trim() !== '' ? 'hidden' : ''}`}>
-                <div className="text-center">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center mx-auto">
-                    <Package className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                  </div>
-                </div>
-              </div>
+                let processedUrl = '';
+                if (hasImage) {
+                  processedUrl = imageUrl.trim();
+                  // Handle protocol-relative URLs
+                  if (processedUrl.startsWith('//')) {
+                    processedUrl = `https:${processedUrl}`;
+                  }
+                  // Handle TikTok CDN URLs that might need processing
+                  else if (processedUrl.includes('tiktokcdn') && !processedUrl.startsWith('http')) {
+                    processedUrl = `https://${processedUrl}`;
+                  }
+                  // Ensure URL starts with http/https
+                  else if (!processedUrl.startsWith('http')) {
+                    processedUrl = `https://${processedUrl}`;
+                  }
+                }
+
+                console.log('🖼️ TikTok Modal Image:', {
+                  cover_url: (product as any).cover_url,
+                  image_url: product.image_url,
+                  processed: processedUrl,
+                  productId: product.id
+                });
+
+                return (
+                  <>
+                    {hasImage && (
+                      <img
+                        src={processedUrl}
+                        alt={product.title}
+                        className="w-full h-32 sm:h-48 object-cover"
+                        onLoad={() => {
+                          console.log('✅ TikTok modal image loaded successfully:', processedUrl);
+                        }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          console.log('❌ TikTok modal image failed to load:', target.src);
+                          target.style.display = 'none';
+                          const placeholder = target.parentElement?.querySelector('.fallback-placeholder') as HTMLElement;
+                          if (placeholder) {
+                            placeholder.classList.remove('hidden');
+                          }
+                        }}
+                      />
+                    )}
+                    {!hasImage && (
+                      <div className="fallback-placeholder w-full h-32 sm:h-48 bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center mx-auto">
+                            <Package className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               {product.video_url && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
@@ -204,9 +222,9 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
 
               <div className="space-y-2 sm:space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xl sm:text-2xl font-bold text-pink-600">
+                  {/* <span className="text-xl sm:text-2xl font-bold text-pink-600">
                     {formatPrice(product.price)}
-                  </span>
+                  </span> */}
                   {product.trending_score > 0 && (
                     <span className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs px-2 py-1 rounded-full">
                       Score: {product.trending_score.toFixed(1)}
@@ -234,7 +252,7 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
                   </div>
                 </div> */}
 
-                {/* Discover Suppliers Button - Moved to left panel */}
+                {/* Discover Suppliers Button */}
                 <button
                   onClick={handleDiscoverSuppliers}
                   disabled={isSupplierDiscoveryLoading || suppliers.length > 0}
@@ -291,9 +309,9 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
                   >
                     <Icon className="w-4 h-4" />
                     <span className="hidden sm:inline">{label}</span>
-                    <span className="sm:hidden">{key === 'overview' ? 'Info' : 'Suppliers'}</span>
+                    <span className="sm:hidden">{key === 'overview' ? 'Info' : key === 'suppliers' ? 'Suppliers' : label}</span>
                     {badge && (
-                      <span className="bg-[#fc8804] text-[#fc8804] text-xs px-2 py-1 rounded-full">
+                      <span className="bg-[#fc8804] text-white text-xs px-2 py-1 rounded-full">
                         {badge}
                       </span>
                     )}
@@ -407,10 +425,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData,
             <span className="text-gray-600">Product ID:</span>
             <span className="font-medium">{product.id}</span>
           </div>
-          <div className="flex justify-between">
+          {/* <div className="flex justify-between">
             <span className="text-gray-600">Price:</span>
             <span className="font-medium text-pink-600">{formatPrice(product.price)}</span>
-          </div>
+          </div> */}
           <div className="flex justify-between">
             <span className="text-gray-600">Country:</span>
             <span className="font-medium">{product.country}</span>
@@ -419,6 +437,24 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData,
             <span className="text-gray-600">Source:</span>
             <span className="font-medium capitalize">{product.source}</span>
           </div>
+          {(product as any).ctr !== undefined && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">CTR (Click-Through Rate):</span>
+              <span className="font-medium text-green-600">{(product as any).ctr}%</span>
+            </div>
+          )}
+          {(product as any).cvr !== undefined && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">CVR (Conversion Rate):</span>
+              <span className="font-medium text-blue-600">{(product as any).cvr}%</span>
+            </div>
+          )}
+          {(product as any).cpa !== undefined && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">CPA (Cost Per Action):</span>
+              <span className="font-medium text-purple-600">${(product as any).cpa}</span>
+            </div>
+          )}
           {product.sales_count && (
             <div className="flex justify-between">
               <span className="text-gray-600">Sales Count:</span>
@@ -433,6 +469,55 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData,
           )}
         </div>
       </div>
+
+      {/* Audience Age Distribution */}
+      {details?.data?.audience_ages && details.data.audience_ages.length > 0 && (
+        <div>
+          <h4 className="font-semibold text-gray-900 mb-3">Audience Age Distribution</h4>
+          <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4">
+            <div className="space-y-3">
+              {details.data.audience_ages.map((age: any, index: number) => {
+                const ageLabel = age.age_level === 18 ? '18-24' :
+                                age.age_level === 25 ? '25-34' :
+                                age.age_level === 35 ? '35-44' :
+                                age.age_level === 45 ? '45-54' :
+                                age.age_level === 55 ? '55+' : `${age.age_level}+`;
+                return (
+                  <div key={index}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium text-gray-700">{ageLabel}</span>
+                      <span className="text-sm font-semibold text-pink-600">{age.score}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-gradient-to-r from-pink-500 to-purple-600 h-2.5 rounded-full transition-all duration-500"
+                        style={{ width: `${age.score}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hashtags */}
+      {details?.data?.hashtags && details.data.hashtags.length > 0 && (
+        <div>
+          <h4 className="font-semibold text-gray-900 mb-3">Trending Hashtags</h4>
+          <div className="flex flex-wrap gap-2">
+            {details.data.hashtags.map((hashtag: string, index: number) => (
+              <span
+                key={index}
+                className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium"
+              >
+                #{hashtag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Product Trends Section */}
       {trendsData && (
@@ -481,12 +566,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData,
         </div>
       )}
 
-      {product.description && !trendsData?.overview && (
-        <div>
-          <h4 className="font-semibold text-gray-900 mb-3">Description</h4>
-          <p className="text-gray-700 leading-relaxed">{product.description}</p>
-        </div>
-      )}
+      {/* Description removed - API doesn't provide product descriptions */}
 
       <div>
         <h4 className="font-semibold text-gray-900 mb-3">Performance Metrics</h4>
