@@ -293,7 +293,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
 
       return response;
     },
-    enabled: activeTab === 'categories' && !!selectedCategoryId, // Only run when in categories tab and a category is selected
+    enabled: activeTab === 'category' && !!selectedCategoryId, // Only run when in category tab and a category is selected
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 1,
     retryDelay: 2000,
