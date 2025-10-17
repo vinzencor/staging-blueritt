@@ -23,6 +23,8 @@ import {
   formatTrendingScore,
   getTrendingBadge,
   sortProductsByTrending,
+  getTopInfluencers,
+  InfluencerProfile,
 } from '@/api/amazonTrends';
 
 import {
@@ -79,6 +81,8 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [categorySearchTerm, setCategorySearchTerm] = useState('');
   const [selectedRootCategory, setSelectedRootCategory] = useState<string | null>(null);
+  const [influencers, setInfluencers] = useState<InfluencerProfile[]>([]);
+  const [influencersLoading, setInfluencersLoading] = useState(false);
 
   // Country list with all supported countries
   const countries = [
@@ -125,6 +129,24 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
 
   // Load Amazon categories from local JSON file
   const { rootCategories, allCategories } = useMemo(() => loadAmazonCategories(), []);
+
+  // Load influencers on component mount
+  React.useEffect(() => {
+    const loadInfluencers = async () => {
+      setInfluencersLoading(true);
+      try {
+        const data = await getTopInfluencers(selectedCountry);
+        setInfluencers(data);
+      } catch (error) {
+        console.error('Error loading influencers:', error);
+        setInfluencers([]);
+      } finally {
+        setInfluencersLoading(false);
+      }
+    };
+
+    loadInfluencers();
+  }, [selectedCountry]);
 
   // Filter categories based on search term
   const filteredCategories = useMemo(() => {
@@ -1276,6 +1298,135 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
             </p>
           </div>
         )}
+      </div>
+
+      {/* Top Influencers Section - Auto Scrolling */}
+      <div className="mt-12 mb-8">
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 p-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Crown className="w-6 h-6 text-purple-600" />
+            Top Influencers
+          </h2>
+
+          {influencersLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin" />
+              <span className="ml-3 text-gray-600">Loading influencers...</span>
+            </div>
+          ) : influencers.length > 0 ? (
+            <div className="relative overflow-hidden">
+              {/* Auto-scrolling container */}
+              <div className="overflow-x-auto scrollbar-hide">
+                <style>{`
+                  @keyframes scroll {
+                    0% { transform: translateY(0); }
+                    100% { transform: translateY(-100%); }
+                  }
+                  .auto-scroll {
+                    animation: scroll 30s linear infinite;
+                  }
+                  .auto-scroll:hover {
+                    animation-play-state: paused;
+                  }
+                  .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                  }
+                  .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                  }
+                `}</style>
+
+                <div className="h-96 overflow-y-auto scrollbar-hide">
+                  <div className="space-y-3">
+                    {/* Display influencers twice for seamless loop */}
+                    {[...influencers, ...influencers].map((influencer, index) => (
+                      <div
+                        key={`${influencer.influencer_name}-${index}`}
+                        className="bg-white rounded-lg p-4 border border-gray-200 hover:border-purple-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Influencer Avatar */}
+                          <div className="flex-shrink-0">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                              {influencer.influencer_name?.charAt(0).toUpperCase() || 'I'}
+                            </div>
+                          </div>
+
+                          {/* Influencer Info */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 truncate">
+                              {influencer.influencer_name || 'Unknown'}
+                            </h3>
+
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
+                              {influencer.follower_count && (
+                                <div className="bg-blue-50 rounded px-2 py-1">
+                                  <span className="text-gray-600">Followers:</span>
+                                  <span className="font-semibold text-blue-600 ml-1">
+                                    {influencer.follower_count}
+                                  </span>
+                                </div>
+                              )}
+                              {influencer.following_count && (
+                                <div className="bg-green-50 rounded px-2 py-1">
+                                  <span className="text-gray-600">Following:</span>
+                                  <span className="font-semibold text-green-600 ml-1">
+                                    {influencer.following_count}
+                                  </span>
+                                </div>
+                              )}
+                              {influencer.post_count && (
+                                <div className="bg-purple-50 rounded px-2 py-1">
+                                  <span className="text-gray-600">Posts:</span>
+                                  <span className="font-semibold text-purple-600 ml-1">
+                                    {influencer.post_count}
+                                  </span>
+                                </div>
+                              )}
+                              {influencer.engagement_rate && (
+                                <div className="bg-orange-50 rounded px-2 py-1">
+                                  <span className="text-gray-600">Engagement:</span>
+                                  <span className="font-semibold text-orange-600 ml-1">
+                                    {influencer.engagement_rate}%
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Bio */}
+                            {influencer.bio && (
+                              <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+                                {influencer.bio}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Verified Badge */}
+                          {influencer.verified && (
+                            <div className="flex-shrink-0">
+                              <div className="bg-blue-100 text-blue-600 rounded-full p-1">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Crown className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-600">No influencers found for {selectedCountry}</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Filter Drawer */}

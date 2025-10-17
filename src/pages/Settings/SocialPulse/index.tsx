@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import ProductExplorer from "./components/ProductExplorer/ProductExplorer";
-import { PlatformBestDealsWidget } from "./components/ProductExplorer/BestDealsWidget";
+import { TopInfluencersWidget } from "./components/ProductExplorer/TopInfluencersWidget";
+import { TikTokTopInfluencersWidget } from "./components/ProductExplorer/TikTokTopInfluencersWidget";
 import TikTokTrends from "./components/TikTokTrends/TikTokTrends";
 
 // Export types for backward compatibility with existing components
@@ -53,8 +54,8 @@ const SocialPage = () => {
   if (isAmazonPage) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30">
-        {/* Fixed Best Deals Widget - True Overlay */}
-        <PlatformBestDealsWidget />
+        {/* Fixed Top Influencers Widget - True Overlay */}
+        <TopInfluencersWidget />
 
         {/* Main Content - Responsive with proper spacing for best deals widget */}
         <div className="p-3 sm:p-5 space-y-8 max-w-[1191px] 2xl:max-w-[1000px]">
@@ -80,8 +81,8 @@ const SocialPage = () => {
   if (isTikTokPage) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/30">
-        {/* Fixed Best Deals Widget */}
-        <PlatformBestDealsWidget />
+        {/* Fixed Top Creators Widget */}
+        <TikTokTopInfluencersWidget />
 
         {/* Main Content - Responsive with proper spacing for best deals widget */}
         <div className="p-3 sm:p-5 space-y-8 max-w-[1191px] 2xl:max-w-[1000px]">

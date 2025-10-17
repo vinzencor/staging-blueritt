@@ -533,13 +533,95 @@ export const sortProductsByTrending = (products: AmazonTrendingProduct[]): Amazo
     // Trending products first
     if (a.source === 'trending' && b.source !== 'trending') return -1;
     if (b.source === 'trending' && a.source !== 'trending') return 1;
-    
+
     // Then by trending score
     if (a.trending_score !== b.trending_score) {
       return b.trending_score - a.trending_score;
     }
-    
+
     // Then by search count
     return b.search_count - a.search_count;
   });
+};
+
+// Influencer types
+export interface InfluencerProfile {
+  influencer_name: string;
+  followers?: number;
+  engagement_rate?: number;
+  bio?: string;
+  profile_image?: string;
+  verified?: boolean;
+  follower_count?: string;
+  following_count?: string;
+  post_count?: string;
+  [key: string]: any;
+}
+
+export interface InfluencerResponse {
+  status: string;
+  data?: InfluencerProfile;
+  error?: string;
+}
+
+// Get influencer profile from RapidAPI
+export const getInfluencerProfile = async (influencerName: string, country: string = 'US'): Promise<InfluencerResponse> => {
+  try {
+    const response = await fetch(
+      `https://real-time-amazon-data.p.rapidapi.com/influencer-profile?influencer_name=${influencerName}&country=${country}`,
+      {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
+          'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      status: 'success',
+      data: data.data || data
+    };
+  } catch (error) {
+    console.error(`Error fetching influencer ${influencerName}:`, error);
+    return {
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+};
+
+// Get all top influencers
+export const getTopInfluencers = async (country: string = 'US'): Promise<InfluencerProfile[]> => {
+  const influencerNames = [
+    'kylerichards18',
+    'paige_desorbo',
+    'jdroberto',
+    'kandionline',
+    'makhondlovu',
+    '_giagiudice',
+    'madison.lecroy',
+    'lalakent',
+    'harryjowsey'
+  ];
+
+  try {
+    const promises = influencerNames.map(name => getInfluencerProfile(name, country));
+    const results = await Promise.all(promises);
+
+    return results
+      .filter(result => result.status === 'success' && result.data)
+      .map(result => ({
+        ...result.data,
+        influencer_name: result.data?.influencer_name || ''
+      }));
+  } catch (error) {
+    console.error('Error fetching influencers:', error);
+    return [];
+  }
 };
