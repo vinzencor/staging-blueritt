@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useDispatch, useSelector } from 'react-redux';
-import { Search, TrendingUp, Star, ShoppingCart, Zap, Play, Heart, MessageCircle, Share, Eye, Package } from 'lucide-react';
+import { TrendingUp, Star, ShoppingCart, Zap, Play, Heart, MessageCircle, Share, Eye, Package } from 'lucide-react';
 import { toast } from 'react-toastify';
 import TikTokProductDetailsModal from './TikTokProductDetailsModal';
 import SearchesAlert from '../../../../../@spk/uielements/SearchesAlert';
@@ -27,8 +26,6 @@ interface TikTokTrendsProps {
 }
 
 const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
-  const dispatch = useDispatch();
-  const selectedAsinProducts = useSelector((state: any) => state.selectedAsinProducts);
 
   // Subscription quota management - Using AmazonSearch quota type for TikTok (valid search type)
   const { quotaDetails, updateQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonSearch);
@@ -75,18 +72,31 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
           updateQuota(response.remaining_quota);
         }
 
+        // Fix: response is already response.data from API, so access products directly
+        const products = response?.data?.products || [];
+        const total = response?.data?.total || 0;
+        const message = response?.data?.message || '';
+
+        console.log('🔍 DEBUG - Response structure:', {
+          hasData: !!response?.data,
+          hasProducts: !!response?.data?.products,
+          productsLength: products.length,
+          total: total,
+          message: message
+        });
+
         // Ensure we always return valid data structure
         return {
           data: {
-            products: response?.data?.products || [],  // ALL products from 3 API pages (~60 products)
-            total: response?.data?.total || 0,
+            products: products,  // ALL products from 3 API pages (~60 products)
+            total: total,
             trending_count: response?.data?.trending_count || 0,
             api_count: response?.data?.api_count || 0,
             page: 1,  // Always page 1 since we get all products
-            limit: response?.data?.products?.length || 0,  // Total products
+            limit: products.length,  // Total products
             total_pages: (response?.data && 'total_pages' in response.data) ? (response.data as any).total_pages : 1,
             has_more: false,  // All products returned at once
-            message: response?.data?.message || ''
+            message: message
           },
           country: response?.country || selectedCountry,
           remaining_quota: response?.remaining_quota || 0
@@ -149,17 +159,30 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
           updateQuota(response.remaining_quota);
         }
 
+        // Fix: response is already response.data from API, so access products directly
+        const products = response?.data?.products || [];
+        const total = response?.data?.total || 0;
+        const message = response?.data?.message || '';
+
+        console.log('🔍 DEBUG - Search Response structure:', {
+          hasData: !!response?.data,
+          hasProducts: !!response?.data?.products,
+          productsLength: products.length,
+          total: total,
+          message: message
+        });
+
         // Return all products
         return {
           data: {
-            products: response?.data?.products || [],  // ALL products from 3 API pages (~60 products)
-            total: response?.data?.total || 0,
+            products: products,  // ALL products from 3 API pages (~60 products)
+            total: total,
             trending_count: 0,
             api_count: response?.data?.api_count || 0,
             page: 1,  // Always page 1 since we get all products
-            limit: response?.data?.products?.length || 0,  // Total products
+            limit: products.length,  // Total products
             total_pages: (response?.data && 'total_pages' in response.data) ? (response.data as any).total_pages : 1,
-            message: response?.data?.message || ''
+            message: message
           },
           query: searchQuery,
           country: selectedCountry,
@@ -227,38 +250,12 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   };
 
   const handleProductClick = (product: TikTokTrendingProduct) => {
-    // Open product details modal
+    // Open product details modal - NO NAVIGATION
     setSelectedProduct(product);
     setIsModalOpen(true);
 
-    // Also handle Redux state for compatibility
-    const productId = product.id;
-    const title = product.title;
-
-    if (!selectedAsinProducts?.includes(productId)) {
-      dispatch({
-        type: "SET_SELECTED_ASIN_PRODUCTS",
-        payload: [...(selectedAsinProducts || []), productId],
-      });
-    }
-
-    dispatch({
-      type: "SET_SCANNER_PRODUCT_DETAILS",
-      payload: {
-        data: {
-          asin: productId, // Using product ID as ASIN equivalent
-          product_title: title,
-        },
-        parameters: {
-          searchCountry: selectedCountry,
-        },
-      },
-    });
-    
-    dispatch({
-      type: "SET_SCANNER_ACTIVE_COMPONENT",
-      payload: "Connect",
-    });
+    // Log for debugging
+    console.log('🎯 TikTok Product clicked:', product.title);
   };
 
 
@@ -554,13 +551,13 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     <div className="w-full max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+          <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center shadow-lg">
             <Play className="w-5 h-5 text-white fill-current" />
           </div>
           TikTok Trends
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Discover viral products and trending items from TikTok creators
         </p>
       </div>
@@ -574,69 +571,13 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
         />
       </div>
 
-      {/* Search Bar */}
-      <div className="mb-6 flex gap-4 items-end">
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Search Products or Hashtags
-          </label>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="e.g., phone case, room decor, #viral"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Region
-          </label>
-          <select
-            value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
-            className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-          >
-            <option value="US">United States</option>
-            <option value="GB">United Kingdom</option>
-            <option value="CA">Canada</option>
-            <option value="AU">Australia</option>
-            <option value="DE">Germany</option>
-            <option value="FR">France</option>
-            <option value="IT">Italy</option>
-            <option value="ES">Spain</option>
-            <option value="JP">Japan</option>
-          </select>
-        </div>
-        
-        <button
-          onClick={handleSearch}
-          disabled={isSearching || !searchQuery.trim()}
-          className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none transition-all duration-200 flex items-center gap-2"
-        >
-          {isSearching ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              Searching...
-            </>
-          ) : (
-            <>
-              <Search className="w-4 h-4" />
-              Search
-            </>
-          )}
-        </button>
-      </div>
-
       {/* Filters for Trending Tab */}
       {activeTab === 'trending' && (
-        <div className="mb-6 space-y-4">
-          {/* First Row: Category, Time Range, Sort By */}
+        <div className="mb-6 space-y-4 bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          {/* First Row: Category, Time Range, Country, Sort By */}
           <div className="flex gap-4 items-end flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Category
               </label>
               <select
@@ -645,7 +586,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   setSearchCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">All Categories</option>
                 <option value="605196">Automotive & Motorbike</option>
@@ -680,7 +621,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             </div>
 
             <div className="min-w-[150px]">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Time Range
               </label>
               <select
@@ -689,16 +630,40 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   setSelectedLast(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="1">Yesterday (1 day)</option>
-  <option value="7">Last 7 days</option>
-  <option value="30">Last 30 days</option>
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+              </select>
+            </div>
+
+            <div className="min-w-[150px]">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Country
+              </label>
+              <select
+                value={selectedCountry}
+                onChange={(e) => {
+                  setSelectedCountry(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="US">United States</option>
+                <option value="GB">United Kingdom</option>
+                <option value="CA">Canada</option>
+                <option value="AU">Australia</option>
+                <option value="DE">Germany</option>
+                <option value="FR">France</option>
+                <option value="IT">Italy</option>
+                <option value="ES">Spain</option>
+                <option value="JP">Japan</option>
               </select>
             </div>
 
             <div className="min-w-[180px]">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Sort By
               </label>
               <select
@@ -707,7 +672,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   setOrderBy(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="post">Popularity (Posts)</option>
                 <option value="post_change">Popularity Change</option>
@@ -724,7 +689,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             </div>
 
             <div className="min-w-[120px]">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                 Order
               </label>
               <select
@@ -733,7 +698,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   setOrderType(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="desc">Highest First</option>
                 <option value="asc">Lowest First</option>
@@ -743,35 +708,29 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Tabs - Only show Trending */}
       <div className="mb-6">
-        <div className="border-b border-gray-200">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="-mb-px flex space-x-8">
-            {[
-              { key: 'trending', label: 'Trending', icon: TrendingUp },
-              { key: 'search', label: 'Search Results', icon: Search },
-            ].map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => {
-                  setActiveTab(key as 'trending' | 'search');
-                  setCurrentPage(1); // Reset to page 1 when switching tabs
-                }}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200 ${
-                  activeTab === key
-                    ? 'border-pink-500 text-pink-600 bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-                {key === 'search' && searchData?.data?.products?.length && (
-                  <span className="bg-pink-100 text-pink-800 text-xs px-2 py-1 rounded-full">
-                    {searchData.data.products.length}
-                  </span>
-                )}
-              </button>
-            ))}
+            <button
+              onClick={() => {
+                setActiveTab('trending');
+                setCurrentPage(1);
+              }}
+              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200 ${
+                activeTab === 'trending'
+                  ? 'border-pink-500 text-pink-600 dark:text-pink-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+              Trending
+              {trendingData?.data?.products?.length && (
+                <span className="bg-pink-100 dark:bg-pink-900/30 text-pink-800 dark:text-pink-300 text-xs px-2 py-1 rounded-full">
+                  {trendingData.data.products.length}
+                </span>
+              )}
+            </button>
           </nav>
         </div>
       </div>
@@ -779,14 +738,27 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       {/* Content */}
       <div className="space-y-6">
         {/* Products Content (Trending & Search) */}
-        {(activeTab === 'trending' || activeTab === 'search') && (
+        {activeTab === 'trending' && (
           <>
-            {isLoading ? (
+            {!searchCategory ? (
+              // Empty state when no category is selected
+              <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center mb-4">
+                  <Package className="w-8 h-8 text-pink-600 dark:text-pink-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Select a Category to Get Started
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-center max-w-md">
+                  Choose a category, time range, and country from the filters above to discover trending TikTok products.
+                </p>
+              </div>
+            ) : isLoading ? (
               <div className="space-y-6">
                 <div className="flex items-center justify-center py-8">
                   <TikTokLoader
                     size="lg"
-                    text={`Loading ${activeTab === 'search' ? 'TikTok search results' : 'trending TikTok products'}...`}
+                    text="Loading trending TikTok products..."
                   />
                 </div>
                 <ProductLoadingSkeleton count={8} />
@@ -850,74 +822,18 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   </div>
                 )}
 
-                {/* Search Pagination with Page Numbers */}
-                {activeTab === 'search' && searchData?.data?.products && searchData.data.products.length > 0 && (
-                  <div className="mt-8 flex justify-center items-center gap-2">
-                    <button
-                      onClick={() => setSearchCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={searchCurrentPage === 1}
-                      className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Previous
-                    </button>
-
-                    {/* Page Numbers */}
-                    <div className="flex items-center gap-1">
-                      {(() => {
-                        const totalProducts = searchData.data.products.length;
-                        const totalPages = Math.ceil(totalProducts / 12);
-                        const pages = [];
-
-                        for (let i = 1; i <= totalPages; i++) {
-                          pages.push(
-                            <button
-                              key={i}
-                              onClick={() => setSearchCurrentPage(i)}
-                              className={`min-w-[40px] h-10 px-3 rounded-lg font-medium transition-all ${
-                                searchCurrentPage === i
-                                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
-                                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                              }`}
-                            >
-                              {i}
-                            </button>
-                          );
-                        }
-
-                        return pages;
-                      })()}
-                    </div>
-
-                    <button
-                      onClick={() => setSearchCurrentPage(prev => prev + 1)}
-                      disabled={searchCurrentPage >= Math.ceil((searchData?.data?.products?.length || 0) / 12)}
-                      className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      Next
-                    </button>
-
-                    {/* Total count */}
-                    <span className="ml-2 text-sm text-gray-600">
-                      ({searchData.data.products.length} total products)
-                    </span>
-                  </div>
-                )}
               </>
             ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gradient-to-r from-[#eb5929c7] to-[#0037a2] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Play className="w-8 h-8 text-white fill-current" />
+              <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Package className="w-8 h-8 text-pink-600 dark:text-pink-400" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {activeTab === 'search' ? 'No search results found' : 'No trending products available'}
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  No trending products available
                 </h3>
-                <p className="text-gray-500 mb-2">
-                  {activeTab === 'search'
-                    ? searchData?.data?.message || 'Try searching for different keywords or hashtags'
-                    : trendingData?.data?.message || 'Check back later for the latest trending products'
-                  }
+                <p className="text-gray-600 dark:text-gray-400 mb-2">
+                  {trendingData?.data?.message || 'Check back later for the latest trending products'}
                 </p>
-           
               </div>
             )}
           </>

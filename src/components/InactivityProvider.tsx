@@ -23,11 +23,11 @@ interface InactivityProviderProps {
 
 export const InactivityProvider: React.FC<InactivityProviderProps> = ({ children }) => {
   const location = useLocation();
-  
+
   // Don't enable inactivity detection on login/register pages
   const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password'].includes(location.pathname);
   const isAuthenticated = !!localStorage.getItem('access_token');
-  
+
   const {
     isInactive,
     showAlert,
@@ -36,11 +36,11 @@ export const InactivityProvider: React.FC<InactivityProviderProps> = ({ children
     handleStayLoggedIn,
     timeUntilInactive
   } = useInactivityDetection({
-    // Use 30 seconds in development for testing, 20 minutes in production
-    timeout: process.env.NODE_ENV === 'development' ? 30 * 1000 : 20 * 60 * 1000,
+    // Use 2 minutes for inactivity warning (120 seconds)
+    timeout: 2 * 60 * 1000,
     enabled: isAuthenticated && !isAuthPage,
     onInactivity: () => {
-      console.log('User inactivity detected after', process.env.NODE_ENV === 'development' ? '30 seconds' : '20 minutes');
+      console.log('User inactivity detected after 2 minutes');
     },
     onSignOut: () => {
       console.log('User signed out due to inactivity');

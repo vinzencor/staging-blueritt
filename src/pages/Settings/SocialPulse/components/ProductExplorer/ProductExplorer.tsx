@@ -502,18 +502,18 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   return (
     <div className="space-y-6">
       {/* Header and Controls */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-md dark:shadow-lg">
         <div className="p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Product Explorer</h2>
-              <p className="text-gray-600">Discover trending products, search by keywords, or browse by category</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Product Explorer</h2>
+              <p className="text-gray-600 dark:text-gray-400">Discover trending products, search by keywords, or browse by category</p>
             </div>
             
                  
             
             {/* View Mode Tabs */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
               <button
                 onClick={() => {
                   setViewMode('best-sellers');
@@ -521,8 +521,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 }}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   viewMode === 'best-sellers'
-                    ? 'bg-white text-orange-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-800 text-orange-600 dark:text-orange-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
                 <TrendingUp className="w-4 h-4 inline mr-2" />
@@ -532,8 +532,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 onClick={() => setViewMode('search')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   viewMode === 'search'
-                    ? 'bg-white text-[#ffa41c] shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-800 text-[#ffa41c] dark:text-orange-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
                 <Search className="w-4 h-4 inline mr-2" />
@@ -543,8 +543,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 onClick={() => setViewMode('category')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   viewMode === 'category'
-                    ? 'bg-white text-green-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                 }`}
               >
                 <Package className="w-4 h-4 inline mr-2" />
@@ -568,7 +568,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               {/* Country, Type, and Category Selectors */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Select Country
                   </label>
                   <select
@@ -577,7 +577,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       setCountry(e.target.value);
                       setSelectedCategoryId(''); // Reset selected category when country changes
                     }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     {countries.map((countryOption) => (
                       <option key={countryOption.code} value={countryOption.code}>
@@ -588,7 +588,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Amazon Trends Type
                   </label>
                   <select
@@ -602,7 +602,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         refetchBestSellers();
                       }
                     }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     {amazonTrendsTypes.map((type) => (
                       <option key={type.value} value={type.value} title={type.description}>
@@ -613,7 +613,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Select Category (Optional)
                   </label>
                   <select
@@ -630,7 +630,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         refetchBestSellers();
                       }
                     }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     disabled={bestSellerCategoriesLoading}
                   >
                     <option value="">All Categories</option>
@@ -644,13 +644,13 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               </div>
 
               {/* Type Description */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 rounded-lg p-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-blue-900">
+                  <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
+                  <span className="text-sm font-medium text-blue-900 dark:text-blue-300">
                     {amazonTrendsTypes.find(type => type.value === selectedType)?.name}:
                   </span>
-                  <span className="text-sm text-blue-700">
+                  <span className="text-sm text-blue-700 dark:text-gray-300">
                     {amazonTrendsTypes.find(type => type.value === selectedType)?.description}
                   </span>
                 </div>
@@ -668,17 +668,17 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
 
               {/* Selected Category Display */}
               {selectedCategoryId && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div className="bg-orange-50 dark:bg-gray-800 border border-orange-200 dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-semibold">
-                        <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                      <span className="inline-flex items-center gap-1 bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 px-3 py-1 rounded-full text-xs font-semibold">
+                        <span className="w-1.5 h-1.5 bg-orange-500 dark:bg-orange-400 rounded-full"></span>
                         Category Selected
                       </span>
-                      <span className="text-sm text-gray-700 font-medium">
+                      <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                         {bestSellerCategories.find(cat => cat.category_path === selectedCategoryId)?.name || 'Selected Category'}
                       </span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                         {amazonTrendsTypes.find(type => type.value === selectedType)?.name}
                       </span>
                     </div>
@@ -689,7 +689,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         setPage(1);
                         refetchBestSellers();
                       }}
-                      className="text-orange-600 hover:text-orange-800 text-sm font-medium"
+                      className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 text-sm font-medium"
                     >
                       Clear Category
                     </button>
@@ -709,13 +709,13 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="Search for products..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
               <button
                 onClick={handleSearch}
                 disabled={!searchQuery.trim() || searchLoading}
-                className="px-6 py-2 bg-[#ffa41c] text-white rounded-lg hover:bg-[#ff6201] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2 bg-[#ffa41c] hover:bg-[#ff6201] dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
               >
                 <Search className="w-4 h-4" />
                 Search
@@ -729,7 +729,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               {/* Country Selector */}
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Select Country
                   </label>
                   <select
@@ -738,7 +738,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       setCountry(e.target.value);
                       setSelectedCategoryId(''); // Reset selected category when country changes
                     }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     {countries.map((countryOption) => (
                       <option key={countryOption.code} value={countryOption.code}>
@@ -752,11 +752,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               {/* Category Chips - Using Local JSON Categories */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <label className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></div>
+                  <label className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     Amazon Categories
                   </label>
-                  <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
                     {localRootCategories.length} main categories
                   </div>
                 </div>
@@ -765,7 +765,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   {/* Main Categories */}
                   {!selectedLocalRootCategory && (
                     <div className="m-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Main Categories</h4>
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Main Categories</h4>
                       <div className="flex flex-wrap gap-3">
                         {localRootCategories.map((category, index) => (
                           <button
@@ -773,17 +773,16 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                             onClick={() => {
                               setSelectedLocalRootCategory(category.id);
                             }}
-                            className="group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden bg-white border-2 border-blue-200 text-gray-700 hover:border-blue-400 hover:shadow-lg hover:transform hover:scale-102 hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100"
+                            className="group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-800 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:transform hover:scale-102"
                           >
                             <div className="flex items-center gap-2 px-3 py-1">
                               <span className="text-xs font-bold">{category.name}</span>
                               {category.has_children && (
-                                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                                <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">
                                   {getSubcategories(category.id).length}
                                 </span>
                               )}
                             </div>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                           </button>
                         ))}
                       </div>
@@ -799,12 +798,12 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                             setSelectedLocalRootCategory('');
                             setSelectedCategoryId('');
                           }}
-                          className="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1"
+                          className="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm flex items-center gap-1"
                         >
                           ← Back to Main Categories
                         </button>
                       </div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
                         {localRootCategories.find(cat => cat.id === selectedLocalRootCategory)?.name} Subcategories
                       </h4>
                       <div className="flex flex-wrap gap-3">
@@ -816,8 +815,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                               onClick={() => handleCategoryChipSelect(category.id)}
                               className={`group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden ${
                                 isSelected
-                                  ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-xl transform scale-105 ring-4 ring-green-200'
-                                  : 'bg-white border-2 border-blue-200 text-gray-700 hover:border-blue-400 hover:shadow-lg hover:transform hover:scale-102 hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100'
+                                  ? 'bg-green-500 dark:bg-green-600 text-white shadow-xl transform scale-105 ring-4 ring-green-200 dark:ring-green-800'
+                                  : 'bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-800 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:transform hover:scale-102'
                               }`}
                               title={`Click to browse ${category.name}`}
                             >
@@ -827,7 +826,6 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                                   <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                                 )}
                               </div>
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                             </button>
                           );
                         })}
@@ -937,10 +935,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           </div>
         ) : finalError ? (
           <div className="p-12 text-center">
-            <div className="text-red-500 mb-4">
+            <div className="text-red-500 dark:text-red-400 mb-4">
               <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">Error Loading Products</h3>
-              <p className="text-gray-600 mb-4">
+              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Error Loading Products</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 {finalError?.message || 'Failed to load products. Please try again.'}
               </p>
               <button
@@ -949,7 +947,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   else if (viewMode === 'search') refetchSearch();
                   else if (viewMode === 'category') refetchCategory();
                 }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800"
               >
                 Try Again
               </button>
@@ -957,10 +955,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           </div>
         ) : products.length === 0 ? (
           <div className="p-12 text-center">
-            <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Products Found</h3>
-            <p className="text-gray-600">
-              {viewMode === 'search' 
+            <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-gray-400 dark:text-gray-600" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Products Found</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              {viewMode === 'search'
                 ? 'Try adjusting your search terms or browse our best sellers.'
                 : viewMode === 'category'
                 ? 'No products found in this category. Try selecting a different categorys.'
@@ -968,7 +966,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
             </p>
           </div>
         ) : (
-          <div className="p-6">
+          <div className="p-6 bg-black">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product: any, index: number) => (
                 <ProductCard
@@ -1005,9 +1003,9 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl transition-shadow duration-300">
       {/* Product Image */}
-      <div className="relative h-48 bg-gray-50">
+      <div className="relative h-48 bg-gray-50 dark:bg-gray-900">
         <img
           src={getProductImageUrl(product)}
           alt={product.product_title}
@@ -1030,18 +1028,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => 
 
       {/* Product Info */}
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 hover:text-[#de7a22] text-sm line-clamp-2 mb-2">
+        <h3 className="font-semibold text-gray-900 dark:text-white hover:text-[#de7a22] dark:hover:text-orange-400 text-sm line-clamp-2 mb-2">
           {product.product_title}
         </h3>
-        
+
         {/* Price and Rating */}
         <div className="flex items-center justify-between mb-3">
-          <span className="text-lg font-bold text-green-600">
+          <span className="text-lg font-bold text-green-600 dark:text-green-400">
             {formatPrice(product.product_price || '')}
           </span>
           {product.product_star_rating && (
-            <div className="flex items-center text-sm text-[#2262a1]">
-              <Star className="w-4 h-4 text-[#de7a22] fill-current mr-1" />
+            <div className="flex items-center text-sm text-[#2262a1] dark:text-blue-400">
+              <Star className="w-4 h-4 text-[#de7a22] dark:text-orange-400 fill-current mr-1" />
               <span className=''>{formatRating(product.product_star_rating)}</span>
               <span className="ml-1">({formatReviewCount(product.product_num_ratings || 0)})</span>
             </div>
@@ -1051,10 +1049,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => 
         {/* Badges */}
         <div className="flex flex-wrap gap-1 mb-3">
           {product.is_prime && (
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Prime</span>
+            <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 px-2 py-1 rounded">Prime</span>
           )}
           {product.climate_pledge_friendly && (
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Climate Pledge</span>
+            <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 px-2 py-1 rounded">Climate Pledge</span>
           )}
         </div>
 
@@ -1062,7 +1060,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => 
         <div className="flex gap-2">
           <button
             onClick={onViewDetails}
-            className="flex-1 bg-[#fc8804]  text-white py-2 px-3 rounded-lg hover:bg-[#ff6201] transition-colors text-sm flex items-center justify-center gap-1"
+            className="flex-1 bg-[#fc8804] dark:bg-orange-600 text-white py-2 px-3 rounded-lg hover:bg-[#ff6201] dark:hover:bg-orange-700 transition-colors text-sm flex items-center justify-center gap-1"
           >
             <Eye className="w-4 h-4" />
             View Details
@@ -1071,7 +1069,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => 
             href={getAmazonUrl(product)}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors text-sm flex items-center justify-center"
+            className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm flex items-center justify-center"
           >
             <ExternalLink className="w-4 h-4" />
           </a>

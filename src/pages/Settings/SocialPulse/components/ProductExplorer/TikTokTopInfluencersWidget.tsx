@@ -47,13 +47,13 @@ if (typeof document !== 'undefined') {
 const LoadingSkeleton: React.FC = () => (
   <div className="space-y-3">
     {Array.from({ length: 3 }).map((_, index) => (
-      <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 animate-pulse">
+      <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 animate-pulse">
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+          <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
           <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-24"></div>
-            <div className="h-3 bg-gray-200 rounded w-32"></div>
-            <div className="h-3 bg-gray-200 rounded w-28"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
           </div>
         </div>
       </div>
@@ -64,9 +64,9 @@ const LoadingSkeleton: React.FC = () => (
 // Empty State Component
 const EmptyState: React.FC = () => (
   <div className="flex flex-col items-center justify-center py-8 text-center">
-    <Crown className="w-12 h-12 text-gray-400 mb-3" />
-    <h3 className="text-sm font-semibold text-gray-900 mb-1">No Influencers Available</h3>
-    <p className="text-xs text-gray-600">Check back later for top TikTok influencers!</p>
+    <Crown className="w-12 h-12 text-gray-400 dark:text-gray-600 mb-3" />
+    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">No Creators Available</h3>
+    <p className="text-xs text-gray-600 dark:text-gray-400">Check back later for top TikTok creators!</p>
   </div>
 );
 
@@ -87,7 +87,7 @@ const TikTokInfluencerCard: React.FC<{ influencer: TikTokInfluencer }> = ({ infl
   return (
     <div
       onClick={handleClick}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-pink-400 hover:shadow-md transition-all duration-300 p-3 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3 cursor-pointer"
     >
       <div className="flex items-start gap-3">
         {/* Avatar */}
@@ -236,15 +236,10 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div
-          className="bg-white backdrop-blur-md rounded-2xl border border-white/30 transition-all duration-300 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center">
-              <Crown className="w-5 h-5 mr-2 text-pink-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+              <Crown className="w-5 h-5 mr-2 text-pink-600 dark:text-pink-400" />
               Top Creators
             </h2>
           </div>
@@ -252,7 +247,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
             {isLoading ? (
               <LoadingSkeleton />
             ) : error ? (
-              <div className="flex items-center gap-2 text-red-600 text-sm p-3 bg-red-50 rounded-lg">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                 <AlertCircle className="w-4 h-4" />
                 {error}
               </div>
@@ -276,15 +271,10 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div
-          className="bg-white/98 backdrop-blur-md rounded-2xl border border-white/30 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div className="p-3 border-b border-gray-200">
-            <h2 className="text-base font-bold text-gray-900 flex items-center">
-              <Crown className="w-4 h-4 mr-2 text-pink-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center">
+              <Crown className="w-4 h-4 mr-2 text-pink-600 dark:text-pink-400" />
               Top Creators
             </h2>
           </div>
@@ -292,7 +282,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
             {isLoading ? (
               <LoadingSkeleton />
             ) : error ? (
-              <div className="flex items-center gap-2 text-red-600 text-xs p-2 bg-red-50 rounded">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs p-2 bg-red-50 dark:bg-red-900/20 rounded">
                 <AlertCircle className="w-3 h-3" />
                 {error}
               </div>
@@ -316,15 +306,10 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div
-          className="bg-white/95 backdrop-blur-md rounded-xl border border-white/30 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div className="p-3 border-b border-gray-200">
-            <h2 className="text-sm font-bold text-gray-900 flex items-center">
-              <Crown className="w-4 h-4 mr-2 text-pink-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white flex items-center">
+              <Crown className="w-4 h-4 mr-2 text-pink-600 dark:text-pink-400" />
               <span className="truncate">Top Creators</span>
             </h2>
           </div>
@@ -332,7 +317,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
             {isLoading ? (
               <LoadingSkeleton />
             ) : error ? (
-              <div className="flex items-center gap-2 text-red-600 text-xs p-2 bg-red-50 rounded">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs p-2 bg-red-50 dark:bg-red-900/20 rounded">
                 <AlertCircle className="w-3 h-3" />
                 {error}
               </div>

@@ -60,13 +60,13 @@ const INFLUENCER_NAMES = [
 const LoadingSkeleton: React.FC = () => (
   <div className="space-y-3">
     {Array.from({ length: 3 }).map((_, index) => (
-      <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 animate-pulse">
+      <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 animate-pulse">
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+          <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
           <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-24"></div>
-            <div className="h-3 bg-gray-200 rounded w-32"></div>
-            <div className="h-3 bg-gray-200 rounded w-28"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
           </div>
         </div>
       </div>
@@ -77,9 +77,9 @@ const LoadingSkeleton: React.FC = () => (
 // Empty State Component
 const EmptyState: React.FC = () => (
   <div className="flex flex-col items-center justify-center py-8 text-center">
-    <Crown className="w-12 h-12 text-gray-400 mb-3" />
-    <h3 className="text-sm font-semibold text-gray-900 mb-1">No Influencers Available</h3>
-    <p className="text-xs text-gray-600">Check back later for top influencers!</p>
+    <Crown className="w-12 h-12 text-gray-400 dark:text-gray-600 mb-3" />
+    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">No Influencers Available</h3>
+    <p className="text-xs text-gray-600 dark:text-gray-400">Check back later for top influencers!</p>
   </div>
 );
 
@@ -94,7 +94,7 @@ const InfluencerCard: React.FC<{ influencer: Influencer }> = ({ influencer }) =>
   return (
     <div
       onClick={handleClick}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 hover:border-purple-400 hover:shadow-md transition-all duration-300 p-3 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3 cursor-pointer"
     >
       <div className="flex items-start gap-3">
         {/* Avatar */}
@@ -107,11 +107,11 @@ const InfluencerCard: React.FC<{ influencer: Influencer }> = ({ influencer }) =>
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900 text-sm truncate">
+            <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
               {influencer.influencer_name || 'Unknown'}
             </h3>
             {influencer.verified && (
-              <div className="flex-shrink-0 bg-blue-100 text-blue-600 rounded-full p-0.5">
+              <div className="flex-shrink-0 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-full p-0.5">
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
@@ -122,22 +122,22 @@ const InfluencerCard: React.FC<{ influencer: Influencer }> = ({ influencer }) =>
           {/* Stats */}
           <div className="grid grid-cols-2 gap-1.5 mt-2 text-xs">
             {influencer.followers && (
-              <div className="bg-blue-50 rounded px-1.5 py-0.5">
-                <span className="text-gray-600">👥 </span>
-                <span className="font-semibold text-blue-600">{influencer.followers}</span>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded px-1.5 py-0.5">
+                <span className="text-gray-600 dark:text-gray-400">👥 </span>
+                <span className="font-semibold text-blue-600 dark:text-blue-400">{influencer.followers}</span>
               </div>
             )}
             {influencer.post_count && (
-              <div className="bg-purple-50 rounded px-1.5 py-0.5">
-                <span className="text-gray-600">📸 </span>
-                <span className="font-semibold text-purple-600">{influencer.post_count}</span>
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded px-1.5 py-0.5">
+                <span className="text-gray-600 dark:text-gray-400">📸 </span>
+                <span className="font-semibold text-purple-600 dark:text-purple-400">{influencer.post_count}</span>
               </div>
             )}
           </div>
 
           {/* Bio */}
           {influencer.bio && (
-            <p className="text-xs text-gray-600 mt-1.5 line-clamp-2">
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1.5 line-clamp-2">
               {influencer.bio}
             </p>
           )}
@@ -263,15 +263,10 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div
-          className="bg-white backdrop-blur-md rounded-2xl border border-white/30 transition-all duration-300 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center">
-              <Crown className="w-5 h-5 mr-2 text-purple-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+              <Crown className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
               Top Influencers
             </h2>
           </div>
@@ -303,15 +298,10 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div
-          className="bg-white/98 backdrop-blur-md rounded-2xl border border-white/30 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div className="p-3 border-b border-gray-200">
-            <h2 className="text-base font-bold text-gray-900 flex items-center">
-              <Crown className="w-4 h-4 mr-2 text-purple-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center">
+              <Crown className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
               Top Influencers
             </h2>
           </div>
@@ -343,15 +333,10 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div
-          className="bg-white/95 backdrop-blur-md rounded-xl border border-white/30 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div className="p-3 border-b border-gray-200">
-            <h2 className="text-sm font-bold text-gray-900 flex items-center">
-              <Crown className="w-4 h-4 mr-2 text-purple-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white flex items-center">
+              <Crown className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
               <span className="truncate">Top Influencers</span>
             </h2>
           </div>

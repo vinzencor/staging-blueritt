@@ -1062,19 +1062,10 @@ export const PlatformBestDealsWidget: React.FC<{ className?: string }> = ({ clas
         ${className}
       `}>
         <div
-          className="bg-white backdrop-blur-md rounded-2xl border border-white/30 transition-all duration-300 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = '0 35px 60px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-          }}
+          className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg"
         >
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
               <ShoppingCart className={`w-5 h-5 mr-2 ${themeColors.accent}`} />
               {platformTitle}
             </h2>
@@ -1103,13 +1094,10 @@ export const PlatformBestDealsWidget: React.FC<{ className?: string }> = ({ clas
         ${className}
       `}>
         <div
-          className="bg-white/98 backdrop-blur-md rounded-2xl border border-white/30 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
+          className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md dark:shadow-lg"
         >
-          <div className="p-3 border-b border-gray-200">
-            <h2 className="text-base font-bold text-gray-900 flex items-center">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center">
               <ShoppingCart className={`w-4 h-4 mr-2 ${themeColors.accent}`} />
               {platformTitle}
             </h2>
@@ -1138,13 +1126,10 @@ export const PlatformBestDealsWidget: React.FC<{ className?: string }> = ({ clas
         ${className}
       `}>
         <div
-          className="bg-white/95 backdrop-blur-md rounded-xl border border-white/30 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
+          className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md dark:shadow-lg"
         >
-          <div className="p-3 border-b border-gray-200">
-            <h2 className="text-sm font-bold text-gray-900 flex items-center">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white flex items-center">
               <ShoppingCart className={`w-4 h-4 mr-2 ${themeColors.accent}`} />
               <span className="truncate">{platformTitle}</span>
             </h2>
@@ -1173,13 +1158,10 @@ export const PlatformBestDealsWidget: React.FC<{ className?: string }> = ({ clas
         ${className}
       `}>
         <div
-          className="bg-white/98 backdrop-blur-md border-t border-white/30 ring-1 ring-black/5"
-          style={{
-            boxShadow: '0 -25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-          }}
+          className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-md dark:shadow-lg"
         >
-          <div className="p-3 border-b border-gray-200">
-            <h2 className="text-sm font-bold text-gray-900 flex items-center justify-center">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white flex items-center justify-center">
               <ShoppingCart className={`w-4 h-4 mr-2 ${themeColors.accent}`} />
               {platformTitle}
             </h2>
