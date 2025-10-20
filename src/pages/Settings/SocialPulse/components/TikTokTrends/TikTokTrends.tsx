@@ -1,855 +1,1688 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { TrendingUp, Package, Filter, Search, CheckCircle, Loader2, Eye, ExternalLink, Heart, MessageCircle, Share2, Play, Zap, Truck, Save, X, Calculator, AlertCircle, ShoppingCart } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { TrendingUp, Star, ShoppingCart, Zap, Play, Heart, MessageCircle, Share, Eye, Package } from 'lucide-react';
-import { toast } from 'react-toastify';
-import TikTokProductDetailsModal from './TikTokProductDetailsModal';
-import SearchesAlert from '../../../../../@spk/uielements/SearchesAlert';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
-import LoadingSpinner from '../../../../../components/LoadingSpinner';
-import ProductLoadingSkeleton from '../../../../../components/ProductLoadingSkeleton';
-import TikTokLoader from '../../../../../components/TikTokLoader';
+import { discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopProduct, type TikTokShopAnalysisResponse } from '../../../../../api/tiktokTrends';
+import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
+import { usePersistentQuota } from '../../../../../hooks/usePersistentQuota';
 
-// Import TikTok API functions
-import {
-  searchTikTokProducts,
-  getTikTokTrendingProducts,
-  formatNumber,
-  formatPrice,
-  formatTrendingScore,
-  type TikTokTrendingProduct,
-  type TikTokSearchParams
-} from '@/api/tiktokTrends';
+// TikTok Categories with IDs
+const TIKTOK_CATEGORIES = [
+  { id: '605196', name: 'Automotive & Motorbike' },
+  { id: '602284', name: 'Baby & Maternity' },
+  { id: '601450', name: 'Beauty & Personal Care' },
+  { id: '801928', name: 'Books, Magazines & Audio' },
+  { id: '951432', name: 'Collectibles' },
+  { id: '601755', name: 'Computers & Office Equipment' },
+  { id: '605248', name: 'Fashion Accessories' },
+  { id: '700437', name: 'Food & Beverages' },
+  { id: '604453', name: 'Furniture' },
+  { id: '700645', name: 'Health' },
+  { id: '604968', name: 'Home Improvement' },
+  { id: '600001', name: 'Home Supplies' },
+  { id: '600942', name: 'Household Appliances' },
+  { id: '953224', name: 'Jewellery, Accessories & Derivatives' },
+  { id: '802184', name: 'Kids Fashion' },
+  { id: '600024', name: 'Kitchenware' },
+  { id: '824584', name: 'Luggage & Bags' },
+  { id: '824328', name: 'Menswear & Men\'s Underwear' },
+  { id: '601303', name: 'Muslim Fashion' },
+  { id: '602118', name: 'Pet Supplies' },
+  { id: '601739', name: 'Phones & Electronics' },
+  { id: '601352', name: 'Shoes' },
+  { id: '603014', name: 'Sports & Outdoor' },
+  { id: '600154', name: 'Textiles & Soft Furnishings' },
+  { id: '604579', name: 'Tools & Hardware' },
+  { id: '604206', name: 'Toys & Hobbies' },
+  { id: '834312', name: 'Virtual Products' },
+  { id: '601152', name: 'Womenswear & Women\'s Underwear' },
+];
+
+// Time range options
+const TIME_RANGES = [
+  { value: '1', label: 'Yesterday' },
+  { value: '7', label: 'Last 7 days' },
+  { value: '30', label: 'Last 30 days' },
+];
+
+// Sort options
+const SORT_OPTIONS = [
+  { value: 'post', label: 'Popularity' },
+  { value: 'post_change', label: 'Popularity change' },
+  { value: 'ctr', label: 'CTR' },
+  { value: 'cvr', label: 'CVR' },
+  { value: 'cpa', label: 'CPA' },
+  { value: 'cost', label: 'Cost' },
+  { value: 'like', label: 'Likes' },
+  { value: 'share', label: 'Shares' },
+  { value: 'comment', label: 'Comments' },
+  { value: 'impression', label: 'Impressions' },
+  { value: 'play_six_rate', label: '6s view rate' },
+];
+
+// Country options
+const COUNTRY_OPTIONS = [
+  { value: 'US', label: 'United States' },
+  { value: 'GB', label: 'United Kingdom' },
+  { value: 'CA', label: 'Canada' },
+  { value: 'AU', label: 'Australia' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'FR', label: 'France' },
+  { value: 'IT', label: 'Italy' },
+  { value: 'ES', label: 'Spain' },
+  { value: 'JP', label: 'Japan' },
+  { value: 'KR', label: 'South Korea' },
+  { value: 'IN', label: 'India' },
+  { value: 'BR', label: 'Brazil' },
+  { value: 'MX', label: 'Mexico' },
+  { value: 'SG', label: 'Singapore' },
+  { value: 'MY', label: 'Malaysia' },
+  { value: 'TH', label: 'Thailand' },
+  { value: 'VN', label: 'Vietnam' },
+  { value: 'PH', label: 'Philippines' },
+  { value: 'ID', label: 'Indonesia' },
+];
+
+// TikTok API function
+const fetchTikTokTrendingProducts = async (params: {
+  category_id?: string;
+  last?: string;
+  order_by?: string;
+  order_type?: string;
+  keyword?: string;
+  country_code?: string;
+  page?: number;
+}) => {
+  const queryParams = new URLSearchParams();
+
+  if (params.category_id) queryParams.append('category_id', params.category_id);
+  if (params.last) queryParams.append('last', params.last);
+  if (params.order_by) queryParams.append('order_by', params.order_by);
+  if (params.order_type) queryParams.append('order_type', params.order_type);
+  if (params.keyword) queryParams.append('keyword', params.keyword);
+  if (params.country_code) queryParams.append('country_code', params.country_code);
+  if (params.page) queryParams.append('page', params.page.toString());
+
+  const response = await fetch(`https://tiktok-creative-center-api.p.rapidapi.com/api/trending/top-products?${queryParams}`, {
+    method: 'GET',
+    headers: {
+      'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
+      'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 interface TikTokTrendsProps {
-  onProductSelect?: (product: TikTokTrendingProduct) => void;
+  onProductSelect?: (product: any) => void;
 }
 
 const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
+  // Persistent quota management
+  const { quotas, reduceQuota, increaseQuota, hasQuota } = usePersistentQuota();
 
-  // Subscription quota management - Using AmazonSearch quota type for TikTok (valid search type)
-  const { quotaDetails, updateQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonSearch);
-  const [searchQuery, setSearchQuery] = useState('');
+  // Subscription quota management
+  const { quotaDetails, updateQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokAnalysis);
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
+
+  // State management
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedTimeRange, setSelectedTimeRange] = useState('7');
+  const [selectedSortBy, setSelectedSortBy] = useState('post');
+  const [selectedSortOrder, setSelectedSortOrder] = useState('desc');
+  const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('US');
-  const [activeTab, setActiveTab] = useState<'trending' | 'search'>('trending');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchCategory, setSearchCategory] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [selectedLast, setSelectedLast] = useState('7'); // 1, 7, or 30 days
-  const [searchCurrentPage, setSearchCurrentPage] = useState(1); // Separate pagination for search results
+  const [shouldFetch, setShouldFetch] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [showAddOnsModal, setShowAddOnsModal] = useState(false);
 
-  // New filter states for trending
-  const [orderBy, setOrderBy] = useState('post'); // post, ctr, cvr, cpa, cost, like, share, comment, impression, play_six_rate
-  const [orderType, setOrderType] = useState('desc'); // asc or desc
+  // Supplier discovery state
+  const [suppliers, setSuppliers] = useState<SupplierInfo[]>([]);
+  const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
+  const [supplierAnalysisTime, setSupplierAnalysisTime] = useState(0);
+  const [activeModalTab, setActiveModalTab] = useState<'overview' | 'suppliers' | 'shop-analysis'>('overview');
 
-  // Product Details Modal State
-  const [selectedProduct, setSelectedProduct] = useState<TikTokTrendingProduct | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Profit calculator state
+  const [selectedSupplier, setSelectedSupplier] = useState<SupplierInfo | null>(null);
+  const [showProfitCalculator, setShowProfitCalculator] = useState(false);
 
-  // Real API queries - Backend now fetches 5 pages and returns ALL products (~100 products)
-  // Frontend handles client-side pagination (12 per page)
-  const { data: trendingData, isLoading: trendingLoading, error: trendingError } = useQuery({
-    queryKey: ['tiktok-trending', selectedCountry, searchCategory, selectedLast, orderBy, orderType],  // Added orderBy and orderType
-    queryFn: async () => {
-      try {
-        const response = await getTikTokTrendingProducts({
-          country: selectedCountry,
-          limit: 12,  // Not used by backend, but kept for compatibility
-          page: 1,  // Always page 1 - backend fetches 3 pages internally
-          category: searchCategory,
-          last: selectedLast,
-          keyword: 'bestseller',  // Use "bestseller" keyword to fetch bestselling products
-          order_by: orderBy,  // Sort field: post, ctr, cvr, cpa, cost, like, share, comment, impression, play_six_rate
-          order_type: orderType  // Sort order: asc or desc
-        });
+  // Shop analysis state
+  const [shopAnalysisData, setShopAnalysisData] = useState<TikTokShopAnalysisResponse | null>(null);
+  const [isShopAnalysisLoading, setIsShopAnalysisLoading] = useState(false);
+  const [shopAnalysisError, setShopAnalysisError] = useState<string | null>(null);
 
-        console.log('🔄 TikTok Trending Response (ALL products from 3 API pages):', response);
-        console.log(`📊 Total products received: ${response?.data?.products?.length || 0}`);
-
-        // Update quota if remaining_quota is provided in response
-        if (response?.remaining_quota !== undefined) {
-          console.log('🔄 TikTok Trending - Updating quota:', response.remaining_quota);
-          updateQuota(response.remaining_quota);
-        }
-
-        // Fix: response is already response.data from API, so access products directly
-        const products = response?.data?.products || [];
-        const total = response?.data?.total || 0;
-        const message = response?.data?.message || '';
-
-        console.log('🔍 DEBUG - Response structure:', {
-          hasData: !!response?.data,
-          hasProducts: !!response?.data?.products,
-          productsLength: products.length,
-          total: total,
-          message: message
-        });
-
-        // Ensure we always return valid data structure
-        return {
-          data: {
-            products: products,  // ALL products from 3 API pages (~60 products)
-            total: total,
-            trending_count: response?.data?.trending_count || 0,
-            api_count: response?.data?.api_count || 0,
-            page: 1,  // Always page 1 since we get all products
-            limit: products.length,  // Total products
-            total_pages: (response?.data && 'total_pages' in response.data) ? (response.data as any).total_pages : 1,
-            has_more: false,  // All products returned at once
-            message: message
-          },
-          country: response?.country || selectedCountry,
-          remaining_quota: response?.remaining_quota || 0
-        };
-      } catch (error: any) {
-        console.error('TikTok Trending API Error:', error);
-
-        // Handle insufficient credits error (402)
-        if (error?.response?.status === 402) {
-          const errorData = error.response?.data;
-          toast.error(errorData?.message || 'You have run out of TikTok Trends Searches. Please purchase more credits or upgrade your plan.');
-        }
-
-        // Return empty data instead of throwing to prevent logout
-        return {
-          data: {
-            products: [],
-            total: 0,
-            trending_count: 0,
-            api_count: 0,
-            page: 1,
-            limit: 0,
-            total_pages: 0,
-            message: error?.response?.status === 402
-              ? 'Insufficient TikTok Trends Searches'
-              : 'Unable to load trending products. Please try again later.'
-          },
-          country: selectedCountry,
-          remaining_quota: error?.response?.data?.remaining_searches || 0
-        };
-      }
-    },
-    enabled: activeTab === 'trending',
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: false, // Disable retries to prevent multiple API calls
-  });
-
-  // Backend now fetches 3 pages and returns ALL products (~60 products)
-  // Frontend handles client-side pagination (12 per page)
-  const { data: searchData, isLoading: searchLoading, refetch: refetchSearch } = useQuery({
-    queryKey: ['tiktok-search', searchQuery, selectedCountry],
-    queryFn: async () => {
-      try {
-        // Backend fetches 3 pages internally and returns all products
-        const response = await searchTikTokProducts({
-          keyword: searchQuery,
-          country_code: selectedCountry,
-          limit: 12,  // Not used by backend, but kept for compatibility
-          page: 1,  // Always page 1 - backend fetches 3 pages internally
-          start_product_rating: 0,
-          end_product_rating: 5
-        });
-
-        console.log('🔄 TikTok Search Response (ALL products from 3 API pages):', response);
-        console.log(`📊 Total products received: ${response?.data?.products?.length || 0}`);
-
-        // Update quota if remaining_quota is provided in response
-        if (response?.remaining_quota !== undefined) {
-          console.log('🔄 TikTok Search - Updating quota:', response.remaining_quota);
-          updateQuota(response.remaining_quota);
-        }
-
-        // Fix: response is already response.data from API, so access products directly
-        const products = response?.data?.products || [];
-        const total = response?.data?.total || 0;
-        const message = response?.data?.message || '';
-
-        console.log('🔍 DEBUG - Search Response structure:', {
-          hasData: !!response?.data,
-          hasProducts: !!response?.data?.products,
-          productsLength: products.length,
-          total: total,
-          message: message
-        });
-
-        // Return all products
-        return {
-          data: {
-            products: products,  // ALL products from 3 API pages (~60 products)
-            total: total,
-            trending_count: 0,
-            api_count: response?.data?.api_count || 0,
-            page: 1,  // Always page 1 since we get all products
-            limit: products.length,  // Total products
-            total_pages: (response?.data && 'total_pages' in response.data) ? (response.data as any).total_pages : 1,
-            message: message
-          },
-          query: searchQuery,
-          country: selectedCountry,
-          remaining_quota: response?.remaining_quota || 0
-        };
-      } catch (error: any) {
-        console.error('TikTok Search API Error:', error);
-
-        // Handle insufficient credits error (402)
-        if (error?.response?.status === 402) {
-          const errorData = error.response?.data;
-          toast.error(errorData?.message || 'You have run out of TikTok Trends Searches. Please purchase more credits or upgrade your plan.');
-        }
-
-        // Return empty data instead of throwing to prevent logout
-        return {
-          data: {
-            products: [],
-            total: 0,
-            trending_count: 0,
-            api_count: 0,
-            page: 1,
-            limit: 0,
-            total_pages: 0,
-            message: error?.response?.status === 402
-              ? 'Insufficient TikTok Trends Searches'
-              : 'Unable to search products. Please try again later.'
-          },
-          query: searchQuery,
-          country: selectedCountry,
-          remaining_quota: error?.response?.data?.remaining_searches || 0
-        };
-      }
-    },
-    enabled: false, // Only run when manually triggered
+  // TikTok API Query
+  const {
+    data: tiktokData,
+    isLoading: tiktokLoading,
+    error: tiktokError,
+    refetch: refetchTikTok,
+  } = useQuery({
+    queryKey: ['tiktok-trending', selectedCategory, selectedTimeRange, selectedSortBy, selectedSortOrder, searchKeyword, selectedCountry],
+    queryFn: () => fetchTikTokTrendingProducts({
+      category_id: selectedCategory || undefined,
+      last: selectedTimeRange,
+      order_by: selectedSortBy,
+      order_type: selectedSortOrder,
+      keyword: searchKeyword || undefined,
+      country_code: selectedCountry,
+      page: 1,
+    }),
+    enabled: shouldFetch,
     staleTime: 1000 * 60 * 10, // 10 minutes
-    retry: false, // Disable retries to prevent multiple API calls
+    retry: 1,
+    retryDelay: 2000,
   });
 
-  // Handle modal close
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedProduct(null);
+  const handleDoneClick = () => {
+    // Check if quota is available
+    if (!hasQuota('tiktok_search')) {
+      alert('No TikTok searches remaining. Please purchase add-ons to continue.');
+      return;
+    }
+    // Reduce quota when filter is applied
+    reduceQuota('tiktok_search', 1);
+    setShouldFetch(true);
+    refetchTikTok();
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      toast.error('Please enter a search term');
+  const handleViewDetails = async (product: any) => {
+    setSelectedProduct(product);
+    setShowProductModal(true);
+    setActiveModalTab('overview');
+    // Reset supplier state when opening new product
+    setSuppliers([]);
+    setSupplierAnalysisTime(0);
+    // Reset shop analysis state
+    setShopAnalysisData(null);
+    setShopAnalysisError(null);
+
+    // Check quota before making API call
+    if (quotaDetails.quotaValue <= 0) {
+      setShopAnalysisError('Search quota exceeded. Please upgrade your plan or wait for quota reset.');
       return;
     }
 
-    setIsSearching(true);
-    setActiveTab('search');
-    setSearchCurrentPage(1); // Reset to first page when searching
+    // Fetch shop analysis data if third_ecom_category is available
+    if (product.third_ecom_category?.id) {
+      console.log('🛍️ Fetching shop analysis for category:', product.third_ecom_category.id);
+      setIsShopAnalysisLoading(true);
+
+      try {
+        console.log('🔍 Using category ID:', product.third_ecom_category.id);
+        console.log('📝 Category name:', product.third_ecom_category.value);
+        console.log('📦 Product title:', product.url_title);
+
+        // Pass product title as keyword for better filtering
+        const shopData = await getTikTokShopAnalysis(
+          product.third_ecom_category.id,
+          product.url_title || product.title
+        );
+
+        // Update quota after successful API call
+        updateQuota(quotaDetails.quotaValue - 1);
+
+        setShopAnalysisData(shopData);
+        console.log('✅ Shop analysis data loaded:', shopData);
+        console.log('📊 Quota updated after TikTok Shop search');
+      } catch (error) {
+        console.error('❌ Error fetching shop analysis:', error);
+        setShopAnalysisError(`Failed to load shop analysis data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      } finally {
+        setIsShopAnalysisLoading(false);
+      }
+    } else {
+      console.log('⚠️ No third_ecom_category.id found for shop analysis');
+      setShopAnalysisError('Product category not available for shop analysis');
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowProductModal(false);
+    setSelectedProduct(null);
+    setActiveModalTab('overview');
+    setSuppliers([]);
+    setSupplierAnalysisTime(0);
+    setSelectedSupplier(null);
+    setShowProfitCalculator(false);
+  };
+
+  const handleCalculateProfit = (supplier: SupplierInfo) => {
+    console.log('🧮 Opening profit calculator for supplier:', supplier.name);
+    setSelectedSupplier(supplier);
+    setShowProfitCalculator(true);
+  };
+
+  const handleDiscoverSuppliers = async () => {
+    if (isSupplierDiscoveryLoading) {
+      console.log('Supplier discovery already in progress, ignoring click');
+      return;
+    }
+
+    // Check persistent quota before making API call
+    if (!hasQuota('tiktok_supplier_discovery')) {
+      console.log('❌ Supplier discovery quota exceeded');
+      alert('No supplier discovery searches remaining. Please purchase add-ons to continue.');
+      return;
+    }
+
+    console.log('🔍 Starting supplier discovery for:', selectedProduct.url_title);
+    setIsSupplierDiscoveryLoading(true);
+    setActiveModalTab('suppliers');
 
     try {
-      await refetchSearch();
-      toast.success('Search completed!');
+      const response = await discoverSuppliers({
+        title: selectedProduct.url_title || 'TikTok Product',
+        id: selectedProduct.id || 'tiktok-product',
+        price: selectedProduct.price || 'N/A',
+        category: selectedProduct.first_ecom_category?.value || 'TikTok Product'
+      });
+
+      console.log('✅ Supplier discovery response:', response);
+      console.log('📦 Found suppliers:', response.suppliers?.length || 0);
+
+      // Reduce persistent quota after successful API call
+      reduceQuota('tiktok_supplier_discovery', 1);
+      console.log('📊 Supplier discovery quota reduced');
+
+      setSuppliers(response.suppliers || []);
+      setSupplierAnalysisTime(response.analysis_time || 0);
     } catch (error) {
-      toast.error('Search failed. Please try again.');
-      console.error('Search error:', error);
+      console.error('❌ Supplier discovery failed:', error);
+      // Set empty suppliers array on error to show the empty state
+      setSuppliers([]);
     } finally {
-      setIsSearching(false);
+      setIsSupplierDiscoveryLoading(false);
     }
   };
-
-  const handleProductClick = (product: TikTokTrendingProduct) => {
-    // Open product details modal - NO NAVIGATION
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-
-    // Log for debugging
-    console.log('🎯 TikTok Product clicked:', product.title);
-  };
-
-
-
-  // Enhanced image component with loading states
-  const TikTokProductImage: React.FC<{ product: TikTokTrendingProduct }> = ({ product }) => {
-    const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
-    const [imageSrc, setImageSrc] = useState<string>('');
-
-    useEffect(() => {
-      // Prioritize cover_url from TikTok Creative Center API
-      const imageUrl = (product as any).cover_url || product.image_url || '';
-
-      if (imageUrl && imageUrl.trim() !== '') {
-        setImageState('loading');
-        let processedUrl = imageUrl.trim();
-
-        // Handle protocol-relative URLs
-        if (processedUrl.startsWith('//')) {
-          processedUrl = `https:${processedUrl}`;
-        }
-        // Handle TikTok CDN URLs that might need processing
-        else if (processedUrl.includes('tiktokcdn') && !processedUrl.startsWith('http')) {
-          processedUrl = `https://${processedUrl}`;
-        }
-        // Ensure URL starts with http/https
-        else if (!processedUrl.startsWith('http')) {
-          processedUrl = `https://${processedUrl}`;
-        }
-
-        // Use image proxy to bypass CORS restrictions
-        const API_URL = import.meta.env.VITE_API_URL || 'https://staging-api.blueritt.com';
-        const proxyUrl = `${API_URL}/products/tiktok-trends/image-proxy/?url=${encodeURIComponent(processedUrl)}`;
-
-        setImageSrc(proxyUrl);
-
-        // Debug logging
-        console.log('🖼️ TikTok Image Debug:', {
-          productId: product.id,
-          cover_url: (product as any).cover_url,
-          image_url: product.image_url,
-          originalUrl: processedUrl,
-          proxyUrl: proxyUrl,
-          title: product.title
-        });
-      } else {
-        setImageState('error');
-      }
-    }, [(product as any).cover_url, product.image_url, product.id, product.title]);
-
-    const handleImageLoad = () => {
-      setImageState('loaded');
-    };
-
-    const handleImageError = () => {
-      setImageState('error');
-    };
-
-    return (
-      <div className="relative h-48 bg-gradient-to-br from-pink-50 to-purple-50">
-        {/* Loading State */}
-        {imageState === 'loading' && imageSrc && (
-          <>
-            <img
-              src={imageSrc}
-              alt={product.title}
-              className="w-full h-full object-contain p-4"
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50">
-              <LoadingSpinner size="sm" color="primary" />
-            </div>
-          </>
-        )}
-
-        {/* Loaded State */}
-        {imageState === 'loaded' && (
-          <img
-            src={imageSrc}
-            alt={product.title}
-            className="w-full h-full object-contain p-4"
-          />
-        )}
-
-        {/* Error/Fallback State */}
-        {imageState === 'error' && (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center">
-              <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-2" />
-              <p className="text-xs text-gray-500">Image not available</p>
-            </div>
-          </div>
-        )}
-
-        {/* Video indicator if video_url exists */}
-        {product.video_url && (
-          <div className="absolute top-2 left-2">
-            <div className="bg-black bg-opacity-70 rounded-full p-2">
-              <Play className="w-4 h-4 text-white fill-current" />
-            </div>
-          </div>
-        )}
-
-        {/* Trending Badge */}
-        {product.source === 'trending' && (
-          <div className="absolute top-2 left-2">
-            <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
-              <TrendingUp className="w-3 h-3" />
-              Trending
-            </span>
-          </div>
-        )}
-
-        {/* Trending Score */}
-        {product.trending_score && (
-          <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-            Score: {product.trending_score.toFixed(1)}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderProductCard = (product: TikTokTrendingProduct, index: number) => {
-    const productData = product as any;
-
-    return (
-      <div
-        key={`${product.id}-${index}`}
-        className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:scale-105"
-        onClick={() => handleProductClick(product)}
-      >
-        {/* Product Image with Enhanced Loading */}
-        <TikTokProductImage product={product} />
-
-        {/* Content */}
-        <div className="p-4">
-          {/* Title */}
-          <h3 className="font-semibold text-gray-900 hover:text-[#de7a22] text-base line-clamp-2 mb-2">
-            {product.title}
-          </h3>
-
-          {/* Performance Metrics Grid */}
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            {/* CTR */}
-            {productData.ctr !== undefined && (
-              <div className="bg-green-50 rounded-lg p-2">
-                <div className="text-xs text-gray-600">CTR</div>
-                <div className="text-sm font-bold text-green-600">{productData.ctr}%</div>
-              </div>
-            )}
-
-            {/* CVR */}
-            {productData.cvr !== undefined && (
-              <div className="bg-blue-50 rounded-lg p-2">
-                <div className="text-xs text-gray-600">CVR</div>
-                <div className="text-sm font-bold text-blue-600">{productData.cvr}%</div>
-              </div>
-            )}
-
-            {/* CPA */}
-            {productData.cpa !== undefined && (
-              <div className="bg-purple-50 rounded-lg p-2">
-                <div className="text-xs text-gray-600">CPA</div>
-                <div className="text-sm font-bold text-purple-600">${productData.cpa}</div>
-              </div>
-            )}
-
-            {/* Posts */}
-            {productData.post_count !== undefined && (
-              <div className="bg-pink-50 rounded-lg p-2">
-                <div className="text-xs text-gray-600">Posts</div>
-                <div className="text-sm font-bold text-pink-600">{formatNumber(productData.post_count)}</div>
-              </div>
-            )}
-          </div>
-
-          {/* Engagement Stats */}
-          <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
-            {/* Likes */}
-            {product.likes_count > 0 && (
-              <div className="flex items-center gap-1 text-gray-600">
-                <Heart className="w-3 h-3 text-red-500" />
-                <span>{formatNumber(product.likes_count)}</span>
-              </div>
-            )}
-
-            {/* Comments */}
-            {productData.comments_count > 0 && (
-              <div className="flex items-center gap-1 text-gray-600">
-                <MessageCircle className="w-3 h-3 text-blue-500" />
-                <span>{formatNumber(productData.comments_count)}</span>
-              </div>
-            )}
-
-            {/* Shares */}
-            {product.shares_count > 0 && (
-              <div className="flex items-center gap-1 text-gray-600">
-                <Share className="w-3 h-3 text-green-500" />
-                <span>{formatNumber(product.shares_count)}</span>
-              </div>
-            )}
-
-            {/* Views */}
-            {product.views_count > 0 && (
-              <div className="flex items-center gap-1 text-gray-600">
-                <Eye className="w-3 h-3 text-purple-500" />
-                <span>{formatNumber(product.views_count)}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Trending Badge */}
-          {product.source === 'trending' && (
-            <div className="mb-3">
-              <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                🔥 Trending #{index + 1}
-              </span>
-            </div>
-          )}
-
-          {/* View Details Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleProductClick(product);
-            }}
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-pink-600 hover:to-purple-700 hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 font-medium text-sm"
-          >
-            <Eye className="w-4 h-4" />
-            View Details
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  const getCurrentData = () => {
-    switch (activeTab) {
-      case 'search':
-        const allSearchProducts = searchData?.data?.products || [];
-        console.log('🔍 TikTok Search - Total Products:', allSearchProducts.length);
-        console.log('🔍 TikTok Search - All Products:', allSearchProducts);
-
-        // Client-side pagination: Show 12 products per page
-        const startIndex = (searchCurrentPage - 1) * 12;
-        const endIndex = startIndex + 12;
-        const paginatedSearchProducts = allSearchProducts.slice(startIndex, endIndex);
-
-        console.log(`📄 Search Page ${searchCurrentPage}: Showing ${paginatedSearchProducts.length} products (${startIndex + 1}-${Math.min(endIndex, allSearchProducts.length)} of ${allSearchProducts.length})`);
-        console.log('📄 Paginated Products:', paginatedSearchProducts);
-        return paginatedSearchProducts;
-      case 'trending':
-        // Client-side pagination for trending products
-        // Backend returns ALL products from 5 API pages (~100 products)
-        // Frontend displays 12 per page
-        const allTrendingProducts = trendingData?.data?.products || [];
-        console.log('📊 TikTok Trending - Total Products:', allTrendingProducts.length);
-        console.log('📊 TikTok Trending - All Products:', allTrendingProducts);
-
-        const trendingStartIndex = (currentPage - 1) * 12;
-        const trendingEndIndex = trendingStartIndex + 12;
-        const paginatedTrendingProducts = allTrendingProducts.slice(trendingStartIndex, trendingEndIndex);
-
-
-        console.log(`📄 Trending Page ${currentPage}: Showing ${paginatedTrendingProducts.length} products (${trendingStartIndex + 1}-${Math.min(trendingEndIndex, allTrendingProducts.length)} of ${allTrendingProducts.length})`);
-        console.log('📄 Paginated Products:', paginatedTrendingProducts);
-        return paginatedTrendingProducts;
-      default:
-        return [];
-    }
-  };
-
-  const getCurrentLoading = () => {
-    switch (activeTab) {
-      case 'search':
-        return searchLoading || isSearching;
-      case 'trending':
-        return trendingLoading;
-      default:
-        return false;
-    }
-  };
-
-  const products = getCurrentData();
-  const isLoading = getCurrentLoading();
-
-  // Debug: Log products before rendering
-  console.log('🎨 RENDERING - Products to display:', products.length, products);
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-          <div className="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center shadow-lg">
-            <Play className="w-5 h-5 text-white fill-current" />
-          </div>
+          <TrendingUp className="w-8 h-8 text-pink-600" />
           TikTok Trends
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Discover viral products and trending items from TikTok creators
+        <p className="text-gray-600 dark:text-gray-300">
+          Discover trending products from TikTok Creative Center API
         </p>
-      </div>
 
-      {/* Subscription Quota Alert */}
-      <div className="mb-6">
-        <SearchesAlert
-          quotaDetails={quotaDetails}
-          searchType="TikTok Trends Searches"
-          addOnName="TikTok Trends Search"
-        />
-      </div>
-
-      {/* Filters for Trending Tab */}
-      {activeTab === 'trending' && (
-        <div className="mb-6 space-y-4 bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-          {/* First Row: Category, Time Range, Country, Sort By */}
-          <div className="flex gap-4 items-end flex-wrap">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Category
-              </label>
-              <select
-                value={searchCategory}
-                onChange={(e) => {
-                  setSearchCategory(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="">All Categories</option>
-                <option value="605196">Automotive & Motorbike</option>
-                <option value="602284">Baby & Maternity</option>
-                <option value="601450">Beauty & Personal Care</option>
-                <option value="801928">Books, Magazines & Audio</option>
-                <option value="951432">Collectibles</option>
-                <option value="601755">Computers & Office Equipment</option>
-                <option value="605248">Fashion Accessories</option>
-                <option value="700437">Food & Beverages</option>
-                <option value="604453">Furniture</option>
-                <option value="700645">Health</option>
-                <option value="604968">Home Improvement</option>
-                <option value="600001">Home Supplies</option>
-                <option value="600942">Household Appliances</option>
-                <option value="953224">Jewellery, Accessories & Derivatives</option>
-                <option value="802184">Kids Fashion</option>
-                <option value="600024">Kitchenware</option>
-                <option value="824584">Luggage & Bags</option>
-                <option value="824328">Menswear & Men's Underwear</option>
-                <option value="601303">Muslim Fashion</option>
-                <option value="602118">Pet Supplies</option>
-                <option value="601739">Phones & Electronics</option>
-                <option value="601352">Shoes</option>
-                <option value="603014">Sports & Outdoor</option>
-                <option value="600154">Textiles & Soft Furnishings</option>
-                <option value="604579">Tools & Hardware</option>
-                <option value="604206">Toys & Hobbies</option>
-                <option value="834312">Virtual Products</option>
-                <option value="601152">Womenswear & Women's Underwear</option>
-              </select>
-            </div>
-
-            <div className="min-w-[150px]">
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Time Range
-              </label>
-              <select
-                value={selectedLast}
-                onChange={(e) => {
-                  setSelectedLast(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="1">Yesterday (1 day)</option>
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-              </select>
-            </div>
-
-            <div className="min-w-[150px]">
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Country
-              </label>
-              <select
-                value={selectedCountry}
-                onChange={(e) => {
-                  setSelectedCountry(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="US">United States</option>
-                <option value="GB">United Kingdom</option>
-                <option value="CA">Canada</option>
-                <option value="AU">Australia</option>
-                <option value="DE">Germany</option>
-                <option value="FR">France</option>
-                <option value="IT">Italy</option>
-                <option value="ES">Spain</option>
-                <option value="JP">Japan</option>
-              </select>
-            </div>
-
-            <div className="min-w-[180px]">
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Sort By
-              </label>
-              <select
-                value={orderBy}
-                onChange={(e) => {
-                  setOrderBy(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="post">Popularity (Posts)</option>
-                <option value="post_change">Popularity Change</option>
-                <option value="ctr">CTR (Click-Through Rate)</option>
-                <option value="cvr">CVR (Conversion Rate)</option>
-                <option value="cpa">CPA (Cost Per Action)</option>
-                <option value="cost">Total Cost</option>
-                <option value="like">Likes</option>
-                <option value="share">Shares</option>
-                <option value="comment">Comments</option>
-                <option value="impression">Views (Impressions)</option>
-                <option value="play_six_rate">6s View Rate</option>
-              </select>
-            </div>
-
-            <div className="min-w-[120px]">
-              <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                Order
-              </label>
-              <select
-                value={orderType}
-                onChange={(e) => {
-                  setOrderType(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="desc">Highest First</option>
-                <option value="asc">Lowest First</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tabs - Only show Trending */}
-      <div className="mb-6">
-        <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => {
-                setActiveTab('trending');
-                setCurrentPage(1);
-              }}
-              className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-all duration-200 ${
-                activeTab === 'trending'
-                  ? 'border-pink-500 text-pink-600 dark:text-pink-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-            >
-              <TrendingUp className="w-4 h-4" />
-              Trending
-              {trendingData?.data?.products?.length && (
-                <span className="bg-pink-100 dark:bg-pink-900/30 text-pink-800 dark:text-pink-300 text-xs px-2 py-1 rounded-full">
-                  {trendingData.data.products.length}
-                </span>
-              )}
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="space-y-6">
-        {/* Products Content (Trending & Search) */}
-        {activeTab === 'trending' && (
-          <>
-            {!searchCategory ? (
-              // Empty state when no category is selected
-              <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center mb-4">
-                  <Package className="w-8 h-8 text-pink-600 dark:text-pink-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Select a Category to Get Started
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-center max-w-md">
-                  Choose a category, time range, and country from the filters above to discover trending TikTok products.
-                </p>
-              </div>
-            ) : isLoading ? (
-              <div className="space-y-6">
-                <div className="flex items-center justify-center py-8">
-                  <TikTokLoader
-                    size="lg"
-                    text="Loading trending TikTok products..."
-                  />
-                </div>
-                <ProductLoadingSkeleton count={8} />
-              </div>
-            ) : products.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products.map((product, index) => renderProductCard(product, index))}
-                </div>
-
-                {/* Trending Pagination with Page Numbers */}
-                {activeTab === 'trending' && trendingData?.data?.products && trendingData.data.products.length > 0 && (
-                  <div className="mt-8 flex justify-center items-center gap-2">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Previous
-                    </button>
-
-                    {/* Page Numbers */}
-                    <div className="flex items-center gap-1">
-                      {(() => {
-                        const totalProducts = trendingData.data.products.length;
-                        const totalPages = Math.ceil(totalProducts / 12);
-                        const pages = [];
-
-                        for (let i = 1; i <= totalPages; i++) {
-                          pages.push(
-                            <button
-                              key={i}
-                              onClick={() => setCurrentPage(i)}
-                              className={`min-w-[40px] h-10 px-3 rounded-lg font-medium transition-all ${
-                                currentPage === i
-                                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
-                                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                              }`}
-                            >
-                              {i}
-                            </button>
-                          );
-                        }
-
-                        return pages;
-                      })()}
+        {/* Subscription Quota Alert - Enhanced Premium Plan Section */}
+        <div className="mt-4">
+          {quotaDetails ? (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-blue-900 dark:text-blue-200 text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-blue-600" />
+                    {quotaDetails.packageName} Plan Features
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {/* TikTok Trends Searches */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">TikTok Searches</div>
+                      <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
+                        {quotas.tiktok_search}
+                      </div>
                     </div>
 
-                    <button
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                      disabled={currentPage >= Math.ceil((trendingData?.data?.products?.length || 0) / 12)}
-                      className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      Next
-                    </button>
+                    {/* Discover Suppliers */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-purple-100 dark:border-purple-700">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Discover Suppliers</div>
+                      <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-1">
+                        {quotas.tiktok_supplier_discovery}
+                      </div>
+                    </div>
 
-                    {/* Total count */}
-                    <span className="ml-2 text-sm text-gray-600">
-                      ({trendingData.data.products.length} total products)
-                    </span>
+                    {/* Profit Calculations */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-green-100 dark:border-green-700">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Profit Calcs</div>
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400 mt-1">
+                        {quotas.profit_calculation}
+                      </div>
+                    </div>
+
+                    {/* Billing Period */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-orange-100 dark:border-orange-700">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Billing</div>
+                      <div className="text-lg font-bold text-orange-600 dark:text-orange-400 mt-1">
+                        {quotaDetails.billingPeriod || 'Monthly'}
+                      </div>
+                    </div>
+
+                    {/* Add-ons Button */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-3 border border-green-200 dark:border-green-700 flex flex-col justify-center items-center cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setShowAddOnsModal(true)}>
+                      <ShoppingCart className="w-5 h-5 text-green-600 dark:text-green-400 mb-1" />
+                      <div className="text-xs text-green-700 dark:text-green-300 font-semibold text-center">Add-ons</div>
+                    </div>
                   </div>
-                )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <p className="text-gray-600 dark:text-gray-300 text-sm">Loading subscription details...</p>
+            </div>
+          )}
+        </div>
+      </div>
 
+      {/* Filters */}
+      <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <Filter className="w-5 h-5" />
+          Filters
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {/* Category Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Category
+            </label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="">All Categories</option>
+              {TIKTOK_CATEGORIES.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Country Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Country
+            </label>
+            <select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              {COUNTRY_OPTIONS.map((country) => (
+                <option key={country.value} value={country.value}>
+                  {country.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Time Range */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Time Range
+            </label>
+            <select
+              value={selectedTimeRange}
+              onChange={(e) => setSelectedTimeRange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              {TIME_RANGES.map((range) => (
+                <option key={range.value} value={range.value}>
+                  {range.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort By */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Sort By
+            </label>
+            <select
+              value={selectedSortBy}
+              onChange={(e) => setSelectedSortBy(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort Order */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Sort Order
+            </label>
+            <select
+              value={selectedSortOrder}
+              onChange={(e) => setSelectedSortOrder(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="desc">Descending</option>
+              <option value="asc">Ascending</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Search Keyword */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Search Keyword (Optional)
+          </label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              placeholder="Enter search keyword..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            />
+          </div>
+        </div>
+
+        {/* Done Button */}
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleDoneClick}
+            disabled={tiktokLoading}
+            className="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-lg hover:from-pink-600 hover:to-purple-700 focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 shadow-lg"
+          >
+            {tiktokLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Loading Products...
               </>
             ) : (
-              <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Package className="w-8 h-8 text-pink-600 dark:text-pink-400" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  No trending products available
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-2">
-                  {trendingData?.data?.message || 'Check back later for the latest trending products'}
-                </p>
-              </div>
+              <>
+                <CheckCircle className="w-5 h-5" />
+                Done - Get Trending Products
+              </>
             )}
-          </>
+          </button>
+        </div>
+      </div>
+
+      {/* Products Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Trending Products
+        </h2>
+
+        {/* Loading State */}
+        {tiktokLoading && (
+          <div className="text-center py-12">
+            <Loader2 className="w-16 h-16 text-pink-500 mx-auto mb-4 animate-spin" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Loading TikTok Trending Products...
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              Fetching data from TikTok Creative Center API
+            </p>
+          </div>
         )}
 
+        {/* Error State */}
+        {tiktokError && !tiktokLoading && (
+          <div className="text-center py-12">
+            <Package className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">
+              Error Loading Products
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              {tiktokError instanceof Error ? tiktokError.message : 'Failed to fetch TikTok trending products'}
+            </p>
+            <button
+              onClick={handleDoneClick}
+              className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
 
+        {/* Products Grid */}
+        {tiktokData?.data?.list && tiktokData.data.list.length > 0 && !tiktokLoading && (
+          <div className="space-y-6">
+            {/* Results Summary */}
+            <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg p-4 border border-pink-100 dark:border-pink-700">
+              <h3 className="font-semibold text-gray-900 dark:text-white">
+                Found {tiktokData.data.list.length} trending products
+              </h3>
+              <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                <p>Category: {selectedCategory ? TIKTOK_CATEGORIES.find(c => c.id === selectedCategory)?.name : 'All Categories'}</p>
+                <p>Time Range: {TIME_RANGES.find(t => t.value === selectedTimeRange)?.label}</p>
+                <p>Sort: {SORT_OPTIONS.find(s => s.value === selectedSortBy)?.label} ({selectedSortOrder})</p>
+                {searchKeyword && <p>Keyword: {searchKeyword}</p>}
+              </div>
+            </div>
+
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tiktokData.data.list.map((product: any, index: number) => (
+                <div
+                  key={index}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 group flex flex-col h-full"
+                >
+                  {/* Product Image */}
+                  <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700">
+                    {product.cover_url ? (
+                      <img
+                        src={product.cover_url}
+                        alt={product.url_title || 'TikTok Product'}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzBDOTQuNDc3MiA3MCA5MCA3NC40NzcyIDkwIDgwVjEyMEM5MCA5NC40NzcyIDk0LjQ3NzIgOTAgMTAwIDkwSDEwMEMxMDUuNTIzIDkwIDExMCA5NC40NzcyIDExMCAxMDBWMTIwQzExMCAxMjUuNTIzIDEwNS41MjMgMTMwIDEwMCAxMzBIOTBWMTQwSDEwMEMxMTEuMDQ2IDE0MCA5MCA5NC40NzcyIDkwIDgwVjEyMEM5MCA5NC40NzcyIDk0LjQ3NzIgOTAgMTAwIDkwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+
+                    {/* Overlay with View Details Button */}
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <button
+                        onClick={() => handleViewDetails(product)}
+                        className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Product Info - Flex container to push button to bottom */}
+                  <div className="p-4 flex flex-col flex-grow">
+                    {/* Product Title */}
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight line-clamp-2 min-h-[2.5rem] mb-3">
+                      {product.url_title || 'Trending Product'}
+                    </h3>
+
+                    {/* Category Tag */}
+                    {product.first_ecom_category && (
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-2 py-1 rounded-full text-xs font-medium">
+                          {product.first_ecom_category.value}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Key Stats Grid - Only show non-zero values, flexible layout */}
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-4 flex-grow">
+                      {product.post && product.post > 0 && (
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 text-center">
+                          <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400 mb-1">
+                            <Play className="w-3 h-3" />
+                            <span>Posts</span>
+                          </div>
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            {product.post.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+                      {product.like && product.like > 0 && (
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 text-center">
+                          <div className="flex items-center justify-center gap-1 text-red-500 mb-1">
+                            <Heart className="w-3 h-3" />
+                            <span>Likes</span>
+                          </div>
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            {product.like.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+                      {product.share && product.share > 0 && (
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 text-center">
+                          <div className="flex items-center justify-center gap-1 text-green-600 dark:text-green-400 mb-1">
+                            <Share2 className="w-3 h-3" />
+                            <span>Shares</span>
+                          </div>
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            {product.share.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+                      {product.comment && product.comment > 0 && (
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 text-center">
+                          <div className="flex items-center justify-center gap-1 text-yellow-600 dark:text-yellow-400 mb-1">
+                            <MessageCircle className="w-3 h-3" />
+                            <span>Comments</span>
+                          </div>
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            {product.comment.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* View Details Button - Always at bottom */}
+                    <div className="mt-auto">
+                      <button
+                        onClick={() => handleViewDetails(product)}
+                        className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Initial State */}
+        {!shouldFetch && !tiktokLoading && (
+          <div className="text-center py-12">
+            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Ready to Fetch TikTok Trending Products
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Select your filters above and click "Done" to get trending products from TikTok Creative Center API.
+            </p>
+            <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+              <p>Selected Category: {selectedCategory ? TIKTOK_CATEGORIES.find(c => c.id === selectedCategory)?.name : 'All Categories'}</p>
+              <p>Time Range: {TIME_RANGES.find(t => t.value === selectedTimeRange)?.label}</p>
+              <p>Sort: {SORT_OPTIONS.find(s => s.value === selectedSortBy)?.label} ({selectedSortOrder})</p>
+              {searchKeyword && <p>Keyword: {searchKeyword}</p>}
+            </div>
+          </div>
+        )}
+
+        {/* No Results */}
+        {shouldFetch && tiktokData && (!tiktokData.data?.list || tiktokData.data.list.length === 0) && !tiktokLoading && (
+          <div className="text-center py-12">
+            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No Trending Products Found
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Try adjusting your filters or search for different keywords.
+            </p>
+            <button
+              onClick={handleDoneClick}
+              className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+            >
+              Search Again
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Product Details Modal */}
-      {selectedProduct && (
-        <TikTokProductDetailsModal
+      {showProductModal && selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                TikTok Product Details
+              </h2>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+              <button
+                onClick={() => setActiveModalTab('overview')}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                  activeModalTab === 'overview'
+                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                <Package className="w-4 h-4" />
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveModalTab('suppliers')}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                  activeModalTab === 'suppliers'
+                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                <Truck className="w-4 h-4" />
+                Suppliers
+                {suppliers.length > 0 && (
+                  <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {suppliers.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveModalTab('shop-analysis')}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                  activeModalTab === 'shop-analysis'
+                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                <TrendingUp className="w-4 h-4" />
+                Shop Analysis
+                {shopAnalysisData?.products && shopAnalysisData.products.length > 0 && (
+                  <span className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {shopAnalysisData.products.length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {/* Action Buttons Bar */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {selectedProduct.url_title || 'TikTok Product'}
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* Discover Suppliers Button */}
+                <button
+                  onClick={handleDiscoverSuppliers}
+                  disabled={isSupplierDiscoveryLoading || suppliers.length > 0}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <Zap className="w-4 h-4" />
+                  {isSupplierDiscoveryLoading ? 'Analyzing...' : suppliers.length > 0 ? 'Suppliers Found' : 'Discover Suppliers'}
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto">
+              {activeModalTab === 'overview' && (
+                <div className="p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Product Image */}
+                <div className="space-y-4">
+                  <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
+                    {selectedProduct.cover_url ? (
+                      <img
+                        src={selectedProduct.cover_url}
+                        alt={selectedProduct.url_title || 'TikTok Product'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-24 h-24 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Category */}
+                  {selectedProduct.first_ecom_category && (
+                    <div className="text-center">
+                      <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-4 py-2 rounded-full text-sm font-medium">
+                        {selectedProduct.first_ecom_category.value}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Information */}
+                <div className="space-y-6">
+                  {/* Title */}
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                      {selectedProduct.url_title || 'Trending Product'}
+                    </h3>
+                  </div>
+
+                  {/* Price Information from Shop Analysis - Show only first matching product */}
+                  {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-6 border border-green-200 dark:border-green-700">
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-green-600" />
+                        TikTok Shop Price
+                      </h4>
+                      {(() => {
+                        const firstProduct = shopAnalysisData.products[0];
+                        return (
+                          <div className="bg-white dark:bg-gray-700 rounded-lg p-6 border border-green-100 dark:border-green-600">
+                            {firstProduct.image_url && (
+                              <div className="mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 h-40 flex items-center justify-center">
+                                <img
+                                  src={firstProduct.image_url}
+                                  alt={firstProduct.title}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3C/svg%3E';
+                                  }}
+                                />
+                              </div>
+                            )}
+                            <div className="text-center">
+                              {/* Clickable Price - Opens Calculator */}
+                              <button
+                                onClick={() => {
+                                  // Create a mock supplier object from shop product data
+                                  const mockSupplier: SupplierInfo & { isTikTokShopProduct?: boolean; tiktokShopPrice?: number } = {
+                                    id: firstProduct.id,
+                                    name: firstProduct.shop_name || 'TikTok Shop',
+                                    supplier_name: firstProduct.shop_name || 'TikTok Shop',
+                                    location: firstProduct.shipping_info.ship_from || 'Unknown',
+                                    verification_status: 'verified',
+                                    verification_badge: 'Gold',
+                                    years_in_business: 5,
+                                    main_products: firstProduct.title,
+                                    certifications: [],
+                                    contact_method: 'TikTok Shop',
+                                    ai_match_score: 85,
+                                    match_explanation: 'High-quality TikTok Shop product with good sales data',
+                                    moq: 1,
+                                    lead_time: '7-15 days',
+                                    estimated_price: `$${firstProduct.price.toFixed(2)}`,
+                                    contact_url: '',
+                                    response_rate: '95%',
+                                    trade_assurance: firstProduct.shipping_info.free_shipping,
+                                    isTikTokShopProduct: true,
+                                    tiktokShopPrice: firstProduct.price
+                                  };
+
+                                  // Create a mock product object with TikTok Shop data
+                                  const mockProduct = {
+                                    ...selectedProduct,
+                                    price: firstProduct.price,
+                                    title: firstProduct.title,
+                                    image_url: firstProduct.image_url,
+                                    sales_count: firstProduct.sales_count,
+                                    isTikTokShopProduct: true
+                                  };
+
+                                  setSelectedProduct(mockProduct);
+                                  setSelectedSupplier(mockSupplier);
+                                  setShowProfitCalculator(true);
+                                }}
+                                className="group cursor-pointer inline-block"
+                              >
+                                <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">
+                                  ${firstProduct.price.toFixed(2)}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                                  Click to Calculate Profit
+                                </div>
+                              </button>
+
+                              <div className="text-sm text-gray-600 dark:text-gray-300 mb-3 mt-2">
+                                {firstProduct.currency}
+                              </div>
+                              <div className="text-sm text-gray-700 dark:text-gray-200 mb-4 line-clamp-3">
+                                {firstProduct.title}
+                              </div>
+
+                              {/* Product Details Grid */}
+                              <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                                {firstProduct.sales_count > 0 && (
+                                  <div className="bg-green-50 dark:bg-green-900/30 rounded p-2">
+                                    <div className="text-xs text-gray-600 dark:text-gray-400">Sales</div>
+                                    <div className="font-semibold text-green-600 dark:text-green-400">
+                                      {firstProduct.sales_count.toLocaleString()}
+                                    </div>
+                                  </div>
+                                )}
+                                {firstProduct.product_rating > 0 && (
+                                  <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded p-2">
+                                    <div className="text-xs text-gray-600 dark:text-gray-400">Rating</div>
+                                    <div className="font-semibold text-yellow-600 dark:text-yellow-400">
+                                      ⭐ {firstProduct.product_rating.toFixed(1)}
+                                    </div>
+                                  </div>
+                                )}
+                                {firstProduct.shop_name && (
+                                  <div className="bg-blue-50 dark:bg-blue-900/30 rounded p-2 col-span-2">
+                                    <div className="text-xs text-gray-600 dark:text-gray-400">Shop</div>
+                                    <div className="font-semibold text-blue-600 dark:text-blue-400 truncate">
+                                      {firstProduct.shop_name}
+                                    </div>
+                                  </div>
+                                )}
+                                {firstProduct.shipping_info.free_shipping && (
+                                  <div className="bg-purple-50 dark:bg-purple-900/30 rounded p-2 col-span-2">
+                                    <div className="text-xs text-purple-600 dark:text-purple-400 font-semibold">
+                                      ✓ Free Shipping
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* View All Products Link */}
+                              <button
+                                onClick={() => setActiveModalTab('shop-analysis')}
+                                className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+                              >
+                                View All {shopAnalysisData.products.length} Products
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Loading state for price information */}
+                  {isShopAnalysisLoading && (
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center justify-center gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+                        <span className="text-gray-600 dark:text-gray-300">Loading pricing data...</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error state for price information */}
+                  {shopAnalysisError && !isShopAnalysisLoading && (
+                    <div className="bg-red-50 dark:bg-red-900/30 rounded-xl p-6 border border-red-200 dark:border-red-700">
+                      <div className="flex items-center justify-center gap-3 text-red-600 dark:text-red-400">
+                        <AlertCircle className="w-5 h-5" />
+                        <span>Unable to load TikTok Shop pricing data</span>
+                      </div>
+                      <p className="text-sm text-red-500 dark:text-red-400 text-center mt-2">
+                        Please try selecting a different product or check back later
+                      </p>
+                    </div>
+                  )}
+
+                  {/* No products found state */}
+                  {!isShopAnalysisLoading && !shopAnalysisError && shopAnalysisData && shopAnalysisData.products.length === 0 && (
+                    <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700">
+                      <div className="flex items-center justify-center gap-3 text-yellow-600 dark:text-yellow-400">
+                        <AlertCircle className="w-5 h-5" />
+                        <span>No products found for this category</span>
+                      </div>
+                      <p className="text-sm text-yellow-500 dark:text-yellow-400 text-center mt-2">
+                        Try selecting a different trending product
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Statistics Grid */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedProduct.post && (
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-700">
+                        <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
+                          <Play className="w-5 h-5" />
+                          <span className="font-medium">Posts</span>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-800 dark:text-blue-300">
+                          {selectedProduct.post.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedProduct.like && (
+                      <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 rounded-lg p-4 text-center border border-red-200 dark:border-red-700">
+                        <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400 mb-2">
+                          <Heart className="w-5 h-5" />
+                          <span className="font-medium">Likes</span>
+                        </div>
+                        <div className="text-2xl font-bold text-red-800 dark:text-red-300">
+                          {selectedProduct.like.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedProduct.share && (
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
+                        <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
+                          <Share2 className="w-5 h-5" />
+                          <span className="font-medium">Shares</span>
+                        </div>
+                        <div className="text-2xl font-bold text-green-800 dark:text-green-300">
+                          {selectedProduct.share.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedProduct.comment && (
+                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
+                        <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
+                          <MessageCircle className="w-5 h-5" />
+                          <span className="font-medium">Comments</span>
+                        </div>
+                        <div className="text-2xl font-bold text-purple-800 dark:text-purple-300">
+                          {selectedProduct.comment.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Additional Metrics */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Additional Metrics</h4>
+                    <div className="grid grid-cols-1 gap-3">
+                      {selectedProduct.impression && (
+                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <span className="text-gray-600 dark:text-gray-300">Impressions</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {selectedProduct.impression.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      {selectedProduct.ctr && (
+                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <span className="text-gray-600 dark:text-gray-300">CTR</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {selectedProduct.ctr}%
+                          </span>
+                        </div>
+                      )}
+                      {selectedProduct.cvr && (
+                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <span className="text-gray-600 dark:text-gray-300">CVR</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {selectedProduct.cvr}%
+                          </span>
+                        </div>
+                      )}
+                      {selectedProduct.cpa && (
+                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <span className="text-gray-600 dark:text-gray-300">CPA</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            ${selectedProduct.cpa}
+                          </span>
+                        </div>
+                      )}
+                      {selectedProduct.cost && (
+                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <span className="text-gray-600 dark:text-gray-300">Cost</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            ${selectedProduct.cost}
+                          </span>
+                        </div>
+                      )}
+                      {selectedProduct.play_six_rate && (
+                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <span className="text-gray-600 dark:text-gray-300">6s View Rate</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {selectedProduct.play_six_rate}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-4">
+                      {selectedProduct.url && (
+                        <a
+                          href={selectedProduct.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
+                        >
+                          <ExternalLink className="w-5 h-5" />
+                          View Product
+                        </a>
+                      )}
+                      <button
+                        onClick={handleCloseModal}
+                        className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              )}
+
+              {activeModalTab === 'suppliers' && (
+                <div className="p-6">
+                  <SuppliersTab
+                    suppliers={suppliers}
+                    isLoading={isSupplierDiscoveryLoading}
+                    analysisTime={supplierAnalysisTime}
+                    onCalculateProfit={handleCalculateProfit}
+                  />
+                </div>
+              )}
+
+              {activeModalTab === 'shop-analysis' && (
+                <div className="p-6">
+                  <ShopAnalysisTab
+                    shopData={shopAnalysisData}
+                    isLoading={isShopAnalysisLoading}
+                    error={shopAnalysisError}
+                    categoryId={selectedProduct?.third_ecom_category?.id}
+                    categoryName={selectedProduct?.third_ecom_category?.value}
+                    selectedProduct={selectedProduct}
+                    setSelectedProduct={setSelectedProduct}
+                    onCalculateProfit={handleCalculateProfit}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profit Calculator Modal */}
+      {selectedSupplier && showProfitCalculator && selectedProduct && (
+        <TikTokProfitCalculatorModal
           product={selectedProduct}
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
+          supplier={selectedSupplier}
+          isOpen={showProfitCalculator}
+          onClose={() => {
+            setShowProfitCalculator(false);
+            setSelectedSupplier(null);
+          }}
         />
       )}
+
+      {/* Add-ons Modal */}
+      {showAddOnsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <ShoppingCart className="w-6 h-6 text-green-600" />
+                  Purchase Add-ons
+                </h2>
+                <button
+                  onClick={() => setShowAddOnsModal(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* TikTok Searches Add-on */}
+                <div className="border border-blue-200 dark:border-blue-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">TikTok Searches</h3>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Current: {quotas.tiktok_search}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Add 100 searches for $9.99</p>
+                  <button
+                    onClick={() => {
+                      increaseQuota('tiktok_search', 100);
+                      setShowAddOnsModal(false);
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Add 100 Searches
+                  </button>
+                </div>
+
+                {/* Supplier Discovery Add-on */}
+                <div className="border border-purple-200 dark:border-purple-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Discover Suppliers</h3>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Current: {quotas.tiktok_supplier_discovery}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Add 500 discoveries for $19.99</p>
+                  <button
+                    onClick={() => {
+                      increaseQuota('tiktok_supplier_discovery', 500);
+                      setShowAddOnsModal(false);
+                    }}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Add 500 Discoveries
+                  </button>
+                </div>
+
+                {/* Profit Calculations Add-on */}
+                <div className="border border-green-200 dark:border-green-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-white">Profit Calculations</h3>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Current: {quotas.profit_calculation}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Add 200 calculations for $14.99</p>
+                  <button
+                    onClick={() => {
+                      increaseQuota('profit_calculation', 200);
+                      setShowAddOnsModal(false);
+                    }}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Add 200 Calculations
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowAddOnsModal(false)}
+                className="w-full mt-4 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Suppliers Tab Component
+interface SuppliersTabProps {
+  suppliers: SupplierInfo[];
+  isLoading: boolean;
+  analysisTime: number;
+  onCalculateProfit: (supplier: SupplierInfo) => void;
+}
+
+const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onCalculateProfit }) => {
+  console.log('🏭 SuppliersTab render:', {
+    suppliersCount: suppliers?.length || 0,
+    isLoading,
+    analysisTime,
+    suppliers: suppliers?.slice(0, 2) // Log first 2 suppliers for debugging
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="w-12 h-12 text-purple-600 animate-spin mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          Discovering Suppliers...
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300 text-center max-w-md">
+          Our AI is analyzing the product and finding the best suppliers for you. This may take a few moments.
+        </p>
+      </div>
+    );
+  }
+
+  if (!suppliers || suppliers.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Truck className="w-16 h-16 text-gray-400 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          No Suppliers Found
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300 text-center max-w-md">
+          We couldn't find any suppliers for this product. Try clicking "Discover Suppliers" to search again.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Analysis Summary */}
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg p-4 border border-purple-100 dark:border-purple-700">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+          Supplier Analysis Complete
+        </h3>
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          <p>Found {suppliers.length} potential suppliers in {analysisTime}s</p>
+          <p>Suppliers are ranked by AI match score and verification status</p>
+        </div>
+      </div>
+
+      {/* Suppliers List */}
+      <div className="space-y-4">
+        {suppliers.map((supplier) => (
+          <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
+            {/* Header with Name, Verification, and AI Score */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <h5 className="font-bold text-gray-900 dark:text-white text-lg">{supplier.name}</h5>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
+                    supplier.verification_status === 'Gold Verified'
+                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                      : supplier.verification_status === 'Verified'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                      : 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300'
+                  }`}>
+                    {supplier.verification_status}
+                  </span>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{supplier.location}</p>
+                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                  {supplier.match_explanation}
+                </p>
+              </div>
+
+              {/* AI Match Score */}
+              <div className="text-center bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg p-3 border border-purple-200 dark:border-purple-700">
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {supplier.ai_match_score}%
+                </div>
+                <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                  AI Match
+                </div>
+              </div>
+            </div>
+
+            {/* Key Details Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">MOQ</div>
+                <div className="font-semibold text-gray-900 dark:text-white">
+                  {supplier.moq?.toLocaleString() || 'N/A'}
+                </div>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Lead Time</div>
+                <div className="font-semibold text-gray-900 dark:text-white">
+                  {supplier.lead_time}
+                </div>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Est. Price</div>
+                <div className="font-semibold text-gray-900 dark:text-white">
+                  {supplier.estimated_price}
+                </div>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Response Rate</div>
+                <div className="font-semibold text-gray-900 dark:text-white">
+                  {supplier.response_rate}
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-600 dark:text-gray-300">Years in Business:</span>
+                <span className="font-medium text-gray-900 dark:text-white">{supplier.years_in_business}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-600 dark:text-gray-300">Main Products:</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {Array.isArray(supplier.main_products)
+                    ? supplier.main_products.join(', ')
+                    : supplier.main_products}
+                </span>
+              </div>
+              {supplier.certifications && supplier.certifications.length > 0 && (
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="text-gray-600 dark:text-gray-300">Certifications:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {supplier.certifications.map((cert, certIndex) => (
+                      <span key={certIndex} className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded text-xs">
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              {/* Calculate Button */}
+              <button
+                onClick={() => onCalculateProfit(supplier)}
+                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2 px-4 rounded-lg transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
+              >
+                <Calculator className="w-4 h-4" />
+                Calculate
+              </button>
+
+              {/* Contact Supplier Button */}
+              {supplier.contact_url && (
+                <a
+                  href={supplier.contact_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-2 px-4 rounded-lg transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Contact Supplier
+                </a>
+              )}
+            </div>
+
+            {/* Trade Assurance Badge */}
+            {supplier.trade_assurance && (
+              <div className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400 mt-2">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                Trade Assurance
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Shop Analysis Tab Component
+interface ShopAnalysisTabProps {
+  shopData: TikTokShopAnalysisResponse | null;
+  isLoading: boolean;
+  error: string | null;
+  categoryId?: string;
+  categoryName?: string;
+  selectedProduct: any;
+  setSelectedProduct: (product: any) => void;
+  onCalculateProfit: (supplier: SupplierInfo) => void;
+}
+
+const ShopAnalysisTab: React.FC<ShopAnalysisTabProps> = ({
+  shopData,
+  isLoading,
+  error,
+  categoryId,
+  categoryName,
+  selectedProduct,
+  setSelectedProduct,
+  onCalculateProfit
+}) => {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600 mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          Analyzing TikTok Shop Products
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300 text-center">
+          Fetching products from TikTok Shop for category: {categoryName || categoryId}
+        </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-red-800 dark:text-red-300 mb-2">
+            Failed to Load Shop Analysis
+          </h3>
+          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+          <div className="bg-white dark:bg-gray-800 rounded p-4 text-left text-sm text-gray-600 dark:text-gray-300">
+            <p className="font-mono text-xs">
+              Category ID: {categoryId}<br/>
+              Category Name: {categoryName}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!shopData || !shopData.products || shopData.products.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          No Shop Products Found
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">
+          No products found in TikTok Shop for category: {categoryName || categoryId}
+        </p>
+        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 text-left text-sm text-gray-600 dark:text-gray-300 inline-block">
+          <p className="font-semibold text-blue-800 dark:text-blue-300 mb-2">Debug Information:</p>
+          <p className="font-mono text-xs">
+            Category ID: {categoryId}<br/>
+            Category Name: {categoryName}<br/>
+            Shop Data: {shopData ? 'Loaded' : 'Not loaded'}<br/>
+            Products: {shopData?.products?.length || 0}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/30 dark:to-blue-900/30 rounded-lg p-4 border border-green-100 dark:border-green-700">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+          TikTok Shop Analysis - {categoryName || 'Category ' + categoryId}
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Found {shopData.products.length} products with pricing and sales data
+        </p>
+      </div>
+
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {shopData.products.map((product) => (
+          <div key={product.id} className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:shadow-lg transition-all duration-200">
+            {/* Product Header */}
+            <div className="flex items-start gap-4 mb-4">
+              {/* Product Image */}
+              <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 flex-shrink-0">
+                {product.image_url ? (
+                  <img
+                    src={product.image_url}
+                    alt={product.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
+              </div>
+
+              {/* Product Info */}
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-gray-900 dark:text-white text-sm line-clamp-2 mb-2">
+                  {product.title}
+                </h4>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    ${product.price.toFixed(2)}
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {product.currency}
+                  </span>
+                </div>
+                {product.shop_name && (
+                  <p className="text-xs text-gray-600 dark:text-gray-300">
+                    by {product.shop_name}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Product Stats */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-gray-900 dark:text-white">
+                  {product.sales_count.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-300">Sales</div>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
+                <div className="text-lg font-bold text-gray-900 dark:text-white">
+                  {product.product_rating.toFixed(1)}★
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-300">Rating</div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div className="space-y-2 text-xs text-gray-600 dark:text-gray-300 mb-4">
+              {product.review_count > 0 && (
+                <div className="flex justify-between">
+                  <span>Reviews:</span>
+                  <span>{product.review_count.toLocaleString()}</span>
+                </div>
+              )}
+              {product.shipping_info.free_shipping && (
+                <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                  <CheckCircle className="w-3 h-3" />
+                  <span>Free Shipping</span>
+                </div>
+              )}
+              {product.shipping_info.ship_from && (
+                <div className="flex justify-between">
+                  <span>Ships from:</span>
+                  <span>{product.shipping_info.ship_from}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Calculate Button */}
+            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
+              <button
+                onClick={() => {
+                  // Create a mock supplier object from shop product data
+                  const mockSupplier: SupplierInfo & { isTikTokShopProduct?: boolean; tiktokShopPrice?: number } = {
+                    id: product.id,
+                    name: product.shop_name || 'TikTok Shop',
+                    supplier_name: product.shop_name || 'TikTok Shop',
+                    location: product.shipping_info.ship_from || 'Unknown',
+                    verification_status: 'verified',
+                    verification_badge: 'Gold',
+                    years_in_business: 5,
+                    main_products: product.title,
+                    certifications: [],
+                    contact_method: 'TikTok Shop',
+                    ai_match_score: 85,
+                    match_explanation: 'High-quality TikTok Shop product with good sales data',
+                    moq: 1,
+                    lead_time: '7-15 days',
+                    estimated_price: `$${product.price.toFixed(2)}`,
+                    contact_url: '',
+                    response_rate: '95%',
+                    trade_assurance: product.shipping_info.free_shipping,
+                    isTikTokShopProduct: true,
+                    tiktokShopPrice: product.price
+                  };
+
+                  // Create a mock product object with TikTok Shop data
+                  const mockProduct = {
+                    ...selectedProduct,
+                    price: product.price,
+                    title: product.title,
+                    image_url: product.image_url,
+                    sales_count: product.sales_count,
+                    isTikTokShopProduct: true
+                  };
+
+                  setSelectedProduct(mockProduct);
+                  onCalculateProfit(mockSupplier);
+                }}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 font-medium"
+              >
+                <Calculator className="w-4 h-4" />
+                Calculate Profit
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

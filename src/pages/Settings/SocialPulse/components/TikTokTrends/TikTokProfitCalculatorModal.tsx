@@ -112,24 +112,48 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
   // Initialize with product and supplier data
   useEffect(() => {
     if (isOpen && product && supplier) {
-      // Parse supplier estimated price
-      const supplierPrice = parseFloat(supplier.estimated_price.replace(/[^0-9.]/g, '') || '0');
-      const suggestedPrice = supplierPrice * 2.5; // 150% markup
+      // Check if this is a TikTok Shop product
+      const isTikTokShop = (supplier as any)?.isTikTokShopProduct === true;
+      const tiktokShopPrice = (supplier as any)?.tiktokShopPrice || product.price || 0;
 
-      // Estimate shipping cost based on MOQ
-      const estimatedShipping = supplier.moq > 500 ? 2.50 : 5.00;
+      // For TikTok Shop products, use the original product price as selling price
+      // For regular suppliers, parse the supplier's estimated price
+      let supplierPrice = 0;
+      if (isTikTokShop) {
+        // Use the original TikTok Shop product price
+        supplierPrice = tiktokShopPrice;
+      } else {
+        // Parse supplier estimated price for regular suppliers
+        supplierPrice = parseFloat(supplier.estimated_price.replace(/[^0-9.]/g, '') || '0');
+      }
+
+      // For TikTok Shop products, use the shop price as selling price
+      // For regular suppliers, apply 2.5x markup to cost
+      const suggestedPrice = isTikTokShop ? tiktokShopPrice : supplierPrice * 2.5;
+
+      // For TikTok Shop products, estimate cost based on typical margins
+      // For regular suppliers, use actual supplier price
+      let costPrice = supplierPrice;
+      let estimatedShipping = supplier.moq > 500 ? 2.50 : 5.00;
+
+      if (isTikTokShop) {
+        // TikTok Shop products typically have 40-50% cost margin
+        // Estimate cost as 45% of selling price
+        costPrice = suggestedPrice * 0.45;
+        estimatedShipping = 0; // Usually included in TikTok Shop price
+      }
 
       // Estimate TikTok Shop fees (roughly 5-8% of selling price)
       const estimatedTikTokFees = suggestedPrice * 0.06; // 6% average
 
       // Estimate fulfillment fees (roughly $2-4 per unit)
-      const fulfillmentFees = 3.00;
+      const fulfillmentFees = isTikTokShop ? 1.50 : 3.00; // Lower for TikTok Shop
 
       // Estimate storage fees (roughly $0.30-0.50 per unit per month)
-      const storageFees = 0.40;
+      const storageFees = isTikTokShop ? 0.20 : 0.40;
 
       // Estimate processing fees (roughly $0.20-0.30 per unit)
-      const processingFees = 0.25;
+      const processingFees = 0.15;
 
       const initialCalc: ProfitCalculation = {
         // Product Information
@@ -138,12 +162,12 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
         pi_quantity: 100,
 
         // Product Sourcing Cost
-        psc_manufacturingCost: supplierPrice,
+        psc_manufacturingCost: costPrice,
         psc_shippingCost: estimatedShipping,
         psc_miscCost: 0,
         psc_orderQuantity: 100,
-        psc_perUnitCost: supplierPrice + estimatedShipping,
-        psc_totalCost: (supplierPrice + estimatedShipping) * 100,
+        psc_perUnitCost: costPrice + estimatedShipping,
+        psc_totalCost: (costPrice + estimatedShipping) * 100,
 
         // Fulfillment Model (TikTok Shop)
         fm_model: "FBA", // Using FBA model for TikTok Shop
@@ -300,8 +324,14 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
   });
 
   // Utility functions
-  const formatPrice = (price: number | string) => {
+  const formatPrice = (price: number | string | undefined) => {
+    if (price === undefined || price === null) {
+      return '$0.00';
+    }
     const numPrice = typeof price === 'string' ? parseFloat(price.replace(/[^0-9.]/g, '')) : price;
+    if (isNaN(numPrice)) {
+      return '$0.00';
+    }
     return `$${numPrice.toFixed(2)}`;
   };
 
@@ -497,13 +527,15 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   }}
                 />
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900 mb-2 line-clamp-2">{product.title}</h4>
-                  <p className="text-lg font-bold text-pink-600 mb-2">{formatPrice(product.price)}</p>
+                  <h4 className="font-medium text-gray-900 mb-2 line-clamp-2">{product.title || 'Product'}</h4>
+                  <p className="text-lg font-bold text-pink-600 mb-2">
+                    {formatPrice(product.price || supplier?.estimated_price || 0)}
+                  </p>
                   <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                    <div>Views: {formatNumber(product.views_count)}</div>
-                    <div>Likes: {formatNumber(product.likes_count)}</div>
-                    <div>Shares: {formatNumber(product.shares_count)}</div>
-                    <div>Sales: {formatNumber(product.sales_count)}</div>
+                    <div>Views: {formatNumber((product as any)?.views_count)}</div>
+                    <div>Likes: {formatNumber((product as any)?.likes_count)}</div>
+                    <div>Shares: {formatNumber((product as any)?.shares_count)}</div>
+                    <div>Sales: {formatNumber((product as any)?.sales_count)}</div>
                   </div>
                 </div>
               </div>

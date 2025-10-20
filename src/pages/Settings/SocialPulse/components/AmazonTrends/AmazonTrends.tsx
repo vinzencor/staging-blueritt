@@ -674,18 +674,18 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     <div className="w-full max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-purple-600" />
           Amazon Trends
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-300">
           Discover trending products, search by keywords, or browse by category
         </p>
 
         {/* Subscription Quota Alert */}
         <div className="mt-4">
           {quotaDetails ? (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
               <div className="flex items-center">
                 <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                   <span className="text-white text-xs font-bold">i</span>
@@ -1179,44 +1179,75 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
               </div>
             </div>
 
-            {/* Category Selection for Search and Best Sellers */}
+            {/* Enhanced Category Selection for Search and Best Sellers */}
             {(activeTab === 'search' || activeTab === 'bestsellers') && (
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Category Filter (Optional)
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
+
+                {/* Category Dropdown with All Categories */}
+                <div className="space-y-4">
+                  <select
                     value={bestSellersCategory}
                     onChange={(e) => handleCategoryChange(e.target.value)}
-                    placeholder="e.g., electronics, books, clothing, home, sports"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                  <button
-                    onClick={() => handleCategoryChange('')}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
-                    All Categories
-                  </button>
+                    <option value="">All Categories</option>
+                    {rootCategories.map((category) => (
+                      <optgroup key={category.id} label={category.name}>
+                        <option value={category.name.toLowerCase().replace(/\s+/g, '-')}>
+                          {category.name}
+                        </option>
+                        {getSubcategories(category.id).map((subCategory) => (
+                          <option
+                            key={subCategory.id}
+                            value={subCategory.name.toLowerCase().replace(/\s+/g, '-')}
+                          >
+                            └─ {subCategory.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+
+                  {/* Quick Category Buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    {['electronics', 'books', 'clothing', 'home-garden', 'sports-outdoors', 'beauty', 'toys', 'automotive'].map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => handleCategoryChange(cat)}
+                        className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                          bestSellersCategory === cat
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {cat.replace('-', ' ')}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => handleCategoryChange('')}
+                      className="px-3 py-1 text-xs rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Popular: electronics, books, clothing, home-garden, sports-outdoors, beauty, toys, automotive
-                </p>
               </div>
             )}
 
             {/* Best Sellers Type Selection */}
             {activeTab === 'bestsellers' && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-100 dark:border-purple-700">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Award className="w-4 h-4 text-purple-600" />
                   Best Sellers Type
                 </label>
                 <select
                   value={bestSellersType}
                   onChange={(e) => setBestSellersType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="BEST_SELLERS">🏆 Best Sellers</option>
                   <option value="GIFT_IDEAS">🎁 Gift Ideas</option>
@@ -1224,7 +1255,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                   <option value="MOVERS_AND_SHAKERS">📈 Movers and Shakers</option>
                   <option value="NEW_RELEASES">🆕 New Releases</option>
                 </select>
-                <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
                   <Crown className="w-3 h-3" />
                   Select the type of best seller list to display products from Amazon's curated lists.
                 </p>

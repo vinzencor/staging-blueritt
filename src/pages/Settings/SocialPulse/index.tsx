@@ -53,7 +53,7 @@ const SocialPage = () => {
   // Show Amazon content only
   if (isAmazonPage) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Fixed Top Influencers Widget - True Overlay */}
         <TopInfluencersWidget />
 
@@ -69,7 +69,7 @@ const SocialPage = () => {
   // Show TikTok content only
   if (isTikTokPage) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-950">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Fixed Top Creators Widget */}
         <TikTokTopInfluencersWidget />
 
@@ -84,7 +84,7 @@ const SocialPage = () => {
 
   // Fallback (shouldn't happen with proper routing)
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <div className="p-6 space-y-8 max-w-[1400px] mx-auto">
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Social Pulse</h2>
