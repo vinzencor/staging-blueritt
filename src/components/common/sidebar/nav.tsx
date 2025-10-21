@@ -197,7 +197,7 @@ export const MenuItems: any = [
     path: "/settings/Toolfusion",
   },
   {
-  icon: SocialIcon, 
+  icon: SocialIcon,
   title: "BlueRitt SocialPulse",
   type: "sub",
   active: false,
@@ -218,6 +218,14 @@ export const MenuItems: any = [
       selected: false,
       dirchange: false,
       title: "TikTok Trends",
+    },
+    {
+      path: "/socialpulse/influencers",
+      type: "link",
+      active: false,
+      selected: false,
+      dirchange: false,
+      title: "Influencers",
     },
   ],
 },

@@ -193,7 +193,7 @@ const Card: React.FC<TDataTableProps> = ({
     <>
       <div className="justify-between flex-col lg:flex-row items-start flex lg:items-center px-5">
         {!isLoading ? (
-          <p className="text-gray-600 dark:text-white font-bold text-[1rem]">
+          <div className="text-gray-600 dark:text-white font-bold text-[1rem]">
             {effectiveTotalCount > 0 ? (
               <>
                 <div className="leading-none">
@@ -213,7 +213,7 @@ const Card: React.FC<TDataTableProps> = ({
             ) : (
               "No products found"
             )}
-          </p>
+          </div>
         ) : (
           <div className="animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-36 mb-1"></div>

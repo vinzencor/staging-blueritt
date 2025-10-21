@@ -97,12 +97,15 @@ const Connect = () => {
   } = useQuery(queryOptions);
 
   useEffect(() => {
-    console.log(
-      !aliBabaProductMatcherIsLoading && error && !matcherData,
-      !aliBabaProductMatcherIsLoading,
-      error,
-      !matcherData
-    );
+    console.log("🔍 Alibaba Matcher State:", {
+      isLoading: aliBabaProductMatcherIsLoading,
+      error: error,
+      matcherData: matcherData,
+      hasProducts: matcherData?.data?.products?.length || 0,
+      productID,
+      productTitle,
+    });
+
     if (!aliBabaProductMatcherIsLoading && error && !matcherData) {
       if (alibabaMatchQuotaDetails.quotaValue > 0) {
         if (selectedAsinProducts?.includes(productID)) {

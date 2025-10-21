@@ -39,6 +39,7 @@ const SimpleProfitProPage = lazy(() => import("@/pages/ProfitPro/Simple"));
 const ProProfitProPage = lazy(() => import("@/pages/ProfitPro/Pro"));
 
 const SocialPage = lazy(() => import("@/pages/Settings/SocialPulse/index"));
+const InfluencersPage = lazy(() => import("@/pages/Settings/SocialPulse/Influencers"));
 const WalletSetupSuccessPage = lazy(() => import("@/pages/Wallet/SetupSuccess"));
 
 
@@ -128,6 +129,12 @@ const routes: RouteType[] = [
     {
       path: "tiktok",
       element: SocialPage,
+      layout: MainLayout,
+      isProtected: true,
+    },
+    {
+      path: "influencers",
+      element: InfluencersPage,
       layout: MainLayout,
       isProtected: true,
     },

@@ -70,6 +70,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   // Local Amazon categories from JSON
   const [localRootCategories, setLocalRootCategories] = useState<AmazonCategoryItem[]>([]);
   const [selectedLocalRootCategory, setSelectedLocalRootCategory] = useState<string>('');
+  const [selectedLocalSubcategory, setSelectedLocalSubcategory] = useState<string>('');
 
   // Load local Amazon categories on mount
   React.useEffect(() => {
@@ -250,7 +251,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
 
       return result;
     },
-    enabled: viewMode === 'category' && !!selectedCategoryId, // Only run when in category mode and a category is selected
+    enabled: !!selectedCategoryId, // Enable whenever a category is selected (regardless of view mode)
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 1, // Only retry once
     retryDelay: 2000, // Fixed 2 second delay
@@ -462,6 +463,14 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       currentDataProductsCount: currentData?.data?.products?.length || 0
     });
 
+    // Show category products if a category is selected (regardless of view mode)
+    if (selectedCategoryId && directCategoryProductsData?.data?.products) {
+      const products = directCategoryProductsData.data.products;
+      console.log('✅ Using direct category products:', products.length);
+      // Ensure we return an array
+      return Array.isArray(products) ? products : [];
+    }
+
     if (viewMode === 'category' && selectedCategoryId && directCategoryProductsData?.data?.products) {
       const products = directCategoryProductsData.data.products;
       console.log('✅ Using direct category products:', products.length);
@@ -476,6 +485,12 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   };
 
   const getTotalProducts = () => {
+    // Show category product count if a category is selected (regardless of view mode)
+    if (selectedCategoryId && directCategoryProductsData?.data?.products) {
+      const products = directCategoryProductsData.data.products;
+      return Array.isArray(products) ? products.length : 0;
+    }
+
     if (viewMode === 'category' && selectedCategoryId && directCategoryProductsData?.data?.products) {
       const products = directCategoryProductsData.data.products;
       return Array.isArray(products) ? products.length : 0;
@@ -484,6 +499,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   };
 
   const getIsLoading = () => {
+    // Show loading state if a category is selected (regardless of view mode)
+    if (selectedCategoryId) {
+      return directCategoryProductsLoading;
+    }
+
     if (viewMode === 'category' && selectedCategoryId) {
       return directCategoryProductsLoading;
     }
@@ -491,6 +511,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   };
 
   const getError = () => {
+    // Show error state if a category is selected (regardless of view mode)
+    if (selectedCategoryId) {
+      return directCategoryProductsError;
+    }
+
     if (viewMode === 'category' && selectedCategoryId) {
       return directCategoryProductsError;
     }
@@ -701,6 +726,70 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                     ))}
                   </select>
                 </div>
+
+                {/* Main Category Dropdown */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    New Category
+                  </label>
+                  <select
+                    value={selectedLocalRootCategory}
+                    onChange={(e) => {
+                      setSelectedLocalRootCategory(e.target.value);
+                      setSelectedLocalSubcategory(''); // Reset subcategory when main category changes
+                      setSelectedCategoryId(''); // Reset category ID
+                      setPage(1);
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="">Select Main Category</option>
+                    {localRootCategories.map((category, index) => (
+                      <option key={category.id || index} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Subcategory Dropdown */}
+                {selectedLocalRootCategory && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                      Subcategory
+                    </label>
+                    <select
+                      value={selectedLocalSubcategory}
+                      onChange={(e) => {
+                        setSelectedLocalSubcategory(e.target.value);
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">Select Subcategory</option>
+                      {getSubcategories(selectedLocalRootCategory).map((subcategory, index) => (
+                        <option key={subcategory.id || index} value={subcategory.id}>
+                          {subcategory.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Done Button */}
+                {selectedLocalRootCategory && selectedLocalSubcategory && (
+                  <div className="flex items-end">
+                    <button
+                      onClick={() => {
+                        setSelectedCategoryId(selectedLocalSubcategory);
+                        setPage(1);
+                        refetchDirectCategoryProducts();
+                      }}
+                      className="w-full px-6 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span>✓</span>
+                      Done
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Type Description */}

@@ -39,6 +39,7 @@ import {
 } from '@/utils/amazonCategories';
 
 import AmazonTrendsProductDetailsModal from './AmazonTrendsProductDetailsModal';
+import CategorySelector from './CategorySelector';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
 
@@ -830,6 +831,42 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
         </div>
       </div>
 
+      {/* NEW: Category Dropdown Section - Always Visible */}
+      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          📂 Browse by Category
+        </label>
+        <select
+          value={bestSellersCategory}
+          onChange={(e) => setBestSellersCategory(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-medium"
+        >
+          <option value="">-- Select a Category --</option>
+          {rootCategories.map((category) => (
+            <optgroup key={category.id} label={category.name}>
+              <option value={category.id}>
+                {category.name}
+              </option>
+              {getSubcategories(category.id).map((subCategory) => (
+                <option
+                  key={subCategory.id}
+                  value={subCategory.id}
+                >
+                  └─ {subCategory.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        {bestSellersCategory && (
+          <div className="mt-3 p-2 bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-blue-700">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              <span className="font-semibold">Selected Category:</span> {bestSellersCategory}
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Category Selection Section - Integrated into By Category tab */}
       {activeTab === 'category' && (
         <div className="mb-6">
@@ -862,112 +899,15 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
               </select>
             </div>
 
-            {/* Category Search */}
+            {/* Category Selection with Hover Subcategories */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search Categories
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                📂 Browse Categories - Hover to see subcategories
               </label>
-              <input
-                type="text"
-                value={categorySearchTerm}
-                onChange={(e) => setCategorySearchTerm(e.target.value)}
-                placeholder="Search for a category..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              <CategorySelector
+                selectedCategory={selectedCategoryId}
+                onCategorySelect={handleCategorySelect}
               />
-            </div>
-
-            {/* Category Tree */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Amazon Categories ({rootCategories.length} main categories)
-                </label>
-                {categorySearchTerm && (
-                  <button
-                    onClick={() => setCategorySearchTerm('')}
-                    className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1"
-                  >
-                    <X className="w-3 h-3" />
-                    Clear Search
-                  </button>
-                )}
-              </div>
-
-              <div className="max-h-[500px] overflow-y-auto border border-gray-200 rounded-lg bg-white">
-                {filteredCategories.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
-                    {filteredCategories.map((rootCategory) => (
-                      <div key={rootCategory.id} className="hover:bg-gray-50">
-                        {/* Root Category */}
-                        <div
-                          className={`flex items-center justify-between p-3 cursor-pointer transition-colors ${
-                            selectedCategoryId === rootCategory.id
-                              ? 'bg-purple-100 border-l-4 border-purple-600'
-                              : 'hover:bg-purple-50'
-                          }`}
-                          onClick={() => {
-                            if (rootCategory.has_children) {
-                              handleRootCategoryClick(rootCategory.id);
-                            } else {
-                              handleCategorySelect(rootCategory.id);
-                            }
-                          }}
-                        >
-                          <div className="flex items-center gap-2 flex-1">
-                            <FolderTree className="w-4 h-4 text-purple-600 flex-shrink-0" />
-                            <span className="font-medium text-gray-900 text-sm">
-                              {rootCategory.name}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {rootCategory.has_children && (
-                              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                {getSubcategories(rootCategory.id).length} subcategories
-                              </span>
-                            )}
-                            {rootCategory.has_children && (
-                              expandedCategories.has(rootCategory.id) ? (
-                                <ChevronUp className="w-4 h-4 text-gray-400" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4 text-gray-400" />
-                              )
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Subcategories */}
-                        {rootCategory.has_children && expandedCategories.has(rootCategory.id) && (
-                          <div className="bg-gray-50 border-t border-gray-100">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3">
-                              {getSubcategories(rootCategory.id).map((subCategory) => (
-                                <button
-                                  key={subCategory.id}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCategorySelect(subCategory.id);
-                                  }}
-                                  className={`p-2 rounded text-xs text-left transition-all ${
-                                    selectedCategoryId === subCategory.id
-                                      ? 'bg-purple-600 text-white shadow-md'
-                                      : 'bg-white border border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300'
-                                  }`}
-                                  title={subCategory.name}
-                                >
-                                  <div className="truncate">{subCategory.name}</div>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500 text-sm">
-                    {categorySearchTerm ? 'No categories found matching your search' : 'No categories available'}
-                  </div>
-                )}
-              </div>
             </div>
 
             {selectedCategoryId && (
@@ -1179,86 +1119,107 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
               </div>
             </div>
 
-            {/* Enhanced Category Selection for Search and Best Sellers */}
-            {(activeTab === 'search' || activeTab === 'bestsellers') && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Category Filter (Optional)
-                </label>
-
-                {/* Category Dropdown with All Categories */}
-                <div className="space-y-4">
-                  <select
-                    value={bestSellersCategory}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">All Categories</option>
-                    {rootCategories.map((category) => (
-                      <optgroup key={category.id} label={category.name}>
-                        <option value={category.name.toLowerCase().replace(/\s+/g, '-')}>
-                          {category.name}
-                        </option>
-                        {getSubcategories(category.id).map((subCategory) => (
-                          <option
-                            key={subCategory.id}
-                            value={subCategory.name.toLowerCase().replace(/\s+/g, '-')}
-                          >
-                            └─ {subCategory.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-
-                  {/* Quick Category Buttons */}
-                  <div className="flex flex-wrap gap-2">
-                    {['electronics', 'books', 'clothing', 'home-garden', 'sports-outdoors', 'beauty', 'toys', 'automotive'].map((cat) => (
-                      <button
-                        key={cat}
-                        onClick={() => handleCategoryChange(cat)}
-                        className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                          bestSellersCategory === cat
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
-                      >
-                        {cat.replace('-', ' ')}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => handleCategoryChange('')}
-                      className="px-3 py-1 text-xs rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+            {/* Best Sellers Controls - Three Column Layout */}
+            {activeTab === 'bestsellers' && (
+              <div className="mb-6 space-y-4">
+                {/* Three Column Grid: Country, Type, Category */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Select Country */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Select Country
+                    </label>
+                    <select
+                      value={selectedCountry}
+                      onChange={(e) => setSelectedCountry(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
-                      Clear
-                    </button>
+                      {countries.map((country) => (
+                        <option key={country.code} value={country.code}>
+                          {country.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Amazon Trends Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Amazon Trends Type
+                    </label>
+                    <select
+                      value={bestSellersType}
+                      onChange={(e) => setBestSellersType(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="BEST_SELLERS">🏆 Best Sellers</option>
+                      <option value="GIFT_IDEAS">🎁 Gift Ideas</option>
+                      <option value="MOST_WISHED_FOR">💝 Most Wished For</option>
+                      <option value="MOVERS_AND_SHAKERS">📈 Movers and Shakers</option>
+                      <option value="NEW_RELEASES">🆕 New Releases</option>
+                    </select>
+                  </div>
+
+                  {/* Select Category (Optional) */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Select Category (Optional)
+                    </label>
+                    <select
+                      value={bestSellersCategory}
+                      onChange={(e) => handleCategoryChange(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">All Categories</option>
+                      {rootCategories.map((category) => (
+                        <optgroup key={category.id} label={category.name}>
+                          <option value={category.id}>
+                            {category.name}
+                          </option>
+                          {getSubcategories(category.id).map((subCategory) => (
+                            <option
+                              key={subCategory.id}
+                              value={subCategory.id}
+                            >
+                              └─ {subCategory.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Best Sellers Type Selection */}
-            {activeTab === 'bestsellers' && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-100 dark:border-purple-700">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Award className="w-4 h-4 text-purple-600" />
-                  Best Sellers Type
+            {/* Search Tab Category Selection */}
+            {activeTab === 'search' && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Select Category (Optional)
                 </label>
                 <select
-                  value={bestSellersType}
-                  onChange={(e) => setBestSellersType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  value={bestSellersCategory}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="BEST_SELLERS">🏆 Best Sellers</option>
-                  <option value="GIFT_IDEAS">🎁 Gift Ideas</option>
-                  <option value="MOST_WISHED_FOR">💝 Most Wished For</option>
-                  <option value="MOVERS_AND_SHAKERS">📈 Movers and Shakers</option>
-                  <option value="NEW_RELEASES">🆕 New Releases</option>
+                  <option value="">All Categories</option>
+                  {rootCategories.map((category) => (
+                    <optgroup key={category.id} label={category.name}>
+                      <option value={category.id}>
+                        {category.name}
+                      </option>
+                      {getSubcategories(category.id).map((subCategory) => (
+                        <option
+                          key={subCategory.id}
+                          value={subCategory.id}
+                        >
+                          └─ {subCategory.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
                 </select>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
-                  <Crown className="w-3 h-3" />
-                  Select the type of best seller list to display products from Amazon's curated lists.
-                </p>
               </div>
             )}
 

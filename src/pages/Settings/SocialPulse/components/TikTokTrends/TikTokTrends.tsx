@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp, Package, Filter, Search, CheckCircle, Loader2, Eye, ExternalLink, Heart, MessageCircle, Share2, Play, Zap, Truck, Save, X, Calculator, AlertCircle, ShoppingCart } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
@@ -41,9 +41,9 @@ const TIKTOK_CATEGORIES = [
 
 // Time range options
 const TIME_RANGES = [
-  { value: '1', label: 'Yesterday' },
-  { value: '7', label: 'Last 7 days' },
-  { value: '30', label: 'Last 30 days' },
+  { value: '1', label: 'Last 30 Days' },
+  { value: '7', label: 'Last 90 days' },
+  { value: '30', label: 'Last 180 days' },
 ];
 
 // Sort options
@@ -124,8 +124,11 @@ interface TikTokTrendsProps {
 }
 
 const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
-  // Persistent quota management
+  // Persistent quota management (for supplier discovery)
   const { quotas, reduceQuota, increaseQuota, hasQuota } = usePersistentQuota();
+
+  // Backend quota management for TikTok search
+  const { quotaDetails: tiktokSearchQuotaDetails, updateQuota: updateTikTokSearchQuota } = useUserSubscriptionAndSearchQuota('tiktok_searches' as any);
 
   // Subscription quota management
   const { quotaDetails, updateQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokAnalysis);
@@ -181,14 +184,20 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     retryDelay: 2000,
   });
 
+  // Update quota when API response comes back
+  useEffect(() => {
+    if (tiktokData?.remaining_quota !== undefined && tiktokData?.remaining_quota !== null) {
+      updateTikTokSearchQuota(tiktokData.remaining_quota);
+    }
+  }, [tiktokData?.remaining_quota, updateTikTokSearchQuota]);
+
   const handleDoneClick = () => {
-    // Check if quota is available
-    if (!hasQuota('tiktok_search')) {
+    // Check if quota is available from backend
+    if (tiktokSearchQuotaDetails.quotaValue <= 0) {
       alert('No TikTok searches remaining. Please purchase add-ons to continue.');
       return;
     }
-    // Reduce quota when filter is applied
-    reduceQuota('tiktok_search', 1);
+    // Quota will be deducted by backend API
     setShouldFetch(true);
     refetchTikTok();
   };
@@ -619,52 +628,90 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       </div>
                     )}
 
-                    {/* Key Stats Grid - Only show non-zero values, flexible layout */}
+                    {/* Key Performance Metrics - CPR, CVR, CPA, Cost */}
                     <div className="grid grid-cols-2 gap-2 text-xs mb-4 flex-grow">
-                      {product.post && product.post > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 text-center">
-                          <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400 mb-1">
-                            <Play className="w-3 h-3" />
-                            <span>Posts</span>
-                          </div>
-                          <div className="font-semibold text-gray-900 dark:text-white">
-                            {product.post.toLocaleString()}
+                      {product.ctr !== undefined && product.ctr > 0 && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center border border-blue-200 dark:border-blue-800">
+                          <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium">CPR</div>
+                          <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                            {(product.ctr * 100).toFixed(2)}%
                           </div>
                         </div>
                       )}
-                      {product.like && product.like > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 text-center">
-                          <div className="flex items-center justify-center gap-1 text-red-500 mb-1">
-                            <Heart className="w-3 h-3" />
-                            <span>Likes</span>
-                          </div>
-                          <div className="font-semibold text-gray-900 dark:text-white">
-                            {product.like.toLocaleString()}
+                      {product.cvr !== undefined && product.cvr > 0 && (
+                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center border border-purple-200 dark:border-purple-800">
+                          <div className="text-purple-600 dark:text-purple-400 mb-1 font-medium">CVR</div>
+                          <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                            {(product.cvr * 100).toFixed(2)}%
                           </div>
                         </div>
                       )}
-                      {product.share && product.share > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 text-center">
-                          <div className="flex items-center justify-center gap-1 text-green-600 dark:text-green-400 mb-1">
-                            <Share2 className="w-3 h-3" />
-                            <span>Shares</span>
-                          </div>
-                          <div className="font-semibold text-gray-900 dark:text-white">
-                            {product.share.toLocaleString()}
+                      {product.cpa !== undefined && product.cpa > 0 && (
+                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center border border-green-200 dark:border-green-800">
+                          <div className="text-green-600 dark:text-green-400 mb-1 font-medium">CPA</div>
+                          <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                            ${product.cpa.toFixed(2)}
                           </div>
                         </div>
                       )}
-                      {product.comment && product.comment > 0 && (
-                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 text-center">
-                          <div className="flex items-center justify-center gap-1 text-yellow-600 dark:text-yellow-400 mb-1">
-                            <MessageCircle className="w-3 h-3" />
-                            <span>Comments</span>
-                          </div>
-                          <div className="font-semibold text-gray-900 dark:text-white">
-                            {product.comment.toLocaleString()}
+                      {product.cost !== undefined && product.cost > 0 && (
+                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center border border-orange-200 dark:border-orange-800">
+                          <div className="text-orange-600 dark:text-orange-400 mb-1 font-medium">Cost</div>
+                          <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                            ${(product.cost / 100).toFixed(2)}
                           </div>
                         </div>
                       )}
+                    </div>
+
+                    {/* Additional Metrics - Likes, Posts, Shares, Comments */}
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-4 border border-gray-200 dark:border-gray-600">
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {product.like !== undefined && product.like > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Heart className="w-3 h-3 text-red-500" />
+                            <div>
+                              <div className="text-gray-600 dark:text-gray-400">Likes</div>
+                              <div className="font-semibold text-gray-900 dark:text-white">
+                                {product.like.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {product.post !== undefined && product.post > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Play className="w-3 h-3 text-blue-500" />
+                            <div>
+                              <div className="text-gray-600 dark:text-gray-400">Posts</div>
+                              <div className="font-semibold text-gray-900 dark:text-white">
+                                {product.post.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {product.share !== undefined && product.share > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Share2 className="w-3 h-3 text-green-500" />
+                            <div>
+                              <div className="text-gray-600 dark:text-gray-400">Shares</div>
+                              <div className="font-semibold text-gray-900 dark:text-white">
+                                {product.share.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {product.comment !== undefined && product.comment > 0 && (
+                          <div className="flex items-center gap-2">
+                            <MessageCircle className="w-3 h-3 text-yellow-500" />
+                            <div>
+                              <div className="text-gray-600 dark:text-gray-400">Comments</div>
+                              <div className="font-semibold text-gray-900 dark:text-white">
+                                {product.comment.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* View Details Button - Always at bottom */}

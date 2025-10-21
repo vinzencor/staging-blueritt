@@ -514,7 +514,7 @@ const ProductScannerPage = () => {
             {isSearchLoading ? (
               <div className="p-5">
                 {[...Array(12)].map((_, index) => (
-                  <>
+                  <div key={`skeleton-${index}`}>
                     <div className="border mt-3  rounded-md animate-pulse p-4">
                       <div className="flex items-center">
                         <div className="p-4">
@@ -523,8 +523,8 @@ const ProductScannerPage = () => {
                         <div className="w-full">
                           <div className="h-5  rounded w-36 md:w-1/2 mb-2"></div>
                           <div className="grid md:grid-cols-4 lg:grid-cols-5 xxl:grid-cols-6 grid-cols-2 gap-x-6 gap-y-3 mt-3">
-                            {[...Array(12)].map((_, index) => (
-                              <div key={index}>
+                            {[...Array(12)].map((_, innerIndex) => (
+                              <div key={`skeleton-item-${index}-${innerIndex}`}>
                                 <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
                                 <div className="h-5 bg-gray-300 rounded w-24"></div>
                               </div>
@@ -536,7 +536,7 @@ const ProductScannerPage = () => {
                         <div className="w-40 h-5 bg-gray-300 rounded"></div>
                       </div>
                     </div>
-                  </>
+                  </div>
                 ))}
               </div>
             ) : (
