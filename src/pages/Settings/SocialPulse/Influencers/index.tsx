@@ -1,114 +1,321 @@
-import React, { useState } from 'react';
-import { Users, TrendingUp, Heart, MessageCircle, Share2, Play, Search, Filter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, AlertCircle, Loader, X } from 'lucide-react';
 
 interface Influencer {
-  id: string;
-  name: string;
-  handle: string;
-  avatar: string;
-  followers: number;
-  engagement_rate: number;
-  avg_likes: number;
-  avg_comments: number;
-  avg_shares: number;
-  category: string;
-  verified: boolean;
-  bio: string;
+  influencer_name: string;
+  followers?: string;
+  following?: string;
+  post_count?: string;
+  engagement_rate?: number;
+  bio?: string;
+  verified?: boolean;
+  profile_link?: string;
+  profile_description?: string;
+  [key: string]: any;
 }
 
-const SAMPLE_INFLUENCERS: Influencer[] = [
-  {
-    id: '1',
-    name: 'Sarah Chen',
-    handle: '@sarahchen',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-    followers: 2500000,
-    engagement_rate: 8.5,
-    avg_likes: 125000,
-    avg_comments: 8500,
-    avg_shares: 3200,
-    category: 'Fashion & Beauty',
-    verified: true,
-    bio: 'Fashion influencer | Beauty enthusiast | Lifestyle content creator',
-  },
-  {
-    id: '2',
-    name: 'Alex Rodriguez',
-    handle: '@alexrodriguez',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
-    followers: 1800000,
-    engagement_rate: 7.2,
-    avg_likes: 95000,
-    avg_comments: 6200,
-    avg_shares: 2800,
-    category: 'Tech & Gadgets',
-    verified: true,
-    bio: 'Tech reviewer | Gadget enthusiast | Innovation lover',
-  },
-  {
-    id: '3',
-    name: 'Emma Wilson',
-    handle: '@emmawilson',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
-    followers: 3200000,
-    engagement_rate: 9.1,
-    avg_likes: 165000,
-    avg_comments: 11200,
-    avg_shares: 4500,
-    category: 'Lifestyle & Travel',
-    verified: true,
-    bio: 'Travel vlogger | Lifestyle content | Adventure seeker',
-  },
-  {
-    id: '4',
-    name: 'James Park',
-    handle: '@jamespark',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
-    followers: 1500000,
-    engagement_rate: 6.8,
-    avg_likes: 78000,
-    avg_comments: 5100,
-    avg_shares: 2200,
-    category: 'Fitness & Health',
-    verified: false,
-    bio: 'Fitness coach | Health enthusiast | Workout tips',
-  },
+interface InfluencerPost {
+  post_url?: string;
+  post_title?: string;
+  is_pinned?: boolean;
+  video_duration?: string;
+  image_url?: string;
+  post_description?: string;
+  likes_count?: number;
+  comments_count?: number;
+  [key: string]: any;
+}
+
+// Influencer names to fetch
+const INFLUENCER_NAMES = [
+  'kylerichards18',
+  'paige_desorbo',
+  'jdroberto',
+  'kandionline',
+  'makhondlovu',
+  '_giagiudice',
+  'madison.lecroy',
+  'lalakent',
+  'harryjowsey',
+  'alix_earle',
+  'influencer-51db6fba',
+  'rockybarnes',
+  'interiordesignerella',
+  'julianna_claire',
+  'aspynovard',
+  'teresalaucar',
+  'the_broadmoor_house',
+  'sweetsavingsandthings',
+  'ourwintonhome',
+  'thesweetimpact',
+  'arinsolange',
+  'alliephunter',
+  'everything.envy',
+  'tiffanyallison7',
+  'thebargainsisters',
+  'clickandlove',
+  'ironmom40',
+  'everyday.holly',
+  'kristen.niblett',
+  'balkanina',
+  'heidisnipes',
+  'tourdelust',
+  'kirasfashionfinds',
+  'shopdandy',
+  'maryamishtiaq',
+  'livinstyleinsta',
+  'meimonstaa',
+  'mikaylavallati',
+  'homesweetpink',
+  'theparentgame',
+  'michellelei',
+  'xojalonda',
+  'playroominspo',
+  'just.jacsy',
+  'thedealparty',
+  'frankietavares',
+  'influencer-cb2630cb'
 ];
 
+// Posts Modal Component
+interface PostsModalProps {
+  isOpen: boolean;
+  influencerName: string;
+  onClose: () => void;
+}
+
+const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose }) => {
+  const [posts, setPosts] = useState<InfluencerPost[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      setError(null);
+      setPosts([]);
+      try {
+        const url = `https://real-time-amazon-data.p.rapidapi.com/influencer-posts?influencer_name=${encodeURIComponent(influencerName)}&country=US&scope=ALL&limit=100`;
+
+        console.log('Fetching posts from:', url);
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
+            'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+          }
+        });
+
+        console.log('Response status:', response.status);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('API Response:', data);
+
+          // Handle different response structures
+          let postsData = [];
+          if (data.data && Array.isArray(data.data)) {
+            postsData = data.data;
+          } else if (Array.isArray(data)) {
+            postsData = data;
+          }
+
+          console.log('Posts extracted:', postsData.length);
+          setPosts(postsData);
+
+          if (postsData.length === 0) {
+            setError('No posts found for this influencer');
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('API Error:', errorData);
+          setError(`Failed to load posts (Status: ${response.status})`);
+        }
+      } catch (err) {
+        console.error('Error fetching posts:', err);
+        setError('Failed to load posts. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [isOpen, influencerName]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            Posts by {influencerName}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader className="w-6 h-6 animate-spin text-purple-600 mb-2" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading posts...</p>
+            </div>
+          ) : error ? (
+            <div className="flex items-start gap-3 text-orange-600 text-sm p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium">{error}</p>
+                <p className="text-xs mt-1 opacity-75">Influencer: {influencerName}</p>
+              </div>
+            </div>
+          ) : posts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {posts.map((post, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  {/* Post Image */}
+                  {(post.image_url || post.image) && (
+                    <div className="w-full h-40 bg-gray-200 dark:bg-gray-600 overflow-hidden">
+                      <img
+                        src={post.image_url || post.image}
+                        alt={post.post_title || 'Post'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Post Info */}
+                  <div className="p-3">
+                    {(post.post_title || post.title) && (
+                      <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
+                        {post.post_title || post.title}
+                      </h3>
+                    )}
+
+                    {(post.post_description || post.description) && (
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                        {post.post_description || post.description}
+                      </p>
+                    )}
+
+                    {/* Stats */}
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      {(post.likes_count || post.likes) && (
+                        <span>❤️ {post.likes_count || post.likes}</span>
+                      )}
+                      {(post.comments_count || post.comments) && (
+                        <span>💬 {post.comments_count || post.comments}</span>
+                      )}
+                      {post.video_duration && (
+                        <span>⏱️ {post.video_duration}</span>
+                      )}
+                      {post.is_pinned && (
+                        <span>📌 Pinned</span>
+                      )}
+                    </div>
+
+                    {/* View Post Link */}
+                    {(post.post_url || post.url) && (
+                      <a
+                        href={post.post_url || post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-2 text-xs text-purple-600 dark:text-purple-400 hover:underline font-medium"
+                      >
+                        View Post →
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">No posts available</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const InfluencersPage: React.FC = () => {
+  const [influencers, setInfluencers] = useState<Influencer[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [filteredInfluencers, setFilteredInfluencers] = useState(SAMPLE_INFLUENCERS);
+  const [selectedInfluencer, setSelectedInfluencer] = useState<string | null>(null);
 
-  const categories = ['Fashion & Beauty', 'Tech & Gadgets', 'Lifestyle & Travel', 'Fitness & Health'];
+  // Fetch influencers on mount
+  useEffect(() => {
+    const fetchInfluencers = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const results: Influencer[] = [];
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    filterInfluencers(query, selectedCategory);
-  };
+        for (const name of INFLUENCER_NAMES) {
+          try {
+            const response = await fetch(
+              `https://real-time-amazon-data.p.rapidapi.com/influencer-profile?influencer_name=${name}&country=US`,
+              {
+                method: 'GET',
+                headers: {
+                  'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
+                  'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+                }
+              }
+            );
 
-  const handleCategoryFilter = (category: string) => {
-    setSelectedCategory(category);
-    filterInfluencers(searchQuery, category);
-  };
+            if (response.ok) {
+              const data = await response.json();
+              if (data.data) {
+                results.push({
+                  influencer_name: name,
+                  ...data.data
+                });
+              }
+            }
+          } catch (err) {
+            console.error(`Error fetching influencer ${name}:`, err);
+          }
+        }
 
-  const filterInfluencers = (query: string, category: string) => {
-    let filtered = SAMPLE_INFLUENCERS;
+        setInfluencers(results);
+        if (results.length === 0) {
+          setError('No influencers found. Please check the API connection.');
+        }
+      } catch (err) {
+        console.error('Error fetching influencers:', err);
+        setError('Failed to load influencers');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    if (query) {
-      filtered = filtered.filter(
-        (inf) =>
-          inf.name.toLowerCase().includes(query.toLowerCase()) ||
-          inf.handle.toLowerCase().includes(query.toLowerCase())
-      );
-    }
+    fetchInfluencers();
+  }, []);
 
-    if (category) {
-      filtered = filtered.filter((inf) => inf.category === category);
-    }
-
-    setFilteredInfluencers(filtered);
-  };
+  // Filter influencers based on search
+  const filteredInfluencers = influencers.filter((inf) =>
+    inf.influencer_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
@@ -119,139 +326,136 @@ const InfluencersPage: React.FC = () => {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center">
               <Users className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Influencers</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Amazon Influencers</h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
-            Discover and analyze top influencers in your niche
+            Discover and analyze top Amazon influencers
           </p>
         </div>
 
-        {/* Search and Filter */}
+        {/* Search */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search influencers..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
-              />
-            </div>
-
-            {/* Category Filter */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select
-                value={selectedCategory}
-                onChange={(e) => handleCategoryFilter(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
-              >
-                <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search influencers by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+            />
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader className="w-8 h-8 animate-spin text-purple-600" />
+            <span className="ml-3 text-gray-600 dark:text-gray-400">Loading influencers...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="flex items-center gap-2 text-red-600 text-sm p-4 bg-red-50 dark:bg-red-900/20 rounded-lg mb-6">
+            <AlertCircle className="w-5 h-5" />
+            {error}
+          </div>
+        )}
+
         {/* Influencers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredInfluencers.map((influencer) => (
-            <div
-              key={influencer.id}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700"
-            >
-              {/* Header with Avatar */}
-              <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 p-6 text-center">
-                <img
-                  src={influencer.avatar}
-                  alt={influencer.name}
-                  className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-white dark:border-gray-700"
-                />
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{influencer.name}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{influencer.handle}</p>
-                {influencer.verified && (
-                  <span className="inline-block mt-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs px-3 py-1 rounded-full">
-                    ✓ Verified
-                  </span>
+        {!isLoading && filteredInfluencers.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredInfluencers.map((influencer) => (
+              <div
+                key={influencer.influencer_name}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700"
+              >
+                {/* Header with Avatar */}
+                <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 p-6 text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full mx-auto mb-4 flex items-center justify-center text-white font-bold text-2xl">
+                    {influencer.influencer_name?.charAt(0).toUpperCase() || 'I'}
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">{influencer.influencer_name}</h3>
+                  {influencer.verified && (
+                    <span className="inline-block mt-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs px-3 py-1 rounded-full">
+                      ✓ Verified
+                    </span>
+                  )}
+                </div>
+
+                {/* Bio */}
+                {influencer.bio && (
+                  <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{influencer.bio}</p>
+                  </div>
                 )}
-              </div>
 
-              {/* Bio */}
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-600 dark:text-gray-400">{influencer.bio}</p>
-              </div>
-
-              {/* Stats */}
-              <div className="p-6 space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Followers</span>
-                  <span className="font-bold text-gray-900 dark:text-white">
-                    {(influencer.followers / 1000000).toFixed(1)}M
-                  </span>
+                {/* Stats */}
+                <div className="p-6 space-y-3">
+                  {influencer.followers && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">👥 Followers</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{influencer.followers}</span>
+                    </div>
+                  )}
+                  {influencer.post_count && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">📸 Posts</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{influencer.post_count}</span>
+                    </div>
+                  )}
+                  {influencer.following && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 dark:text-gray-400">➡️ Following</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{influencer.following}</span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Engagement Rate</span>
-                  <span className="font-bold text-pink-600 dark:text-pink-400">
-                    {influencer.engagement_rate.toFixed(1)}%
-                  </span>
-                </div>
 
-                {/* Engagement Metrics */}
-                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <Heart className="w-4 h-4 text-red-500 mx-auto mb-1" />
-                    <div className="text-xs font-semibold text-gray-900 dark:text-white">
-                      {(influencer.avg_likes / 1000).toFixed(0)}K
-                    </div>
-                    <div className="text-xs text-gray-500">Likes</div>
-                  </div>
-                  <div className="text-center">
-                    <MessageCircle className="w-4 h-4 text-blue-500 mx-auto mb-1" />
-                    <div className="text-xs font-semibold text-gray-900 dark:text-white">
-                      {(influencer.avg_comments / 1000).toFixed(1)}K
-                    </div>
-                    <div className="text-xs text-gray-500">Comments</div>
-                  </div>
-                  <div className="text-center">
-                    <Share2 className="w-4 h-4 text-green-500 mx-auto mb-1" />
-                    <div className="text-xs font-semibold text-gray-900 dark:text-white">
-                      {(influencer.avg_shares / 1000).toFixed(1)}K
-                    </div>
-                    <div className="text-xs text-gray-500">Shares</div>
-                  </div>
+                {/* Action Button */}
+                <div className="px-6 pb-6 space-y-2">
+                  <button
+                    onClick={() => setSelectedInfluencer(influencer.influencer_name)}
+                    className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-sm"
+                  >
+                    View Posts
+                  </button>
+                  {influencer.profile_link && (
+                    <a
+                      href={influencer.profile_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 font-medium text-sm text-center"
+                    >
+                      View Profile
+                    </a>
+                  )}
                 </div>
               </div>
-
-              {/* Action Button */}
-              <div className="px-6 pb-6">
-                <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-sm">
-                  View Profile
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Empty State */}
-        {filteredInfluencers.length === 0 && (
+        {!isLoading && filteredInfluencers.length === 0 && !error && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               No influencers found
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              Try adjusting your search or filter criteria
+              Try adjusting your search criteria
             </p>
           </div>
         )}
       </div>
+
+      {/* Posts Modal */}
+      <PostsModal
+        isOpen={selectedInfluencer !== null}
+        influencerName={selectedInfluencer || ''}
+        onClose={() => setSelectedInfluencer(null)}
+      />
     </div>
   );
 };

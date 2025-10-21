@@ -697,9 +697,9 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   </select>
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                    Select Category (Optional)
+                    Select Category (Optionalll)
                   </label>
                   <select
                     value={selectedCategoryId}
@@ -725,7 +725,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
 
                 {/* Main Category Dropdown */}
                 <div>
@@ -761,6 +761,14 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       value={selectedLocalSubcategory}
                       onChange={(e) => {
                         setSelectedLocalSubcategory(e.target.value);
+                        setSelectedCategoryId(e.target.value);
+                        setPage(1);
+                        // Fetch products for the selected subcategory
+                        if (e.target.value) {
+                          refetchDirectCategoryProducts();
+                        } else {
+                          refetchBestSellers();
+                        }
                       }}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
@@ -771,23 +779,6 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         </option>
                       ))}
                     </select>
-                  </div>
-                )}
-
-                {/* Done Button */}
-                {selectedLocalRootCategory && selectedLocalSubcategory && (
-                  <div className="flex items-end">
-                    <button
-                      onClick={() => {
-                        setSelectedCategoryId(selectedLocalSubcategory);
-                        setPage(1);
-                        refetchDirectCategoryProducts();
-                      }}
-                      className="w-full px-6 py-2 bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                      <span>✓</span>
-                      Done
-                    </button>
                   </div>
                 )}
               </div>

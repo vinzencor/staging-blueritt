@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, AlertCircle } from 'lucide-react';
+import { Crown, AlertCircle, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 // TikTok Influencer interface
@@ -110,19 +110,19 @@ const TikTokInfluencerCard: React.FC<{ influencer: TikTokInfluencer }> = ({ infl
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-sm truncate">
+          <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
             {influencer.nick_name || 'Unknown'}
           </h3>
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-1.5 mt-2 text-xs">
-            <div className="bg-pink-50 rounded px-1.5 py-0.5">
-              <span className="text-gray-600">👥 </span>
-              <span className="font-semibold text-pink-600">{formatNumber(influencer.follower_cnt)}</span>
+            <div className="bg-pink-50 dark:bg-pink-900/20 rounded px-1.5 py-0.5">
+              <span className="text-gray-600 dark:text-gray-400">👥 </span>
+              <span className="font-semibold text-pink-600 dark:text-pink-400">{formatNumber(influencer.follower_cnt)}</span>
             </div>
-            <div className="bg-red-50 rounded px-1.5 py-0.5">
-              <span className="text-gray-600">❤️ </span>
-              <span className="font-semibold text-red-600">{formatNumber(influencer.liked_cnt)}</span>
+            <div className="bg-red-50 dark:bg-red-900/20 rounded px-1.5 py-0.5">
+              <span className="text-gray-600 dark:text-gray-400">❤️ </span>
+              <span className="font-semibold text-red-600 dark:text-red-400">{formatNumber(influencer.liked_cnt)}</span>
             </div>
           </div>
         </div>
@@ -131,12 +131,33 @@ const TikTokInfluencerCard: React.FC<{ influencer: TikTokInfluencer }> = ({ infl
   );
 };
 
+// Mobile Toggle Button Component
+interface MobileToggleProps {
+  isOpen: boolean;
+  onClick: () => void;
+  creatorCount: number;
+}
+
+const MobileToggle: React.FC<MobileToggleProps> = ({ isOpen, onClick, creatorCount }) => (
+  <button
+    onClick={onClick}
+    className="lg:hidden fixed top-20 right-4 z-40 bg-pink-600 hover:bg-pink-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 mobile-toggle-button"
+  >
+    <div className="flex items-center gap-2">
+      <Crown className="w-5 h-5" />
+      <span className="text-sm font-medium">Creators ({creatorCount})</span>
+      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+    </div>
+  </button>
+);
+
 // Main TikTokTopInfluencersWidget Component
 export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ className = '' }) => {
   const location = useLocation();
   const [influencers, setInfluencers] = useState<TikTokInfluencer[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Determine if we're on TikTok page
@@ -167,11 +188,11 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
             setInfluencers(data.creators);
           }
         } else {
-          setError('Failed to load TikTok influencers');
+          setError('Failed to load TikTok creators');
         }
       } catch (err) {
-        console.error('Error fetching TikTok influencers:', err);
-        setError('Failed to load TikTok influencers');
+        console.error('Error fetching TikTok creators:', err);
+        setError('Failed to load TikTok creators');
       } finally {
         setIsLoading(false);
       }
@@ -222,120 +243,127 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
     };
   }, [influencers, isLoading]);
 
+  // Close mobile widget when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isMobileOpen && !target.closest('.mobile-creator-widget') && !target.closest('.mobile-toggle-button')) {
+        setIsMobileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMobileOpen]);
+
   // Don't render if not on TikTok page
   if (!isTikTokPage) {
     return null;
   }
 
+  // Widget content component to avoid duplication
+  const WidgetContent = () => (
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg h-full flex flex-col">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between">
+          {/* Icon with hover text */}
+          <div className="relative group">
+            <div className="flex items-center min-h-[28px]">
+              {/* Always show icon */}
+              <Crown className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+              
+              {/* Show text on hover with smooth transition */}
+              <span className="ml-2 text-lg font-bold text-gray-900 dark:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                Top Creators
+              </span>
+              
+              {/* Always show count */}
+              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                ({influencers.length})
+              </span>
+            </div>
+          </div>
+          
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+      <div 
+        ref={scrollContainerRef} 
+        className="flex-1 p-4 overflow-y-auto scroll-smooth"
+      >
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : error ? (
+          <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            <AlertCircle className="w-4 h-4" />
+            {error}
+          </div>
+        ) : influencers.length > 0 ? (
+          <div className="space-y-3">
+            {influencers.map((influencer) => (
+              <TikTokInfluencerCard key={influencer.tcm_id} influencer={influencer} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState />
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <>
-      {/* Desktop Fixed Sidebar Widget - Right side positioning */}
+      {/* Mobile Toggle Button */}
+      <MobileToggle 
+        isOpen={isMobileOpen}
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        creatorCount={influencers.length}
+      />
+
+      {/* Mobile Bottom Sheet */}
       <div className={`
-        fixed top-20 right-6 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
-        hidden 2xl:block
-        transition-all duration-300 ease-in-out
-        ${className}
+        lg:hidden fixed inset-x-0 bottom-0 z-40 transition-transform duration-300 ease-in-out
+        ${isMobileOpen ? 'translate-y-0' : 'translate-y-full'}
+        mobile-creator-widget
       `}>
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
-              <Crown className="w-5 h-5 mr-2 text-pink-600 dark:text-pink-400" />
-              Top Creators
-            </h2>
-          </div>
-          <div ref={scrollContainerRef} className="p-4 max-h-[calc(100vh-12rem)] overflow-y-auto scroll-smooth">
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : error ? (
-              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                <AlertCircle className="w-4 h-4" />
-                {error}
-              </div>
-            ) : influencers.length > 0 ? (
-              <div className="space-y-3">
-                {influencers.map((influencer) => (
-                  <TikTokInfluencerCard key={influencer.tcm_id} influencer={influencer} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState />
-            )}
-          </div>
+        <div className="bg-white dark:bg-gray-800 rounded-t-2xl border border-gray-200 dark:border-gray-700 shadow-2xl h-[70vh] max-h-[70vh] mx-2 mb-2">
+          <WidgetContent />
         </div>
       </div>
 
-      {/* Large Desktop Widget */}
+      {/* Tablet Widget (768px - 1023px) */}
       <div className={`
-        fixed top-20 right-4 w-72 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
-        hidden xl:block 2xl:hidden
+        hidden lg:block xl:hidden fixed top-20 right-3 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center">
-              <Crown className="w-4 h-4 mr-2 text-pink-600 dark:text-pink-400" />
-              Top Creators
-            </h2>
-          </div>
-          <div ref={scrollContainerRef} className="p-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : error ? (
-              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                <AlertCircle className="w-3 h-3" />
-                {error}
-              </div>
-            ) : influencers.length > 0 ? (
-              <div className="space-y-2">
-                {influencers.map((influencer) => (
-                  <TikTokInfluencerCard key={influencer.tcm_id} influencer={influencer} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState />
-            )}
-          </div>
-        </div>
+        <WidgetContent />
       </div>
 
-      {/* Tablet Widget */}
+      {/* Large Desktop Widget (1024px - 1279px) */}
       <div className={`
-        fixed top-20 right-3 w-64 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
-        hidden lg:block xl:hidden
+        hidden xl:block 2xl:hidden fixed top-20 right-4 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-sm font-bold text-gray-900 dark:text-white flex items-center">
-              <Crown className="w-4 h-4 mr-2 text-pink-600 dark:text-pink-400" />
-              <span className="truncate">Top Creators</span>
-            </h2>
-          </div>
-          <div ref={scrollContainerRef} className="p-2 max-h-[calc(100vh-12rem)] overflow-y-auto">
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : error ? (
-              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                <AlertCircle className="w-3 h-3" />
-                {error}
-              </div>
-            ) : influencers.length > 0 ? (
-              <div className="space-y-2">
-                {influencers.map((influencer) => (
-                  <TikTokInfluencerCard key={influencer.tcm_id} influencer={influencer} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState />
-            )}
-          </div>
-        </div>
+        <WidgetContent />
+      </div>
+
+      {/* Extra Large Desktop Widget (1280px+) */}
+      <div className={`
+        hidden 2xl:block fixed top-20 right-6 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
+        transition-all duration-300 ease-in-out
+        ${className}
+      `}>
+        <WidgetContent />
       </div>
     </>
   );
 };
 
 export default TikTokTopInfluencersWidget;
-

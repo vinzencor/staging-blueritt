@@ -54,15 +54,19 @@ const SocialPage = () => {
   if (isAmazonPage) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
-        {/* Fixed Top Influencers Widget - True Overlay */}
-        <TopInfluencersWidget />
+  {/* Fixed Top Influencers Widget - True Overlay */}
+  <TopInfluencersWidget />
 
-        {/* Main Content - Responsive with proper spacing for best deals widget */}
-        <div className="p-3 sm:p-5 space-y-8 max-w-[1191px] 2xl:max-w-[1000px]">
-          {/* Amazon Content */}
-          <ProductExplorer />
-        </div>
-      </div>
+  {/* Main Content - Responsive with proper spacing for best deals widget */}
+  <div className="p-3 sm:p-5 space-y-8 mx-auto w-full 
+                  max-w-[1400px]
+                  lg:max-w-[calc(100%-320px)] lg:mr-[320px]
+                  xl:max-w-[calc(100%-340px)] xl:mr-[340px]
+                  2xl:max-w-[calc(100%-384px)] 2xl:mr-[384px]">
+    {/* Amazon Content */}
+    <ProductExplorer />
+  </div>
+</div>
     );
   }
 
@@ -74,7 +78,11 @@ const SocialPage = () => {
         <TikTokTopInfluencersWidget />
 
         {/* Main Content - Responsive with proper spacing for best deals widget */}
-        <div className="p-3 sm:p-5 space-y-8 max-w-[1191px] 2xl:max-w-[1000px]">
+        <div className="p-3 sm:p-5 space-y-8 mx-auto w-full 
+                  max-w-[1400px]
+                  lg:max-w-[calc(100%-320px)] lg:mr-[320px]
+                  xl:max-w-[calc(100%-340px)] xl:mr-[340px]
+                  2xl:max-w-[calc(100%-384px)] 2xl:mr-[384px]">
           {/* TikTok Content */}
           <TikTokTrends />
         </div>

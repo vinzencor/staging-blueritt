@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, AlertCircle, Loader } from 'lucide-react';
+import { Crown, AlertCircle, Loader, X, Menu, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 // Add CSS for auto-scroll animation
@@ -43,6 +43,19 @@ export interface Influencer {
   [key: string]: any;
 }
 
+// Post interface
+export interface InfluencerPost {
+  post_url?: string;
+  post_title?: string;
+  is_pinned?: boolean;
+  video_duration?: string;
+  image_url?: string;
+  post_description?: string;
+  likes_count?: number;
+  comments_count?: number;
+  [key: string]: any;
+}
+
 // Influencer names to fetch
 const INFLUENCER_NAMES = [
   'kylerichards18',
@@ -53,7 +66,45 @@ const INFLUENCER_NAMES = [
   '_giagiudice',
   'madison.lecroy',
   'lalakent',
-  'harryjowsey'
+  'harryjowsey',
+  'alix_earle',
+  'influencer-51db6fba',
+  'rockybarnes',
+  'interiordesignerella',
+  'julianna_claire',
+  'aspynovard',
+  'teresalaucar',
+  'the_broadmoor_house',
+  'sweetsavingsandthings',
+  'ourwintonhome',
+  'thesweetimpact',
+  'arinsolange',
+  'alliephunter',
+  'everything.envy',
+  'tiffanyallison7',
+  'thebargainsisters',
+  'clickandlove',
+  'ironmom40',
+  'everyday.holly',
+  'kristen.niblett',
+  'balkanina',
+  'heidisnipes',
+  'tourdelust',
+  'kirasfashionfinds',
+  'shopdandy',
+  'maryamishtiaq',
+  'livinstyleinsta',
+  'meimonstaa',
+  'mikaylavallati',
+  'homesweetpink',
+  'theparentgame',
+  'michellelei',
+  'xojalonda',
+  'playroominspo',
+  'just.jacsy',
+  'thedealparty',
+  'frankietavares',
+  'influencer-cb2630cb'
 ];
 
 // Loading Skeleton Component
@@ -83,23 +134,209 @@ const EmptyState: React.FC = () => (
   </div>
 );
 
+// Posts Modal Component
+interface PostsModalProps {
+  isOpen: boolean;
+  influencerName: string;
+  onClose: () => void;
+}
+
+const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose }) => {
+  const [posts, setPosts] = useState<InfluencerPost[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const fetchPosts = async () => {
+      setIsLoading(true);
+      setError(null);
+      setPosts([]);
+      try {
+        const url = `https://real-time-amazon-data.p.rapidapi.com/influencer-posts?influencer_name=${encodeURIComponent("influencerName")}&country=US&scope=ALL&limit=100`;
+
+        console.log('Fetching posts from:', url);
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
+            'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+          }
+        });
+
+        console.log('Response status:', response.status);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('API Response:', data);
+
+          // Handle different response structures
+          let postsData = [];
+          if (data.data && Array.isArray(data.data)) {
+            postsData = data.data;
+          } else if (Array.isArray(data)) {
+            postsData = data;
+          }
+
+          console.log('Posts extracted:', postsData.length);
+          setPosts(postsData);
+
+          if (postsData.length === 0) {
+            setError('No posts found for this influencer');
+          }
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('API Error:', errorData);
+          setError(`Failed to load posts (Status: ${response.status})`);
+        }
+      } catch (err) {
+        console.error('Error fetching posts:', err);
+        setError('Failed to load posts. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [isOpen, influencerName]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            Posts by {influencerName}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader className="w-6 h-6 animate-spin text-purple-600 mb-2" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading posts...</p>
+            </div>
+          ) : error ? (
+            <div className="flex items-start gap-3 text-orange-600 text-sm p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium">{error}</p>
+                <p className="text-xs mt-1 opacity-75">Influencer: {influencerName}</p>
+              </div>
+            </div>
+          ) : posts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {posts.map((post, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  {/* Post Image */}
+                  {(post.image_url || post.image) && (
+                    <div className="w-full h-40 bg-gray-200 dark:bg-gray-600 overflow-hidden">
+                      <img
+                        src={post.image_url || post.image}
+                        alt={post.post_title || post.title || 'Post'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Post Info */}
+                  <div className="p-3">
+                    {(post.post_title || post.title) && (
+                      <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
+                        {post.post_title || post.title}
+                      </h3>
+                    )}
+
+                    {(post.post_description || post.description) && (
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                        {post.post_description || post.description}
+                      </p>
+                    )}
+
+                    {/* Stats */}
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      {(post.likes_count || post.likes) && (
+                        <span>❤️ {post.likes_count || post.likes}</span>
+                      )}
+                      {(post.comments_count || post.comments) && (
+                        <span>💬 {post.comments_count || post.comments}</span>
+                      )}
+                      {post.video_duration && (
+                        <span>⏱️ {post.video_duration}</span>
+                      )}
+                      {post.is_pinned && (
+                        <span>📌 Pinned</span>
+                      )}
+                    </div>
+
+                    {/* View Post Link */}
+                    {(post.post_url || post.url) && (
+                      <a
+                        href={post.post_url || post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-2 text-xs text-purple-600 dark:text-purple-400 hover:underline font-medium"
+                      >
+                        View Post →
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">No posts available</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Influencer Card Component
-const InfluencerCard: React.FC<{ influencer: Influencer }> = ({ influencer }) => {
-  const handleClick = () => {
+interface InfluencerCardProps {
+  influencer: Influencer;
+  onViewDetails: (influencerName: string) => void;
+}
+
+const InfluencerCard: React.FC<InfluencerCardProps> = ({ influencer, onViewDetails }) => {
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (influencer.profile_link) {
       window.open(influencer.profile_link, '_blank');
     }
   };
 
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onViewDetails(influencer.influencer_name);
+  };
+
   return (
-    <div
-      onClick={handleClick}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3 cursor-pointer"
-    >
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3">
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <div className="flex-shrink-0">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity" onClick={handleProfileClick}>
             {influencer.influencer_name?.charAt(0).toUpperCase() || 'I'}
           </div>
         </div>
@@ -107,7 +344,7 @@ const InfluencerCard: React.FC<{ influencer: Influencer }> = ({ influencer }) =>
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+            <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate cursor-pointer hover:text-purple-600 dark:hover:text-purple-400" onClick={handleProfileClick}>
               {influencer.influencer_name || 'Unknown'}
             </h3>
             {influencer.verified && (
@@ -141,11 +378,39 @@ const InfluencerCard: React.FC<{ influencer: Influencer }> = ({ influencer }) =>
               {influencer.bio}
             </p>
           )}
+
+          {/* View Details Button */}
+          <button
+            onClick={handleViewDetails}
+            className="mt-2 w-full px-2 py-1 bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white text-xs font-medium rounded transition-colors"
+          >
+            View Details
+          </button>
         </div>
       </div>
     </div>
   );
 };
+
+// Mobile Toggle Button Component
+interface MobileToggleProps {
+  isOpen: boolean;
+  onClick: () => void;
+  influencerCount: number;
+}
+
+const MobileToggle: React.FC<MobileToggleProps> = ({ isOpen, onClick, influencerCount }) => (
+  <button
+    onClick={onClick}
+    className="lg:hidden fixed top-20 right-4 z-40 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg transition-all duration-300"
+  >
+    <div className="flex items-center gap-2">
+      <Crown className="w-5 h-5" />
+      <span className="text-sm font-medium">Influencers ({influencerCount})</span>
+      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+    </div>
+  </button>
+);
 
 // Main TopInfluencersWidget Component
 export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ className = '' }) => {
@@ -153,6 +418,8 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedInfluencer, setSelectedInfluencer] = useState<string | null>(null);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Determine if we're on Amazon page
@@ -183,19 +450,26 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
 
             if (response.ok) {
               const data = await response.json();
+              console.log(`Fetched data for ${name}:`, data);
               if (data.data) {
                 results.push({
                   influencer_name: name,
                   ...data.data
                 });
               }
+            } else {
+              console.warn(`Failed to fetch ${name}: ${response.status}`);
             }
           } catch (err) {
             console.error(`Error fetching influencer ${name}:`, err);
           }
         }
 
+        console.log('Total influencers fetched:', results.length);
         setInfluencers(results);
+        if (results.length === 0) {
+          setError('No influencers found. Please check the API connection.');
+        }
       } catch (err) {
         console.error('Error fetching influencers:', err);
         setError('Failed to load influencers');
@@ -249,120 +523,141 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
     };
   }, [influencers, isLoading]);
 
+  // Close mobile widget when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isMobileOpen && !target.closest('.mobile-influencer-widget') && !target.closest('.mobile-toggle-button')) {
+        setIsMobileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMobileOpen]);
+
   // Don't render if not on Amazon page
   if (!isAmazonPage) {
     return null;
   }
 
-  return (
-    <>
-      {/* Desktop Fixed Sidebar Widget - Right side positioning */}
-      <div className={`
-        fixed top-20 right-6 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
-        hidden 2xl:block
-        transition-all duration-300 ease-in-out
-        ${className}
-      `}>
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+  // Widget content component to avoid duplication
+  const WidgetContent = () => (
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg h-full flex flex-col">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between">
+          {/* Icon only on mobile, with hover tooltip */}
+          <div className="relative group">
+            {/* Mobile: Icon only */}
+            <div className="lg:hidden flex items-center">
+              <Crown className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              {/* Hover tooltip for mobile */}
+              <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-gray-900 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50">
+                Top Influencers
+              </div>
+            </div>
+            
+            {/* Desktop: Full text */}
+            <h2 className="hidden lg:flex text-lg font-bold text-gray-900 dark:text-white items-center">
               <Crown className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
               Top Influencers
+              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                ({influencers.length})
+              </span>
             </h2>
           </div>
-          <div ref={scrollContainerRef} className="p-4 max-h-[calc(100vh-12rem)] overflow-y-auto scroll-smooth">
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : error ? (
-              <div className="flex items-center gap-2 text-red-600 text-sm p-3 bg-red-50 rounded-lg">
-                <AlertCircle className="w-4 h-4" />
-                {error}
-              </div>
-            ) : influencers.length > 0 ? (
-              <div className="space-y-3">
-                {influencers.map((influencer) => (
-                  <InfluencerCard key={influencer.influencer_name} influencer={influencer} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState />
-            )}
+          
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+      <div 
+        ref={scrollContainerRef} 
+        className="flex-1 p-4 overflow-y-auto scroll-smooth"
+      >
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : error ? (
+          <div className="flex items-center gap-2 text-red-600 text-sm p-3 bg-red-50 rounded-lg">
+            <AlertCircle className="w-4 h-4" />
+            {error}
           </div>
+        ) : influencers.length > 0 ? (
+          <div className="space-y-3">
+            {influencers.map((influencer) => (
+              <InfluencerCard 
+                key={influencer.influencer_name} 
+                influencer={influencer} 
+                onViewDetails={setSelectedInfluencer} 
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState />
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile Toggle Button */}
+      <MobileToggle 
+        isOpen={isMobileOpen}
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+        influencerCount={influencers.length}
+      />
+
+      {/* Mobile Bottom Sheet */}
+      <div className={`
+        lg:hidden fixed inset-x-0 bottom-0 z-40 transition-transform duration-300 ease-in-out
+        ${isMobileOpen ? 'translate-y-0' : 'translate-y-full'}
+        mobile-influencer-widget
+      `}>
+        <div className="bg-white dark:bg-gray-800 rounded-t-2xl border border-gray-200 dark:border-gray-700 shadow-2xl h-[70vh] max-h-[70vh] mx-2 mb-2">
+          <WidgetContent />
         </div>
       </div>
 
-      {/* Large Desktop Widget */}
+      {/* Tablet Widget (768px - 1023px) */}
       <div className={`
-        fixed top-20 right-4 w-72 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
-        hidden xl:block 2xl:hidden
+        hidden lg:block xl:hidden fixed top-20 right-3 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center">
-              <Crown className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
-              Top Influencers
-            </h2>
-          </div>
-          <div className="p-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : error ? (
-              <div className="flex items-center gap-2 text-red-600 text-xs p-2 bg-red-50 rounded">
-                <AlertCircle className="w-3 h-3" />
-                {error}
-              </div>
-            ) : influencers.length > 0 ? (
-              <div className="space-y-2">
-                {influencers.map((influencer) => (
-                  <InfluencerCard key={influencer.influencer_name} influencer={influencer} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState />
-            )}
-          </div>
-        </div>
+        <WidgetContent />
       </div>
 
-      {/* Tablet Widget */}
+      {/* Large Desktop Widget (1024px - 1279px) */}
       <div className={`
-        fixed top-20 right-3 w-64 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
-        hidden lg:block xl:hidden
+        hidden xl:block 2xl:hidden fixed top-20 right-4 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
         transition-all duration-300 ease-in-out
         ${className}
       `}>
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-sm font-bold text-gray-900 dark:text-white flex items-center">
-              <Crown className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
-              <span className="truncate">Top Influencers</span>
-            </h2>
-          </div>
-          <div className="p-2 max-h-[calc(100vh-12rem)] overflow-y-auto">
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : error ? (
-              <div className="flex items-center gap-2 text-red-600 text-xs p-2 bg-red-50 rounded">
-                <AlertCircle className="w-3 h-3" />
-                {error}
-              </div>
-            ) : influencers.length > 0 ? (
-              <div className="space-y-2">
-                {influencers.map((influencer) => (
-                  <InfluencerCard key={influencer.influencer_name} influencer={influencer} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState />
-            )}
-          </div>
-        </div>
+        <WidgetContent />
       </div>
+
+      {/* Extra Large Desktop Widget (1280px+) */}
+      <div className={`
+        hidden 2xl:block fixed top-20 right-6 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
+        transition-all duration-300 ease-in-out
+        ${className}
+      `}>
+        <WidgetContent />
+      </div>
+
+      {/* Posts Modal */}
+      <PostsModal
+        isOpen={selectedInfluencer !== null}
+        influencerName={selectedInfluencer || ''}
+        onClose={() => setSelectedInfluencer(null)}
+      />
     </>
   );
 };
 
 export default TopInfluencersWidget;
-
