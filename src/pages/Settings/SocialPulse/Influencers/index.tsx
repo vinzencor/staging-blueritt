@@ -15,14 +15,18 @@ interface Influencer {
 }
 
 interface InfluencerPost {
+  post_id?: string;
   post_url?: string;
   post_title?: string;
+  post_type?: string;
   is_pinned?: boolean;
   video_duration?: string;
+  post_thumbnail?: string;
   image_url?: string;
   post_description?: string;
   likes_count?: number;
   comments_count?: number;
+  list_items_count?: number;
   [key: string]: any;
 }
 
@@ -116,8 +120,12 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
           console.log('API Response:', data);
 
           // Handle different response structures
-          let postsData = [];
-          if (data.data && Array.isArray(data.data)) {
+          let postsData: InfluencerPost[] = [];
+
+          // Check for the correct response structure from the API
+          if (data.data && data.data.posts && Array.isArray(data.data.posts)) {
+            postsData = data.data.posts;
+          } else if (data.data && Array.isArray(data.data)) {
             postsData = data.data;
           } else if (Array.isArray(data)) {
             postsData = data;
@@ -182,14 +190,14 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {posts.map((post, index) => (
                 <div
-                  key={index}
+                  key={post.post_id || index}
                   className="bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md transition-shadow"
                 >
-                  {/* Post Image */}
-                  {(post.image_url || post.image) && (
+                  {/* Post Image/Thumbnail */}
+                  {(post.post_thumbnail || post.image_url || post.image) && (
                     <div className="w-full h-40 bg-gray-200 dark:bg-gray-600 overflow-hidden">
                       <img
-                        src={post.image_url || post.image}
+                        src={post.post_thumbnail || post.image_url || post.image}
                         alt={post.post_title || 'Post'}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -201,6 +209,15 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
 
                   {/* Post Info */}
                   <div className="p-3">
+                    {/* Post Type Badge */}
+                    {post.post_type && (
+                      <div className="mb-2">
+                        <span className="inline-block bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs px-2 py-1 rounded">
+                          {post.post_type}
+                        </span>
+                      </div>
+                    )}
+
                     {(post.post_title || post.title) && (
                       <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
                         {post.post_title || post.title}
@@ -223,6 +240,9 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
                       )}
                       {post.video_duration && (
                         <span>⏱️ {post.video_duration}</span>
+                      )}
+                      {post.list_items_count && (
+                        <span>📋 {post.list_items_count} items</span>
                       )}
                       {post.is_pinned && (
                         <span>📌 Pinned</span>

@@ -168,9 +168,19 @@ export const useUserSubscriptionAndSearchQuota = (quotaName: QuotaName = "amazon
 
   const updateQuota = (newValue: number) => {
     if (!data) return;
-    if(newValue === undefined || newValue === null || quotaValue <=0 || newValue > quotaValue){
+    // Only update if newValue is a valid number
+    if(newValue === undefined || newValue === null){
+      console.log('❌ updateQuota: Invalid newValue', newValue);
       return;
     }
+
+    console.log('🔄 updateQuota called:', {
+      quotaName,
+      currentQuotaValue: quotaValue,
+      newValue,
+      willUpdate: true
+    });
+
     const updatedData = {
       ...data,
       search_quota: {
@@ -178,11 +188,13 @@ export const useUserSubscriptionAndSearchQuota = (quotaName: QuotaName = "amazon
         [quotaName]: newValue
       }
     };
-    
+
     queryClient.setQueryData(
       ["user", "subscription", "search_quota"],
       updatedData
     );
+
+    console.log('✅ updateQuota: Cache updated to', newValue);
   };
   const checkAccess =  (accessType: string) => {
     if (!data) return;

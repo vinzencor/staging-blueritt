@@ -290,7 +290,17 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     refetch: refetchDeals,
   } = useQuery({
     queryKey: ['amazon-deals', selectedCountry],
-    queryFn: () => getAmazonDeals({ country: selectedCountry }),
+    queryFn: async () => {
+      const response = await getAmazonDeals({ country: selectedCountry });
+
+      // Update quota if remaining_quota is provided in response
+      if (response?.remaining_quota !== undefined) {
+        console.log('🔄 Amazon Deals - Updating quota:', response.remaining_quota);
+        updateQuota(response.remaining_quota);
+      }
+
+      return response;
+    },
     enabled: activeTab === 'deals',
     staleTime: 1000 * 60 * 15, // 15 minutes
     retry: 1,
@@ -326,6 +336,12 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
         isPrime: filters.is_prime,
         dealsAndDiscounts: filters.deals_and_discounts as any,
       });
+
+      // Update quota if remaining_quota is provided in response
+      if (response?.remaining_quota !== undefined) {
+        console.log('🔄 Amazon Category Products - Updating quota:', response.remaining_quota);
+        updateQuota(response.remaining_quota);
+      }
 
       return response;
     },
@@ -638,7 +654,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
       case 'trending':
         return trendingData?.data?.products || [];
       case 'bestsellers':
-        return bestSellersData?.data?.products || [];
+        return bestSellersData?.data?.best_sellers || [];
       case 'deals':
         return dealsData?.data?.deals || [];
       case 'category':

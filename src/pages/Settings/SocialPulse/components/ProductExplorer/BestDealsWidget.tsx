@@ -1005,11 +1005,11 @@ export const PlatformBestDealsWidget: React.FC<{ className?: string }> = ({ clas
   ];
 
   // Convert API data to Deal format with fallback
-  const amazonDeals: Deal[] = amazonDealsData?.data?.products?.slice(0, 5).map(convertAmazonProductToDeal) || fallbackAmazonDeals;
+  const amazonDeals: Deal[] = amazonDealsData?.data?.deals?.slice(0, 5).map(convertAmazonProductToDeal) || fallbackAmazonDeals;
   const tiktokDeals: Deal[] = tiktokDealsData?.data?.products?.slice(0, 5).map(convertTikTokProductToDeal) || fallbackTikTokDeals;
 
   // Convert API data to Offer format with fallback
-  const amazonOffers: Offer[] = amazonOffersData?.data?.products?.slice(0, 4).map(convertAmazonProductToOffer) || fallbackAmazonOffers;
+  const amazonOffers: Offer[] = amazonOffersData?.data?.deals?.slice(0, 4).map(convertAmazonProductToOffer) || fallbackAmazonOffers;
   const tiktokOffers: Offer[] = tiktokOffersData?.data?.products?.slice(0, 4).map(convertTikTokProductToOffer) || fallbackTikTokOffers;
 
   // Don't render if not on a supported platform page

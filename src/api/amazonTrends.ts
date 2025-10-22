@@ -41,6 +41,18 @@ export interface AmazonTrendsSearchResponse {
   remaining_quota?: number;
 }
 
+export interface AmazonTrendingResponse {
+  data: {
+    products: AmazonTrendingProduct[];
+    total: number;
+    trending_count?: number;
+    api_count?: number;
+    page?: number;
+    country?: string;
+  };
+  remaining_quota?: number;
+}
+
 export interface AmazonBestSeller {
   rank: number;
   asin: string;
@@ -51,6 +63,16 @@ export interface AmazonBestSeller {
   product_url: string;
   product_photo: string;
   rank_change_label?: string;
+}
+
+export interface AmazonBestSellersResponse {
+  data: {
+    best_sellers: AmazonBestSeller[];
+    total: number;
+    page?: number;
+    country?: string;
+  };
+  remaining_quota?: number;
 }
 
 export interface AmazonDeal {
@@ -71,6 +93,15 @@ export interface AmazonDeal {
   savings_percentage: number;
   deal_badge: string;
   product_asin: string;
+}
+
+export interface AmazonDealsResponse {
+  data: {
+    deals: AmazonDeal[];
+    total: number;
+    country?: string;
+  };
+  remaining_quota?: number;
 }
 
 // Amazon Trends Search API
@@ -144,7 +175,7 @@ export const getTrendingProducts = async ({
   limit?: number;
   category?: string;
   page?: number;
-} = {}) => {
+} = {}): Promise<AmazonTrendingResponse> => {
   const response = await api.get('/products/amazon-trends/trending/', {
     params: {
       country,
@@ -153,6 +184,7 @@ export const getTrendingProducts = async ({
       page,
     },
   });
+  console.log('📊 getTrendingProducts response:', response.data);
   return response.data;
 };
 
@@ -169,7 +201,7 @@ export const getAmazonTrendsBestSellers = async ({
   country?: string;
   page?: number;
   language?: string;
-} = {}) => {
+} = {}): Promise<AmazonBestSellersResponse> => {
   const params: any = {
     type,
     country,
@@ -189,6 +221,7 @@ export const getAmazonTrendsBestSellers = async ({
   const response = await api.get('/products/amazon-trends/best-sellers/', {
     params,
   });
+  console.log('📊 getAmazonTrendsBestSellers response:', response.data);
   return response.data;
 };
 
@@ -206,7 +239,7 @@ export const getAmazonDeals = async ({
   min_product_star_rating?: string;
   price_range?: string;
   discount_range?: string;
-} = {}) => {
+} = {}): Promise<AmazonDealsResponse> => {
   const response = await api.get('/products/amazon-trends/deals/', {
     params: {
       country,
@@ -215,6 +248,7 @@ export const getAmazonDeals = async ({
       discount_range,
     },
   });
+  console.log('📊 getAmazonDeals response:', response.data);
   return response.data;
 };
 
@@ -243,7 +277,7 @@ export const getAmazonTrendsProductsByCategory = async ({
   max_price?: number;
   brand?: string;
   four_stars_and_up?: boolean;
-} = {}) => {
+} = {}): Promise<AmazonTrendingResponse> => {
   const params: any = {
     category_id,
     country,
@@ -262,6 +296,7 @@ export const getAmazonTrendsProductsByCategory = async ({
   const response = await api.get('/products/amazon-trends/products-by-category/', {
     params,
   });
+  console.log('📊 getAmazonTrendsProductsByCategory response:', response.data);
   return response.data;
 };
 
