@@ -16,6 +16,8 @@ import {
 } from '@/api/tiktokTrends';
 
 import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
+import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
+import { QuotaNames } from '../../../../../enum';
 import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
 import TikTokSaveSearchModal from './TikTokSaveSearchModal';
 
@@ -49,6 +51,9 @@ const TrendingHashtagsCarousel: React.FC<{ hashtags: string[] }> = ({ hashtags }
 };
 
 const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ product, isOpen, onClose }) => {
+  // Quota management for supplier discovery
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
+
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<SupplierInfo[]>([]);
@@ -117,6 +122,12 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
         price: product.price,
         category: 'TikTok Product'
       });
+
+      // Update quota if remaining_quota is provided in response
+      if (response?.remaining_quota !== undefined) {
+        console.log('🔄 TikTok Supplier Discovery - Updating quota:', response.remaining_quota);
+        updateSupplierQuota(response.remaining_quota);
+      }
 
       setSuppliers(response.suppliers);
       setSupplierAnalysisTime(response.analysis_time);

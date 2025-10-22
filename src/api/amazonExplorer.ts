@@ -136,6 +136,8 @@ export interface SupplierDiscoveryResponse {
     suppliers: SupplierInfo[];
     analysis_time: number;
   };
+  // Quota tracking
+  remaining_quota?: number;
 }
 
 // Amazon Best Sellers

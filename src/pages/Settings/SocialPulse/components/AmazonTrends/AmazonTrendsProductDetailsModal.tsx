@@ -22,6 +22,8 @@ import {
   type SupplierInfo
 } from '@/api/amazonExplorer';
 
+import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
+import { QuotaNames } from '../../../../../enum';
 import SaveSearchModal from './SaveSearchModal';
 
 interface AmazonTrendsProductDetailsModalProps {
@@ -33,11 +35,15 @@ interface AmazonTrendsProductDetailsModalProps {
 type TabType = 'overview' | 'suppliers';
 
 const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalProps> = ({ product, isOpen, onClose }) => {
+  // Quota management for supplier discovery
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
+
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<SupplierInfo[]>([]);
   const [supplierAnalysisTime, setSupplierAnalysisTime] = useState<number>(0);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<SupplierInfo | null>(null);
 
   // Reset state when modal is closed/opened with different product
   useEffect(() => {
@@ -109,6 +115,12 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
       console.log('✅ Supplier discovery response:', response);
       console.log('📦 Found suppliers:', response.suppliers?.length || 0);
 
+      // Update quota if remaining_quota is provided in response
+      if (response?.remaining_quota !== undefined) {
+        console.log('🔄 Supplier Discovery - Updating quota:', response.remaining_quota);
+        updateSupplierQuota(response.remaining_quota);
+      }
+
       setSuppliers(response.suppliers || []);
       setSupplierAnalysisTime(response.analysis_time || 0);
     } catch (error) {
@@ -121,6 +133,11 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
   };
 
   // Handle supplier selection
+  const handleSelectSupplier = (supplier: SupplierInfo) => {
+    console.log('🎯 Supplier selected:', supplier.name, supplier);
+    setSelectedSupplier(supplier);
+  };
+
   // Handle save search
   const handleSaveSearch = () => {
     setShowSaveModal(true);

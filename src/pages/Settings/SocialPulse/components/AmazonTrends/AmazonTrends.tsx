@@ -194,7 +194,17 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     refetch: refetchTrending,
   } = useQuery({
     queryKey: ['trending-products', selectedCountry],
-    queryFn: () => getTrendingProducts({ country: selectedCountry, limit: 20 }),
+    queryFn: async () => {
+      const response = await getTrendingProducts({ country: selectedCountry, limit: 20 });
+
+      // Update quota if remaining_quota is provided in response
+      if (response?.remaining_quota !== undefined) {
+        console.log('🔄 Amazon Trending Products - Updating quota:', response.remaining_quota);
+        updateQuota(response.remaining_quota);
+      }
+
+      return response;
+    },
     enabled: activeTab === 'trending',
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 1,

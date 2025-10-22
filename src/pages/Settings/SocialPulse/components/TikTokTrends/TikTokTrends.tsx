@@ -146,6 +146,8 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
   const [supplierAnalysisTime, setSupplierAnalysisTime] = useState(0);
   const [activeModalTab, setActiveModalTab] = useState<'overview' | 'suppliers' | 'shop-analysis'>('overview');
+  const [selectedSupplier, setSelectedSupplier] = useState<SupplierInfo | null>(null);
+  const [showProfitCalculator, setShowProfitCalculator] = useState(false);
 
   // Shop analysis state
   const [shopAnalysisData, setShopAnalysisData] = useState<TikTokShopAnalysisResponse | null>(null);
