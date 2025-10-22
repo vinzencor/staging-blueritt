@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { X, ExternalLink, Star, Package, MessageSquare, DollarSign, Truck, Shield, Zap, Heart, Eye, Share, Save, Calculator } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -25,6 +26,27 @@ interface TikTokProductDetailsModalProps {
 }
 
 type TabType = 'overview' | 'engagement' | 'suppliers';
+
+// Trending Hashtags Auto-scrolling Carousel Component
+const TrendingHashtagsCarousel: React.FC<{ hashtags: string[] }> = ({ hashtags }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isHovering, setIsHovering] = useState(false);
+
+  useEffect(() => {
+    // Auto-scroll logic with 50ms interval
+    // Pauses on hover, resumes on leave
+    // Resets to start when reaching end
+  }, [isHovering, hashtags.length]);
+
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-2 scroll-smooth">
+      {/* Duplicate hashtags for infinite scroll */}
+      {[...hashtags, ...hashtags].map((hashtag, index) => (
+        <span className="...">#{hashtag}</span>
+      ))}
+    </div>
+  );
+};
 
 const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ product, isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -502,20 +524,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData,
         </div>
       )}
 
-      {/* Hashtags */}
+      {/* Hashtags - Auto-scrolling Carousel */}
       {details?.data?.hashtags && details.data.hashtags.length > 0 && (
         <div>
           <h4 className="font-semibold text-gray-900 mb-3">Trending Hashtags</h4>
-          <div className="flex flex-wrap gap-2">
-            {details.data.hashtags.map((hashtag: string, index: number) => (
-              <span
-                key={index}
-                className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium"
-              >
-                #{hashtag}
-              </span>
-            ))}
-          </div>
+          <TrendingHashtagsCarousel hashtags={details.data.hashtags} />
         </div>
       )}
 

@@ -50,7 +50,7 @@ type ViewMode = 'best-sellers' | 'search' | 'category';
 
 const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const { quotaDetails, updateQuota } = useUserSubscriptionAndSearchQuota('amazon_explorer_search');
-  const { quotas, reduceQuota, increaseQuota, hasQuota } = usePersistentQuota();
+  const { quotas, reduceQuota, hasQuota } = usePersistentQuota();
 
   const [viewMode, setViewMode] = useState<ViewMode>('best-sellers');
   const [searchQuery, setSearchQuery] = useState('');
@@ -596,7 +596,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       <Zap className="w-4 h-4 text-blue-600" />
                       {quotaDetails.packageName} Plan Features
                     </p>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {/* Amazon Searches */}
                       <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
                         <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Amazon Searches</div>
@@ -610,22 +610,6 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Discover Suppliers</div>
                         <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-1">
                           {quotas.amazon_supplier_discovery}
-                        </div>
-                      </div>
-
-                      {/* Profit Calculations */}
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-green-100 dark:border-green-700">
-                        <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Profit Calcs</div>
-                        <div className="text-lg font-bold text-green-600 dark:text-green-400 mt-1">
-                          {quotas.profit_calculation}
-                        </div>
-                      </div>
-
-                      {/* Billing Period */}
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-orange-100 dark:border-orange-700">
-                        <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Billing</div>
-                        <div className="text-lg font-bold text-orange-600 dark:text-orange-400 mt-1">
-                          {quotaDetails.billingPeriod || 'Monthly'}
                         </div>
                       </div>
 
@@ -1136,7 +1120,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Purchase Add-ons</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Purchase Tokens</h2>
               <button
                 onClick={() => setShowAddOnsModal(false)}
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -1146,59 +1130,18 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
             </div>
 
             <div className="space-y-4 p-4">
-              {/* Amazon Searches Add-on */}
-              <div className="border border-blue-200 dark:border-blue-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Amazon Searches</h3>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Current: {quotas.amazon_search}</span>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Add 100 searches for $9.99</p>
-                <button
-                  onClick={() => {
-                    increaseQuota('amazon_search', 100);
-                    setShowAddOnsModal(false);
-                  }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  Add 100 Searches
-                </button>
-              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Purchase additional tokens to increase your quota limits.
+              </p>
 
-              {/* Supplier Discovery Add-on */}
-              <div className="border border-purple-200 dark:border-purple-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Discover Suppliers</h3>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Current: {quotas.amazon_supplier_discovery}</span>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Add 500 discoveries for $19.99</p>
-                <button
-                  onClick={() => {
-                    increaseQuota('amazon_supplier_discovery', 500);
-                    setShowAddOnsModal(false);
-                  }}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  Add 500 Discoveries
-                </button>
-              </div>
-
-              {/* Profit Calculations Add-on */}
-              <div className="border border-green-200 dark:border-green-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Profit Calculations</h3>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Current: {quotas.profit_calculation}</span>
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Add 200 calculations for $14.99</p>
-                <button
-                  onClick={() => {
-                    increaseQuota('profit_calculation', 200);
-                    setShowAddOnsModal(false);
-                  }}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  Add 200 Calculations
-                </button>
-              </div>
+              {/* Purchase Tokens Button */}
+              <button
+                onClick={() => window.location.href = '/settings/subscription'}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 rounded-lg transition-colors font-semibold flex items-center justify-center gap-2"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                Go to Subscription Page
+              </button>
             </div>
 
             <button

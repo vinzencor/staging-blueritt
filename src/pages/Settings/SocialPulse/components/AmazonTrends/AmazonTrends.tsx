@@ -66,9 +66,11 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
 
   // Subscription quota management
   const { quotaDetails, updateQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonSearch);
+  const { quotaDetails: supplierQuotaDetails } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
 
   // Debug quota details
   console.log('Amazon Trends - Quota Details:', quotaDetails);
+  console.log('Amazon Trends - Supplier Discovery Quota:', supplierQuotaDetails);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('US'); // Default to UK as requested
   const [activeTab, setActiveTab] = useState<'search' | 'trending' | 'bestsellers' | 'deals' | 'category'>('trending');
@@ -84,6 +86,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const [selectedRootCategory, setSelectedRootCategory] = useState<string | null>(null);
   const [influencers, setInfluencers] = useState<InfluencerProfile[]>([]);
   const [influencersLoading, setInfluencersLoading] = useState(false);
+  const [showAddOnsModal, setShowAddOnsModal] = useState(false);
 
   // Country list with all supported countries
   const countries = [
@@ -686,33 +689,37 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
         {/* Subscription Quota Alert */}
         <div className="mt-4">
           {quotaDetails ? (
-            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-              <div className="flex items-center">
-                <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-white text-xs font-bold">i</span>
-                </div>
-                <div className="text-sm">
-                  <span className="font-semibold text-blue-900">
-                    {quotaDetails.packageName} plan:
-                  </span>{" "}
-                  You have{" "}
-                  <span className="font-bold text-blue-900">
-                    {quotaDetails.quotaValue === -1 ? "unlimited" : quotaDetails.quotaValue}
-                  </span>{" "}
-                  Amazon Trends Searches,{" "}
-                  <button
-                    className="underline text-blue-700 hover:text-blue-900 font-medium"
-                    onClick={() => window.location.href = '/settings/subscription'}
-                  >
-                    Purchase Amazon Trends Search Add-ons
-                  </button>{" "}
-                  OR{" "}
-                  <button
-                    className="underline text-blue-700 hover:text-blue-900 font-medium"
-                    onClick={() => window.location.href = '/settings/subscription'}
-                  >
-                    Update your Subscription
-                  </button>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-blue-900 dark:text-blue-200 text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-blue-600" />
+                    {quotaDetails.packageName} Plan Features
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {/* Amazon Trends Searches */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Product Searches</div>
+                      <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
+                        {quotaDetails.quotaValue === -1 ? '∞' : quotaDetails.quotaValue}
+                      </div>
+                    </div>
+
+                    {/* Supplier Discoveries */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-purple-100 dark:border-purple-700">
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Supplier Discoveries</div>
+                      <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-1">
+                        {supplierQuotaDetails.quotaValue === -1 ? '∞' : supplierQuotaDetails.quotaValue}
+                      </div>
+                    </div>
+
+                    {/* Add-ons Button */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-3 border border-green-200 dark:border-green-700 flex flex-col justify-center items-center cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => window.location.href = '/settings/subscription'}>
+                      <ShoppingCart className="w-5 h-5 text-green-600 dark:text-green-400 mb-1" />
+                      <div className="text-xs text-green-700 dark:text-green-300 font-semibold text-center">Add-ons</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1607,6 +1614,44 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
         />
       )}
 
+      {/* Add-ons Modal */}
+      {showAddOnsModal && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Purchase Tokens</h2>
+              <button
+                onClick={() => setShowAddOnsModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4 p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Purchase additional tokens to increase your quota limits.
+              </p>
+
+              {/* Purchase Tokens Button */}
+              <button
+                onClick={() => window.location.href = '/settings/subscription'}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 rounded-lg transition-colors font-semibold flex items-center justify-center gap-2"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                Go to Subscription Page
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowAddOnsModal(false)}
+              className="w-full m-4 mt-0 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

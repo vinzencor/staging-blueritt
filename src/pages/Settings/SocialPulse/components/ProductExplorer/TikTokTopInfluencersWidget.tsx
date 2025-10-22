@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Crown, AlertCircle, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Flame, AlertCircle, X, ChevronDown, ChevronUp, Loader } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
-// TikTok Influencer interface
-export interface TikTokInfluencer {
-  tcm_id: string;
-  user_id: string;
-  nick_name: string;
-  avatar_url: string;
-  country_code: string;
-  follower_cnt: number;
-  liked_cnt: number;
-  tt_link: string;
-  tcm_link: string;
+// TikTok Hashtag interface
+export interface TikTokHashtag {
+  hashtag_id: string;
+  hashtag_name: string;
+  publish_cnt: number;
+  video_views: number;
+  rank: number;
+  rank_diff?: number;
+  rank_diff_type?: number;
   [key: string]: any;
 }
 
@@ -46,15 +44,12 @@ if (typeof document !== 'undefined') {
 // Loading Skeleton Component
 const LoadingSkeleton: React.FC = () => (
   <div className="space-y-3">
-    {Array.from({ length: 3 }).map((_, index) => (
+    {Array.from({ length: 5 }).map((_, index) => (
       <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 animate-pulse">
-        <div className="flex items-start gap-3">
-          <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
-          </div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
         </div>
       </div>
     ))}
@@ -64,18 +59,18 @@ const LoadingSkeleton: React.FC = () => (
 // Empty State Component
 const EmptyState: React.FC = () => (
   <div className="flex flex-col items-center justify-center py-8 text-center">
-    <Crown className="w-12 h-12 text-gray-400 dark:text-gray-600 mb-3" />
-    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">No Creators Available</h3>
-    <p className="text-xs text-gray-600 dark:text-gray-400">Check back later for top TikTok creators!</p>
+    <Flame className="w-12 h-12 text-gray-400 dark:text-gray-600 mb-3" />
+    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">No Hashtags Available</h3>
+    <p className="text-xs text-gray-600 dark:text-gray-400">Check back later for trending hashtags!</p>
   </div>
 );
 
-// TikTok Influencer Card Component
-const TikTokInfluencerCard: React.FC<{ influencer: TikTokInfluencer }> = ({ influencer }) => {
+// TikTok Hashtag Card Component
+const TikTokHashtagCard: React.FC<{ hashtag: TikTokHashtag; rank: number }> = ({ hashtag, rank }) => {
   const handleClick = () => {
-    if (influencer.tt_link) {
-      window.open(influencer.tt_link, '_blank');
-    }
+    // Open TikTok hashtag search
+    const hashtagName = hashtag.hashtag_name.startsWith('#') ? hashtag.hashtag_name.slice(1) : hashtag.hashtag_name;
+    window.open(`https://www.tiktok.com/tag/${hashtagName}`, '_blank');
   };
 
   const formatNumber = (num: number) => {
@@ -87,42 +82,31 @@ const TikTokInfluencerCard: React.FC<{ influencer: TikTokInfluencer }> = ({ infl
   return (
     <div
       onClick={handleClick}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-orange-400 dark:hover:border-orange-500 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3 cursor-pointer"
     >
       <div className="flex items-start gap-3">
-        {/* Avatar */}
+        {/* Rank Badge */}
         <div className="flex-shrink-0">
-          {influencer.avatar_url ? (
-            <img
-              src={influencer.avatar_url}
-              alt={influencer.nick_name}
-              className="w-12 h-12 rounded-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect fill="%23E91E63" width="100" height="100"/%3E%3Ctext x="50" y="50" font-size="50" fill="white" text-anchor="middle" dy=".3em"%3E%3C/text%3E%3C/svg%3E';
-              }}
-            />
-          ) : (
-            <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-red-400 rounded-full flex items-center justify-center text-white font-bold text-sm">
-              {influencer.nick_name?.charAt(0).toUpperCase() || 'T'}
-            </div>
-          )}
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            {rank}
+          </div>
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-            {influencer.nick_name || 'Unknown'}
+            {hashtag.hashtag_name || 'Unknown'}
           </h3>
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-1.5 mt-2 text-xs">
-            <div className="bg-pink-50 dark:bg-pink-900/20 rounded px-1.5 py-0.5">
-              <span className="text-gray-600 dark:text-gray-400">👥 </span>
-              <span className="font-semibold text-pink-600 dark:text-pink-400">{formatNumber(influencer.follower_cnt)}</span>
+            <div className="bg-orange-50 dark:bg-orange-900/20 rounded px-1.5 py-0.5">
+              <span className="text-gray-600 dark:text-gray-400">🎬 </span>
+              <span className="font-semibold text-orange-600 dark:text-orange-400">{formatNumber(hashtag.publish_cnt)}</span>
             </div>
             <div className="bg-red-50 dark:bg-red-900/20 rounded px-1.5 py-0.5">
-              <span className="text-gray-600 dark:text-gray-400">❤️ </span>
-              <span className="font-semibold text-red-600 dark:text-red-400">{formatNumber(influencer.liked_cnt)}</span>
+              <span className="text-gray-600 dark:text-gray-400">👁️ </span>
+              <span className="font-semibold text-red-600 dark:text-red-400">{formatNumber(hashtag.video_views)}</span>
             </div>
           </div>
         </div>
@@ -135,26 +119,26 @@ const TikTokInfluencerCard: React.FC<{ influencer: TikTokInfluencer }> = ({ infl
 interface MobileToggleProps {
   isOpen: boolean;
   onClick: () => void;
-  creatorCount: number;
+  hashtagCount: number;
 }
 
-const MobileToggle: React.FC<MobileToggleProps> = ({ isOpen, onClick, creatorCount }) => (
+const MobileToggle: React.FC<MobileToggleProps> = ({ isOpen, onClick, hashtagCount }) => (
   <button
     onClick={onClick}
-    className="lg:hidden fixed top-20 right-4 z-40 bg-pink-600 hover:bg-pink-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 mobile-toggle-button"
+    className="lg:hidden fixed top-20 right-4 z-40 bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 mobile-toggle-button"
   >
     <div className="flex items-center gap-2">
-      <Crown className="w-5 h-5" />
-      <span className="text-sm font-medium">Creators ({creatorCount})</span>
+      <Flame className="w-5 h-5" />
+      <span className="text-sm font-medium">Trending ({hashtagCount})</span>
       {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
     </div>
   </button>
 );
 
-// Main TikTokTopInfluencersWidget Component
+// Main TikTokTrendingHashtagsWidget Component
 export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ className = '' }) => {
   const location = useLocation();
-  const [influencers, setInfluencers] = useState<TikTokInfluencer[]>([]);
+  const [hashtags, setHashtags] = useState<TikTokHashtag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -163,16 +147,16 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
   // Determine if we're on TikTok page
   const isTikTokPage = location.pathname.includes('/socialpulse/tiktok');
 
-  // Fetch TikTok influencers
+  // Fetch TikTok trending hashtags
   useEffect(() => {
     if (!isTikTokPage) return;
 
-    const fetchInfluencers = async () => {
+    const fetchHashtags = async () => {
       setIsLoading(true);
       setError(null);
       try {
         const response = await fetch(
-          'https://tiktok-creative-center-api.p.rapidapi.com/api/trending/creator?page=1&limit=20&sort_by=follower&country=US',
+          'https://tiktok-creative-center-api.p.rapidapi.com/api/trending/hashtag?page=1&limit=20&period=120&country=US&sort_by=popular',
           {
             method: 'GET',
             headers: {
@@ -182,28 +166,52 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
           }
         );
 
+        console.log('Hashtag API Response Status:', response.status);
+
         if (response.ok) {
           const data = await response.json();
-          if (data.creators && Array.isArray(data.creators)) {
-            setInfluencers(data.creators);
+          console.log('Hashtag API Response:', data);
+
+          // Handle the API response structure: data.data.list
+          let hashtagsList: TikTokHashtag[] = [];
+
+          if (data.data && data.data.list && Array.isArray(data.data.list)) {
+            // Add rank to each hashtag
+            hashtagsList = data.data.list.map((hashtag: any, index: number) => ({
+              ...hashtag,
+              rank: index + 1
+            }));
+            console.log('Hashtags extracted:', hashtagsList.length);
+            setHashtags(hashtagsList);
+          } else if (Array.isArray(data)) {
+            hashtagsList = data.map((hashtag: any, index: number) => ({
+              ...hashtag,
+              rank: index + 1
+            }));
+            setHashtags(hashtagsList);
+          } else {
+            console.warn('Unexpected API response structure:', data);
+            setError('No hashtags found in response');
           }
         } else {
-          setError('Failed to load TikTok creators');
+          const errorData = await response.json().catch(() => ({}));
+          console.error('API Error:', errorData);
+          setError(`Failed to load trending hashtags (Status: ${response.status})`);
         }
       } catch (err) {
-        console.error('Error fetching TikTok creators:', err);
-        setError('Failed to load TikTok creators');
+        console.error('Error fetching trending hashtags:', err);
+        setError('Failed to load trending hashtags. Please try again.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchInfluencers();
+    fetchHashtags();
   }, [isTikTokPage]);
 
   // Auto-scroll effect - continuous carousel scroll
   useEffect(() => {
-    if (!scrollContainerRef.current || influencers.length === 0 || isLoading) return;
+    if (!scrollContainerRef.current || hashtags.length === 0 || isLoading) return;
 
     const container = scrollContainerRef.current;
     let scrollInterval: NodeJS.Timeout;
@@ -241,7 +249,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
       container.removeEventListener('mouseenter', handleMouseEnter);
       container.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [influencers, isLoading]);
+  }, [hashtags, isLoading]);
 
   // Close mobile widget when clicking outside
   useEffect(() => {
@@ -270,20 +278,20 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
           <div className="relative group">
             <div className="flex items-center min-h-[28px]">
               {/* Always show icon */}
-              <Crown className="w-5 h-5 text-pink-600 dark:text-pink-400" />
-              
+              <Flame className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+
               {/* Show text on hover with smooth transition */}
-              <span className="ml-2 text-lg font-bold text-gray-900 dark:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                Top Creators
+              <span className="ml-2 text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                Trending Hashtags
               </span>
-              
+
               {/* Always show count */}
               <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                ({influencers.length})
+                ({hashtags.length})
               </span>
             </div>
           </div>
-          
+
           <button
             onClick={() => setIsMobileOpen(false)}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -292,8 +300,8 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
           </button>
         </div>
       </div>
-      <div 
-        ref={scrollContainerRef} 
+      <div
+        ref={scrollContainerRef}
         className="flex-1 p-4 overflow-y-auto scroll-smooth"
       >
         {isLoading ? (
@@ -303,10 +311,10 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
             <AlertCircle className="w-4 h-4" />
             {error}
           </div>
-        ) : influencers.length > 0 ? (
+        ) : hashtags.length > 0 ? (
           <div className="space-y-3">
-            {influencers.map((influencer) => (
-              <TikTokInfluencerCard key={influencer.tcm_id} influencer={influencer} />
+            {hashtags.map((hashtag, index) => (
+              <TikTokHashtagCard key={hashtag.hashtag_id || index} hashtag={hashtag} rank={index + 1} />
             ))}
           </div>
         ) : (
@@ -319,10 +327,10 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
   return (
     <>
       {/* Mobile Toggle Button */}
-      <MobileToggle 
+      <MobileToggle
         isOpen={isMobileOpen}
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        creatorCount={influencers.length}
+        hashtagCount={hashtags.length}
       />
 
       {/* Mobile Bottom Sheet */}

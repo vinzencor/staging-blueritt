@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Package, Filter, Search, CheckCircle, Loader2, Eye, ExternalLink, Heart, MessageCircle, Share2, Play, Zap, Truck, Save, X, Calculator, AlertCircle, ShoppingCart } from 'lucide-react';
+import { TrendingUp, Package, Filter, Search, CheckCircle, Loader2, Eye, ExternalLink, Heart, MessageCircle, Share2, Play, Zap, Truck, X, AlertCircle, ShoppingCart } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
-import { discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopProduct, type TikTokShopAnalysisResponse } from '../../../../../api/tiktokTrends';
-import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
-import { usePersistentQuota } from '../../../../../hooks/usePersistentQuota';
+import { discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse } from '../../../../../api/tiktokTrends';
 
 // TikTok Categories with IDs
 const TIKTOK_CATEGORIES = [
@@ -124,9 +122,6 @@ interface TikTokTrendsProps {
 }
 
 const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
-  // Persistent quota management (for supplier discovery)
-  const { quotas, reduceQuota, increaseQuota, hasQuota } = usePersistentQuota();
-
   // Backend quota management for TikTok search
   const { quotaDetails: tiktokSearchQuotaDetails, updateQuota: updateTikTokSearchQuota } = useUserSubscriptionAndSearchQuota('tiktok_searches' as any);
 
@@ -151,10 +146,6 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
   const [supplierAnalysisTime, setSupplierAnalysisTime] = useState(0);
   const [activeModalTab, setActiveModalTab] = useState<'overview' | 'suppliers' | 'shop-analysis'>('overview');
-
-  // Profit calculator state
-  const [selectedSupplier, setSelectedSupplier] = useState<SupplierInfo | null>(null);
-  const [showProfitCalculator, setShowProfitCalculator] = useState(false);
 
   // Shop analysis state
   const [shopAnalysisData, setShopAnalysisData] = useState<TikTokShopAnalysisResponse | null>(null);
@@ -259,14 +250,6 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     setActiveModalTab('overview');
     setSuppliers([]);
     setSupplierAnalysisTime(0);
-    setSelectedSupplier(null);
-    setShowProfitCalculator(false);
-  };
-
-  const handleCalculateProfit = (supplier: SupplierInfo) => {
-    console.log('🧮 Opening profit calculator for supplier:', supplier.name);
-    setSelectedSupplier(supplier);
-    setShowProfitCalculator(true);
   };
 
   const handleDiscoverSuppliers = async () => {
@@ -275,8 +258,8 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       return;
     }
 
-    // Check persistent quota before making API call
-    if (!hasQuota('tiktok_supplier_discovery')) {
+    // Check backend quota before making API call
+    if (supplierQuotaDetails.quotaValue <= 0) {
       console.log('❌ Supplier discovery quota exceeded');
       alert('No supplier discovery searches remaining. Please purchase add-ons to continue.');
       return;
@@ -297,8 +280,8 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       console.log('✅ Supplier discovery response:', response);
       console.log('📦 Found suppliers:', response.suppliers?.length || 0);
 
-      // Reduce persistent quota after successful API call
-      reduceQuota('tiktok_supplier_discovery', 1);
+      // Update backend quota after successful API call
+      updateSupplierQuota(supplierQuotaDetails.quotaValue - 1);
       console.log('📊 Supplier discovery quota reduced');
 
       setSuppliers(response.suppliers || []);
@@ -334,42 +317,26 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                     <Zap className="w-4 h-4 text-blue-600" />
                     {quotaDetails.packageName} Plan Features
                   </p>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {/* TikTok Trends Searches */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">TikTok Searches</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Product Searches</div>
                       <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
-                        {quotas.tiktok_search}
+                        {tiktokSearchQuotaDetails.quotaValue === -1 ? '∞' : tiktokSearchQuotaDetails.quotaValue}
                       </div>
                     </div>
 
                     {/* Discover Suppliers */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-purple-100 dark:border-purple-700">
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Discover Suppliers</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Supplier Discoveries</div>
                       <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-1">
-                        {quotas.tiktok_supplier_discovery}
-                      </div>
-                    </div>
-
-                    {/* Profit Calculations */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-green-100 dark:border-green-700">
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Profit Calcs</div>
-                      <div className="text-lg font-bold text-green-600 dark:text-green-400 mt-1">
-                        {quotas.profit_calculation}
-                      </div>
-                    </div>
-
-                    {/* Billing Period */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-orange-100 dark:border-orange-700">
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Billing</div>
-                      <div className="text-lg font-bold text-orange-600 dark:text-orange-400 mt-1">
-                        {quotaDetails.billingPeriod || 'Monthly'}
+                        {supplierQuotaDetails.quotaValue === -1 ? '∞' : supplierQuotaDetails.quotaValue}
                       </div>
                     </div>
 
                     {/* Add-ons Button */}
                     <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-3 border border-green-200 dark:border-green-700 flex flex-col justify-center items-center cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => setShowAddOnsModal(true)}>
+                      onClick={() => window.location.href = '/settings/subscription'}>
                       <ShoppingCart className="w-5 h-5 text-green-600 dark:text-green-400 mb-1" />
                       <div className="text-xs text-green-700 dark:text-green-300 font-semibold text-center">Add-ons</div>
                     </div>
@@ -1197,7 +1164,6 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                     suppliers={suppliers}
                     isLoading={isSupplierDiscoveryLoading}
                     analysisTime={supplierAnalysisTime}
-                    onCalculateProfit={handleCalculateProfit}
                   />
                 </div>
               )}
@@ -1210,9 +1176,6 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                     error={shopAnalysisError}
                     categoryId={selectedProduct?.third_ecom_category?.id}
                     categoryName={selectedProduct?.third_ecom_category?.value}
-                    selectedProduct={selectedProduct}
-                    setSelectedProduct={setSelectedProduct}
-                    onCalculateProfit={handleCalculateProfit}
                   />
                 </div>
               )}
@@ -1221,100 +1184,43 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
         </div>
       )}
 
-      {/* Profit Calculator Modal */}
-      {selectedSupplier && showProfitCalculator && selectedProduct && (
-        <TikTokProfitCalculatorModal
-          product={selectedProduct}
-          supplier={selectedSupplier}
-          isOpen={showProfitCalculator}
-          onClose={() => {
-            setShowProfitCalculator(false);
-            setSelectedSupplier(null);
-          }}
-        />
-      )}
+
 
       {/* Add-ons Modal */}
       {showAddOnsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <ShoppingCart className="w-6 h-6 text-green-600" />
-                  Purchase Add-ons
-                </h2>
-                <button
-                  onClick={() => setShowAddOnsModal(false)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {/* TikTok Searches Add-on */}
-                <div className="border border-blue-200 dark:border-blue-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">TikTok Searches</h3>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Current: {quotas.tiktok_search}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Add 100 searches for $9.99</p>
-                  <button
-                    onClick={() => {
-                      increaseQuota('tiktok_search', 100);
-                      setShowAddOnsModal(false);
-                    }}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Add 100 Searches
-                  </button>
-                </div>
-
-                {/* Supplier Discovery Add-on */}
-                <div className="border border-purple-200 dark:border-purple-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Discover Suppliers</h3>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Current: {quotas.tiktok_supplier_discovery}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Add 500 discoveries for $19.99</p>
-                  <button
-                    onClick={() => {
-                      increaseQuota('tiktok_supplier_discovery', 500);
-                      setShowAddOnsModal(false);
-                    }}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Add 500 Discoveries
-                  </button>
-                </div>
-
-                {/* Profit Calculations Add-on */}
-                <div className="border border-green-200 dark:border-green-700 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Profit Calculations</h3>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Current: {quotas.profit_calculation}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Add 200 calculations for $14.99</p>
-                  <button
-                    onClick={() => {
-                      increaseQuota('profit_calculation', 200);
-                      setShowAddOnsModal(false);
-                    }}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    Add 200 Calculations
-                  </button>
-                </div>
-              </div>
-
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Purchase Tokens</h2>
               <button
                 onClick={() => setShowAddOnsModal(false)}
-                className="w-full mt-4 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
-                Close
+                <X className="w-6 h-6" />
               </button>
             </div>
+
+            <div className="space-y-4 p-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Purchase additional tokens to increase your quota limits.
+              </p>
+
+              {/* Purchase Tokens Button */}
+              <button
+                onClick={() => window.location.href = '/settings/subscription'}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-3 rounded-lg transition-colors font-semibold flex items-center justify-center gap-2"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                Go to Subscription Page
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowAddOnsModal(false)}
+              className="w-full m-4 mt-0 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
@@ -1327,10 +1233,9 @@ interface SuppliersTabProps {
   suppliers: SupplierInfo[];
   isLoading: boolean;
   analysisTime: number;
-  onCalculateProfit: (supplier: SupplierInfo) => void;
 }
 
-const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onCalculateProfit }) => {
+const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime }) => {
   console.log('🏭 SuppliersTab render:', {
     suppliersCount: suppliers?.length || 0,
     isLoading,
@@ -1473,15 +1378,6 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              {/* Calculate Button */}
-              <button
-                onClick={() => onCalculateProfit(supplier)}
-                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2 px-4 rounded-lg transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
-              >
-                <Calculator className="w-4 h-4" />
-                Calculate
-              </button>
-
               {/* Contact Supplier Button */}
               {supplier.contact_url && (
                 <a
@@ -1517,9 +1413,6 @@ interface ShopAnalysisTabProps {
   error: string | null;
   categoryId?: string;
   categoryName?: string;
-  selectedProduct: any;
-  setSelectedProduct: (product: any) => void;
-  onCalculateProfit: (supplier: SupplierInfo) => void;
 }
 
 const ShopAnalysisTab: React.FC<ShopAnalysisTabProps> = ({
@@ -1527,10 +1420,7 @@ const ShopAnalysisTab: React.FC<ShopAnalysisTabProps> = ({
   isLoading,
   error,
   categoryId,
-  categoryName,
-  selectedProduct,
-  setSelectedProduct,
-  onCalculateProfit
+  categoryName
 }) => {
   if (isLoading) {
     return (
@@ -1680,53 +1570,7 @@ const ShopAnalysisTab: React.FC<ShopAnalysisTabProps> = ({
               )}
             </div>
 
-            {/* Calculate Button */}
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-600">
-              <button
-                onClick={() => {
-                  // Create a mock supplier object from shop product data
-                  const mockSupplier: SupplierInfo & { isTikTokShopProduct?: boolean; tiktokShopPrice?: number } = {
-                    id: product.id,
-                    name: product.shop_name || 'TikTok Shop',
-                    supplier_name: product.shop_name || 'TikTok Shop',
-                    location: product.shipping_info.ship_from || 'Unknown',
-                    verification_status: 'verified',
-                    verification_badge: 'Gold',
-                    years_in_business: 5,
-                    main_products: product.title,
-                    certifications: [],
-                    contact_method: 'TikTok Shop',
-                    ai_match_score: 85,
-                    match_explanation: 'High-quality TikTok Shop product with good sales data',
-                    moq: 1,
-                    lead_time: '7-15 days',
-                    estimated_price: `$${product.price.toFixed(2)}`,
-                    contact_url: '',
-                    response_rate: '95%',
-                    trade_assurance: product.shipping_info.free_shipping,
-                    isTikTokShopProduct: true,
-                    tiktokShopPrice: product.price
-                  };
 
-                  // Create a mock product object with TikTok Shop data
-                  const mockProduct = {
-                    ...selectedProduct,
-                    price: product.price,
-                    title: product.title,
-                    image_url: product.image_url,
-                    sales_count: product.sales_count,
-                    isTikTokShopProduct: true
-                  };
-
-                  setSelectedProduct(mockProduct);
-                  onCalculateProfit(mockSupplier);
-                }}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 font-medium"
-              >
-                <Calculator className="w-4 h-4" />
-                Calculate Profit
-              </button>
-            </div>
           </div>
         ))}
       </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, ExternalLink, Star, Package, MessageSquare, DollarSign, Truck, Shield, Zap, Save, Calculator } from 'lucide-react';
+import { X, ExternalLink, Star, Package, MessageSquare, DollarSign, Truck, Shield, Zap, Save } from 'lucide-react';
 
 import {
   getAmazonTrendsProductDetails,
@@ -22,7 +22,6 @@ import {
   type SupplierInfo
 } from '@/api/amazonExplorer';
 
-import ProfitCalculatorModal from './ProfitCalculatorModal';
 import SaveSearchModal from './SaveSearchModal';
 
 interface AmazonTrendsProductDetailsModalProps {
@@ -38,8 +37,6 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<SupplierInfo[]>([]);
   const [supplierAnalysisTime, setSupplierAnalysisTime] = useState<number>(0);
-  const [selectedSupplier, setSelectedSupplier] = useState<SupplierInfo | null>(null);
-  const [showProfitCalculator, setShowProfitCalculator] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
 
   // Reset state when modal is closed/opened with different product
@@ -49,8 +46,6 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
       setIsSupplierDiscoveryLoading(false);
       setSuppliers([]);
       setSupplierAnalysisTime(0);
-      setSelectedSupplier(null);
-      setShowProfitCalculator(false);
       setShowSaveModal(false);
     }
   }, [isOpen, product.asin]);
@@ -126,12 +121,6 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
   };
 
   // Handle supplier selection
-  const handleSelectSupplier = (supplier: SupplierInfo) => {
-    console.log('🎯 Supplier selected:', supplier.name, supplier);
-    setSelectedSupplier(supplier);
-    setShowProfitCalculator(true);
-  };
-
   // Handle save search
   const handleSaveSearch = () => {
     setShowSaveModal(true);
@@ -284,19 +273,6 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
           </div>
         </div>
       </div>
-
-      {/* Profit Calculator Modal */}
-      {selectedSupplier && showProfitCalculator && (
-        <ProfitCalculatorModal
-          product={product}
-          supplier={selectedSupplier}
-          isOpen={showProfitCalculator}
-          onClose={() => {
-            setShowProfitCalculator(false);
-            setSelectedSupplier(null);
-          }}
-        />
-      )}
 
       {/* Save Search Modal */}
       <SaveSearchModal
@@ -639,17 +615,6 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3 justify-end pt-2 border-t border-gray-100">
-                <button
-                  onClick={() => {
-                    console.log('🎯 Select Seller clicked for:', supplier.name);
-                    onSelectSupplier(supplier);
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg transition-all duration-200 text-sm flex items-center gap-2 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
-                >
-                  <Calculator className="w-4 h-4" />
-                  Select & Calculate
-                </button>
-
                 <a
                   href={supplier.contact_url}
                   target="_blank"
