@@ -33,6 +33,7 @@ interface ProductDetailsModalProps {
   product: AmazonProduct;
   isOpen: boolean;
   onClose: () => void;
+  autoStartSupplierDiscovery?: boolean;
 }
 
 interface ProfitCalculation {
@@ -73,7 +74,7 @@ interface ProfitCalculation {
 
 type TabType = 'overview' | 'reviews' | 'offers' | 'suppliers';
 
-const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOpen, onClose }) => {
+const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery = false }) => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<SupplierInfo[]>([]);
@@ -137,6 +138,16 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
       setSupplierAnalysisTime(0);
     }
   }, [isOpen, product.asin]);
+
+  // Auto-start supplier discovery when modal opens with autoStartSupplierDiscovery flag
+  useEffect(() => {
+    if (isOpen && autoStartSupplierDiscovery && !isSupplierDiscoveryLoading && suppliers.length === 0) {
+      console.log('🚀 Auto-starting supplier discovery for Amazon Explorer product:', product.product_title);
+      setTimeout(() => {
+        handleDiscoverSuppliers();
+      }, 500);
+    }
+  }, [isOpen, autoStartSupplierDiscovery, product.asin]);
 
   // Product Details Query
   const {

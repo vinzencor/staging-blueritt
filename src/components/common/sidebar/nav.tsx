@@ -217,7 +217,7 @@ export const MenuItems: any = [
       active: false,
       selected: false,
       dirchange: false,
-      title: "Amazon Trends",
+      title: "TopChoice Plus",
     },
     {
       path: "/socialpulse/influencers",

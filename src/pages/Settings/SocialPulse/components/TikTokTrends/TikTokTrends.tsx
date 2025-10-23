@@ -58,7 +58,7 @@ const SORT_OPTIONS = [
   { value: 'ctr', label: 'CTR' },
   { value: 'cvr', label: 'CVR' },
   { value: 'cpa', label: 'CPA' },
-  { value: 'cost', label: 'Cost' },
+  { value: 'cost', label: 'Total Ad Spend' },
   { value: 'like', label: 'Likes' },
   { value: 'share', label: 'Shares' },
   { value: 'comment', label: 'Comments' },
@@ -716,7 +716,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                     <div className="grid grid-cols-2 gap-2 text-xs mb-8 flex-grow">
                       {product.ctr !== undefined && product.ctr > 0 && (
                         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center border border-blue-200 dark:border-blue-800">
-                          <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium">CPR</div>
+                          <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium">CTR</div>
                           <div className="font-semibold text-gray-900 dark:text-white text-sm">
                             {(product.ctr * 100).toFixed(2)}%
                           </div>
@@ -1207,7 +1207,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                             <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 rounded-lg p-4 text-center border border-orange-200 dark:border-orange-700">
                               <div className="flex items-center justify-center gap-2 text-orange-600 dark:text-orange-400 mb-2">
                                 <CreditCard className="w-5 h-5" />
-                                <span className="font-medium">Cost</span>
+                                <span className="font-medium">Total Ad Spend</span>
                               </div>
                               <span className="font-semibold text-gray-900 dark:text-white">
                                 ${selectedProduct.cost}

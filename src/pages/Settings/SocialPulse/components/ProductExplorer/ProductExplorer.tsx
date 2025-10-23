@@ -63,6 +63,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const [page, setPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [autoStartSupplierDiscovery, setAutoStartSupplierDiscovery] = useState(false);
   const [bestSellerCategories, setBestSellerCategories] = useState<BestSellerCategory[]>([]);
   const [mainCategories, setMainCategories] = useState<BestSellerCategory[]>([]);
   const [selectedMainCategory, setSelectedMainCategory] = useState<string>('');
@@ -593,6 +594,16 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     setIsDetailsModalOpen(true);
   };
 
+  // Handle discover suppliers from product card - opens modal and starts discovery
+  const handleDiscoverSuppliersFromCard = async (product: AmazonProduct) => {
+    console.log('🚀 Starting discover suppliers from card for Amazon Explorer product:', product.product_title);
+
+    // Set the product and open modal with auto-start flag
+    setSelectedProduct(product);
+    setIsDetailsModalOpen(true);
+    setAutoStartSupplierDiscovery(true);
+  };
+
   const currentData = getCurrentData();
   const isLoading = getCurrentLoading();
   const error = getCurrentError();
@@ -697,7 +708,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         <div className="p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Product Explorer</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">TopChoice Plus</h2>
               <p className="text-gray-600 dark:text-gray-400">Discover trending products, search by keywords, or browse by category</p>
             </div>
 
@@ -821,7 +832,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                    Amazon Trends Type
+                    TopChoice Plus Type
                   </label>
                   <select
                     value={selectedType}
@@ -1300,6 +1311,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   key={`${product.asin}-${index}`}
                   product={product}
                   onViewDetails={() => handleViewDetails(product)}
+                  onDiscoverSuppliers={() => handleDiscoverSuppliersFromCard(product)}
                 />
               ))}
             </div>
@@ -1312,9 +1324,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         <ProductDetailsModal
           product={selectedProduct}
           isOpen={isDetailsModalOpen}
+          autoStartSupplierDiscovery={autoStartSupplierDiscovery}
           onClose={() => {
             setIsDetailsModalOpen(false);
             setSelectedProduct(null);
+            setAutoStartSupplierDiscovery(false);
           }}
         />
       )}
@@ -1365,9 +1379,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
 interface ProductCardProps {
   product: AmazonProduct;
   onViewDetails: () => void;
+  onDiscoverSuppliers: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onDiscoverSuppliers }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
       {/* Product Image */}
@@ -1426,22 +1441,37 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => 
         </div>
 
         {/* Action Buttons - Fixed at bottom */}
-        <div className="flex gap-2 mt-auto pt-4">
+        <div className="space-y-2 mt-auto pt-4">
+          {/* Discover Suppliers Button */}
           <button
-            onClick={onViewDetails}
-            className="flex-1 bg-gradient-to-r from-[#ffa41c] to-[#ff6201] dark:bg-orange-600 text-white py-2 px-3 rounded-lg hover:from-[#ffa41c] hover:to-[#ff6201] dark:hover:bg-orange-700 transition-colors text-sm flex items-center justify-center gap-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDiscoverSuppliers();
+            }}
+            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 px-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 text-sm flex items-center justify-center gap-2"
           >
-            <Eye className="w-4 h-4" />
-            View Details
+            <Zap className="w-4 h-4" />
+            Discover Suppliers
           </button>
-          <a
-            href={getAmazonUrl(product)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm flex items-center justify-center"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </a>
+
+          {/* View Details and Amazon Link */}
+          <div className="flex gap-2">
+            <button
+              onClick={onViewDetails}
+              className="flex-1 bg-gradient-to-r from-[#ffa41c] to-[#ff6201] dark:bg-orange-600 text-white py-2 px-3 rounded-lg hover:from-[#ffa41c] hover:to-[#ff6201] dark:hover:bg-orange-700 transition-colors text-sm flex items-center justify-center gap-1"
+            >
+              <Eye className="w-4 h-4" />
+              View Details
+            </button>
+            <a
+              href={getAmazonUrl(product)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm flex items-center justify-center"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
         </div>
       </div>
     </div>

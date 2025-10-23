@@ -822,7 +822,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-purple-600" />
-          Amazon Trends
+          TopChoice Plus
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
           Discover trending products, search by keywords, or browse by category
@@ -1110,11 +1110,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                 {discoverCategoryProducts.map((product: any, index: number) => (
                   <div
                     key={product.asin || product.product_id || index}
-                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setIsDetailsModalOpen(true);
-                    }}
+                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                   >
                     {product.product_photo && (
                       <img
@@ -1129,7 +1125,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                     <h5 className="font-medium text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
                       {product.product_title || 'Product Title'}
                     </h5>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-3">
                       <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                         {product.product_price || 'N/A'}
                       </span>
@@ -1141,6 +1137,33 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                           </span>
                         </div>
                       )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-2">
+                      {/* Discover Suppliers Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDiscoverSuppliersFromCard(product);
+                        }}
+                        className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 px-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                      >
+                        <Zap className="w-4 h-4" />
+                        Discover Suppliers
+                      </button>
+
+                      {/* View Details Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewDetails(product);
+                        }}
+                        className="w-full bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View Details
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1302,11 +1325,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                       {categoryProductsData.data.products.map((product: any, index: number) => (
                         <div
                           key={product.asin || product.product_id || index}
-                          className="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                          onClick={() => {
-                            setSelectedProduct(product);
-                            setIsDetailsModalOpen(true);
-                          }}
+                          className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                         >
                           {product.product_photo && (
                             <img
@@ -1318,21 +1337,48 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                               }}
                             />
                           )}
-                          <h5 className="font-medium text-sm text-gray-900 mb-2 line-clamp-2">
+                          <h5 className="font-medium text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
                             {product.product_title || 'Product Title'}
                           </h5>
-                          <div className="flex items-center justify-between">
-                            <span className="text-lg font-bold text-purple-600">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
                               {product.product_price || 'N/A'}
                             </span>
                             {product.product_star_rating && (
                               <div className="flex items-center gap-1">
                                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                <span className="text-sm text-gray-600">
+                                <span className="text-sm text-gray-600 dark:text-gray-400">
                                   {product.product_star_rating}
                                 </span>
                               </div>
                             )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="space-y-2">
+                            {/* Discover Suppliers Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDiscoverSuppliersFromCard(product);
+                              }}
+                              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 px-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                            >
+                              <Zap className="w-4 h-4" />
+                              Discover Suppliers
+                            </button>
+
+                            {/* View Details Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDetails(product);
+                              }}
+                              className="w-full bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2"
+                            >
+                              {/* <Eye className="w-4 h-4" /> */}
+                              View Details
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -1462,7 +1508,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                   {/* Amazon Trends Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Amazon Trends Type
+                      TopChoice Plus Type
                     </label>
                     <select
                       value={bestSellersType}
