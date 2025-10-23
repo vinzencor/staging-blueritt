@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import Drawer from "@mui/material/Drawer";
 import { Options, TSearchFilters } from "../../index";
 import { toast } from "react-toastify";
+import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 
 type TSearchProductsProps = {
   updateSearchSettings: (
@@ -91,6 +92,20 @@ const SearchProducts: React.FC<TSearchProductsProps> = ({
     if (!searchQuery.trim() && selectedSearchOption !== Options.Category) {
       toast.error("Please enter a value before searching.");
       return;
+    }
+
+    // Check for blocked keywords if searching by product
+    if (selectedSearchOption === Options.Product && searchQuery.trim()) {
+      const keywordCheck = checkForBlockedKeywords(searchQuery);
+      if (keywordCheck.isBlocked) {
+        toast.error(`Keyword blocked: ${getBlockedContentMessage(keywordCheck.category)}`);
+        console.warn('Blocked search attempt:', {
+          query: searchQuery,
+          matchedKeywords: keywordCheck.matchedKeywords,
+          category: keywordCheck.category
+        });
+        return;
+      }
     }
 
     updateFiltersAndPage(filters, 1);

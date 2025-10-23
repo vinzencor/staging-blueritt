@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
 import { discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse } from '../../../../../api/tiktokTrends';
+import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 
 // TikTok Categories with IDs
 const TIKTOK_CATEGORIES = [
@@ -196,6 +197,21 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       alert('No TikTok searches remaining. Please purchase add-ons to continue.');
       return;
     }
+
+    // Check for blocked keywords if search keyword is provided
+    if (searchKeyword.trim()) {
+      const keywordCheck = checkForBlockedKeywords(searchKeyword);
+      if (keywordCheck.isBlocked) {
+        alert(`Keyword blocked: ${getBlockedContentMessage(keywordCheck.category)}`);
+        console.warn('Blocked TikTok search attempt:', {
+          query: searchKeyword,
+          matchedKeywords: keywordCheck.matchedKeywords,
+          category: keywordCheck.category
+        });
+        return;
+      }
+    }
+
     // Quota will be deducted by backend API
     setShouldFetch(true);
     refetchTikTok();
@@ -467,7 +483,28 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             <input
               type="text"
               value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setSearchKeyword(newValue);
+
+                // Real-time keyword checking for immediate feedback
+                if (newValue.trim()) {
+                  const keywordCheck = checkForBlockedKeywords(newValue);
+                  if (keywordCheck.isBlocked) {
+                    // Visual feedback for blocked content
+                    e.target.style.borderColor = '#ef4444';
+                    e.target.style.backgroundColor = '#fef2f2';
+                  } else {
+                    // Reset to normal styling
+                    e.target.style.borderColor = '';
+                    e.target.style.backgroundColor = '';
+                  }
+                } else {
+                  // Reset styling when empty
+                  e.target.style.borderColor = '';
+                  e.target.style.backgroundColor = '';
+                }
+              }}
               placeholder="Enter search keyword..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />

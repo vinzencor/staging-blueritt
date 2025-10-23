@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 
 import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
 import { formatPrice, type TikTokTrendingProduct } from '@/api/tiktokTrends';
+import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 
 interface TikTokSaveSearchModalProps {
   product: TikTokTrendingProduct;
@@ -83,6 +84,18 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
       return;
     }
 
+    // Check for blocked keywords in category name
+    const keywordCheck = checkForBlockedKeywords(newCategoryName);
+    if (keywordCheck.isBlocked) {
+      toast.error(`Category name contains blocked content: ${getBlockedContentMessage(keywordCheck.category)}`);
+      console.warn('Blocked category creation attempt:', {
+        categoryName: newCategoryName,
+        matchedKeywords: keywordCheck.matchedKeywords,
+        category: keywordCheck.category
+      });
+      return;
+    }
+
     createCategoryMutation.mutate({
       name: newCategoryName.trim(),
       description: `Category for TikTok products`,
@@ -92,6 +105,18 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
   const handleSaveProduct = () => {
     if (!productName.trim()) {
       toast.error('Product name is required');
+      return;
+    }
+
+    // Check for blocked keywords in product name
+    const keywordCheck = checkForBlockedKeywords(productName);
+    if (keywordCheck.isBlocked) {
+      toast.error(`Product name contains blocked content: ${getBlockedContentMessage(keywordCheck.category)}`);
+      console.warn('Blocked product save attempt:', {
+        productName: productName,
+        matchedKeywords: keywordCheck.matchedKeywords,
+        category: keywordCheck.category
+      });
       return;
     }
 
@@ -260,7 +285,28 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
                   <input
                     type="text"
                     value={productName}
-                    onChange={(e) => setProductName(e.target.value)}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setProductName(newValue);
+
+                      // Real-time keyword checking for immediate feedback
+                      if (newValue.trim()) {
+                        const keywordCheck = checkForBlockedKeywords(newValue);
+                        if (keywordCheck.isBlocked) {
+                          // Visual feedback for blocked content
+                          e.target.style.borderColor = '#ef4444';
+                          e.target.style.backgroundColor = '#fef2f2';
+                        } else {
+                          // Reset to normal styling
+                          e.target.style.borderColor = '';
+                          e.target.style.backgroundColor = '';
+                        }
+                      } else {
+                        // Reset styling when empty
+                        e.target.style.borderColor = '';
+                        e.target.style.backgroundColor = '';
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="Enter product name"
                   />

@@ -27,6 +27,9 @@ import {
   type BestSellerCategory
 } from '@/api/amazonExplorer';
 
+// Import keyword filtering utility
+import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
+
 import {
   getAmazonProductsByCategoryDirect,
 } from '@/api/amazonTrends';
@@ -502,12 +505,25 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     }
   };
 
-  // Handle search
+  // Handle search with keyword filtering
   const handleSearch = () => {
     if (!searchQuery.trim()) {
       toast.error('Please enter a search query');
       return;
     }
+
+    // Check for blocked keywords
+    const keywordCheck = checkForBlockedKeywords(searchQuery);
+    if (keywordCheck.isBlocked) {
+      toast.error(`Keyword blocked: ${getBlockedContentMessage(keywordCheck.category)}`);
+      console.warn('Blocked search attempt:', {
+        query: searchQuery,
+        matchedKeywords: keywordCheck.matchedKeywords,
+        category: keywordCheck.category
+      });
+      return;
+    }
+
     setViewMode('search');
     setPage(1);
     refetchSearch();
@@ -985,7 +1001,28 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    setSearchQuery(newValue);
+
+                    // Real-time keyword checking for immediate feedback
+                    if (newValue.trim()) {
+                      const keywordCheck = checkForBlockedKeywords(newValue);
+                      if (keywordCheck.isBlocked) {
+                        // Visual feedback for blocked content
+                        e.target.style.borderColor = '#ef4444';
+                        e.target.style.backgroundColor = '#fef2f2';
+                      } else {
+                        // Reset to normal styling
+                        e.target.style.borderColor = '';
+                        e.target.style.backgroundColor = '';
+                      }
+                    } else {
+                      // Reset styling when empty
+                      e.target.style.borderColor = '';
+                      e.target.style.backgroundColor = '';
+                    }
+                  }}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="Search for products..."
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"

@@ -7,6 +7,7 @@ import { Drawer } from '@mui/material';
 import LoadingSpinner from '../../../../../components/LoadingSpinner';
 import ProductLoadingSkeleton from '../../../../../components/ProductLoadingSkeleton';
 import AmazonLoader from '../../../../../components/AmazonLoader';
+import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 
 import {
   amazonTrendsSearch,
@@ -403,6 +404,18 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast.error('Please enter a search term');
+      return;
+    }
+
+    // Check for blocked keywords
+    const keywordCheck = checkForBlockedKeywords(searchQuery);
+    if (keywordCheck.isBlocked) {
+      toast.error(`Keyword blocked: ${getBlockedContentMessage(keywordCheck.category)}`);
+      console.warn('Blocked search attempt:', {
+        query: searchQuery,
+        matchedKeywords: keywordCheck.matchedKeywords,
+        category: keywordCheck.category
+      });
       return;
     }
 
@@ -851,7 +864,28 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setSearchQuery(newValue);
+
+                // Real-time keyword checking for immediate feedback
+                if (newValue.trim()) {
+                  const keywordCheck = checkForBlockedKeywords(newValue);
+                  if (keywordCheck.isBlocked) {
+                    // Visual feedback for blocked content
+                    e.target.style.borderColor = '#ef4444';
+                    e.target.style.backgroundColor = '#fef2f2';
+                  } else {
+                    // Reset to normal styling
+                    e.target.style.borderColor = '';
+                    e.target.style.backgroundColor = '';
+                  }
+                } else {
+                  // Reset styling when empty
+                  e.target.style.borderColor = '';
+                  e.target.style.backgroundColor = '';
+                }
+              }}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Search for products, brands, or keywords..."
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"

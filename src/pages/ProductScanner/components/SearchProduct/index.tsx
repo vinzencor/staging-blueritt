@@ -22,6 +22,7 @@ import {
 
 import { Options, type TSearchFilters } from "../..";
 import { toast } from "react-toastify";
+import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../utils/keywordFilter';
 
 interface Subcategory {
   subcategory_name: string;
@@ -124,13 +125,23 @@ const SearchProducts: React.FC<TSearchProductsProps> = ({
       toast.error("Please enter a value before searching.");
       return;
     }
-    updateFiltersAndPage(filters, 1);
 
+    // Check for blocked keywords if searching by product
+    if (selectedSearchOption === Options.Product && inputString.trim()) {
+      const keywordCheck = checkForBlockedKeywords(inputString);
+      if (keywordCheck.isBlocked) {
+        toast.error(`Keyword blocked: ${getBlockedContentMessage(keywordCheck.category)}`);
+        console.warn('Blocked search attempt:', {
+          query: inputString,
+          matchedKeywords: keywordCheck.matchedKeywords,
+          category: keywordCheck.category
+        });
+        return;
+      }
+    }
+
+    updateFiltersAndPage(filters, 1);
     updateActiveFilterCount();
-    // if (!inputString.trim()) {
-    //   toast.error("Please enter a value before searching.");
-    //   return;
-    // }
   };
 
   const closeFilter = () => {
