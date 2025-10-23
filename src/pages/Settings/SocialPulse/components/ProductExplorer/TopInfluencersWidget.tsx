@@ -332,11 +332,11 @@ const InfluencerCard: React.FC<InfluencerCardProps> = ({ influencer, onViewDetai
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-[#ffa41c] dark:hover:border-[#ffa41c] hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3">
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <div className="flex-shrink-0">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity" onClick={handleProfileClick}>
+          <div className="w-12 h-12 bg-gradient-to-br from-[#ffa41c] to-[#ff6201] rounded-full flex items-center justify-center text-white font-bold text-sm cursor-pointer hover:opacity-80 transition-opacity" onClick={handleProfileClick}>
             {influencer.influencer_name?.charAt(0).toUpperCase() || 'I'}
           </div>
         </div>
@@ -382,7 +382,7 @@ const InfluencerCard: React.FC<InfluencerCardProps> = ({ influencer, onViewDetai
           {/* View Details Button */}
           <button
             onClick={handleViewDetails}
-            className="mt-2 w-full px-2 py-1 bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600 text-white text-xs font-medium rounded transition-colors"
+            className="mt-2 w-full px-2 py-1 rounded-md bg-gradient-to-r from-[#ffa41c] to-[#ff6201] hover:bg-[#ff6201] dark:bg-[#ff6201] dark:hover:bg-[#ff6201] text-white text-xs font-medium rounded transition-colors"
           >
             View Details
           </button>
@@ -559,7 +559,7 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
             
             {/* Desktop: Full text */}
             <h2 className="hidden lg:flex text-lg font-bold text-gray-900 dark:text-white items-center">
-              <Crown className="w-5 h-5 mr-2 text-purple-600 dark:text-purple-400" />
+              <Crown className="w-5 h-5 mr-2 text-[#ffa41c] dark:text-[#ffa41c ]" />
               Top Influencers
               <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
                 ({influencers.length})
@@ -582,7 +582,7 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
         {isLoading ? (
           <LoadingSkeleton />
         ) : error ? (
-          <div className="flex items-center gap-2 text-red-600 text-sm p-3 bg-red-50 rounded-lg">
+          <div className="flex items-center gap-2 text-[#ffa41c] text-sm p-3 bg-red-50 rounded-lg">
             <AlertCircle className="w-4 h-4" />
             {error}
           </div>

@@ -82,12 +82,12 @@ const TikTokHashtagCard: React.FC<{ hashtag: TikTokHashtag; rank: number }> = ({
   return (
     <div
       onClick={handleClick}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-orange-400 dark:hover:border-orange-500 hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3 cursor-pointer"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-[#111c43] dark:hover:border-[#0072D6] hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3 cursor-pointer"
     >
       <div className="flex items-start gap-3">
         {/* Rank Badge */}
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-10 h-10 bg-gradient-to-br from-[#0072D6] to-[#111c43] rounded-full flex items-center justify-center text-white font-bold text-sm">
             {rank}
           </div>
         </div>
@@ -102,11 +102,11 @@ const TikTokHashtagCard: React.FC<{ hashtag: TikTokHashtag; rank: number }> = ({
           <div className="grid grid-cols-2 gap-1.5 mt-2 text-xs">
             <div className="bg-orange-50 dark:bg-orange-900/20 rounded px-1.5 py-0.5">
               <span className="text-gray-600 dark:text-gray-400">🎬 </span>
-              <span className="font-semibold text-orange-600 dark:text-orange-400">{formatNumber(hashtag.publish_cnt)}</span>
+              <span className="font-semibold text-[#0072D6] dark:text-[#0072D6]">{formatNumber(hashtag.publish_cnt)}</span>
             </div>
             <div className="bg-red-50 dark:bg-red-900/20 rounded px-1.5 py-0.5">
               <span className="text-gray-600 dark:text-gray-400">👁️ </span>
-              <span className="font-semibold text-red-600 dark:text-red-400">{formatNumber(hashtag.video_views)}</span>
+              <span className="font-semibold text-[#0072D6]  dark:text-[#0072D6]">{formatNumber(hashtag.video_views)}</span>
             </div>
           </div>
         </div>
@@ -125,7 +125,7 @@ interface MobileToggleProps {
 const MobileToggle: React.FC<MobileToggleProps> = ({ isOpen, onClick, hashtagCount }) => (
   <button
     onClick={onClick}
-    className="lg:hidden fixed top-20 right-4 z-40 bg-orange-600 hover:bg-orange-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 mobile-toggle-button"
+    className="lg:hidden fixed top-20 right-4 z-40 bg-[#0072D6] hover:bg-[#111c43] text-white p-3 rounded-full shadow-lg transition-all duration-300 mobile-toggle-button"
   >
     <div className="flex items-center gap-2">
       <Flame className="w-5 h-5" />
@@ -278,7 +278,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
           <div className="relative group">
             <div className="flex items-center min-h-[28px]">
               {/* Always show icon */}
-              <Flame className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              <Flame className="w-5 h-5 text-[#0072D6] dark:text-[#0072D6]-400" />
 
               {/* Show text on hover with smooth transition */}
               <span className="ml-2 text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap">
@@ -307,7 +307,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         {isLoading ? (
           <LoadingSkeleton />
         ) : error ? (
-          <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+          <div className="flex items-center gap-2 text-[#0072D6] dark:text-[#0072D6] text-sm p-3 bg-[#111c43] dark:bg-[#111c43] rounded-lg">
             <AlertCircle className="w-4 h-4" />
             {error}
           </div>

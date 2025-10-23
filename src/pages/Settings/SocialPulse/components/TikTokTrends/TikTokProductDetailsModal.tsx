@@ -7,11 +7,13 @@ import { toast } from 'react-toastify';
 import {
   getTikTokProductDetails,
   getTikTokProductTrends,
+  getTikTokCreativeCenterProductDetails,
   discoverSuppliers,
   formatNumber,
   formatPrice,
   type TikTokTrendingProduct,
   type TikTokProductTrends,
+  type TikTokCreativeCenterProductDetails,
   type SupplierInfo
 } from '@/api/tiktokTrends';
 
@@ -103,6 +105,18 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
     },
     enabled: false, // Disabled - endpoint doesn't exist in backend
     staleTime: 1000 * 60 * 30, // 30 minutes (trends data changes more frequently)
+  });
+
+  // TikTok Creative Center Details Query - Fetch age levels and hashtags
+  const {
+    data: creativeCenterData,
+    isLoading: creativeCenterLoading,
+    error: creativeCenterError,
+  } = useQuery({
+    queryKey: ['tiktok-creative-center-details', product.id],
+    queryFn: () => getTikTokCreativeCenterProductDetails(product.id),
+    enabled: isOpen && activeTab === 'overview', // Only fetch when modal opens and overview tab is active
+    staleTime: 1000 * 60 * 30, // 30 minutes
   });
 
   // Handle supplier discovery
@@ -361,8 +375,9 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
                     product={product}
                     details={details?.data}
                     trendsData={trendsData?.data}
-                    isLoading={detailsLoading || trendsLoading}
-                    error={detailsError || trendsError}
+                    creativeCenterData={creativeCenterData?.data}
+                    isLoading={detailsLoading || trendsLoading || creativeCenterLoading}
+                    error={detailsError || trendsError || creativeCenterError}
                   />
                 )}
 
@@ -413,11 +428,12 @@ interface OverviewTabProps {
   product: TikTokTrendingProduct;
   details?: any;
   trendsData?: TikTokProductTrends;
+  creativeCenterData?: TikTokCreativeCenterProductDetails;
   isLoading: boolean;
   error: any;
 }
 
-const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData, isLoading, error }) => {
+const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData, creativeCenterData, isLoading, error }) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -591,6 +607,66 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData,
       )}
 
       {/* Description removed - API doesn't provide product descriptions */}
+
+      {/* TikTok Creative Center - Age Levels and Hashtags */}
+      {creativeCenterData && (
+        <>
+          {/* Age Levels from Creative Center */}
+          {creativeCenterData.age_levels && creativeCenterData.age_levels.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="text-lg">👥</span> Target Age Groups
+              </h4>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                <div className="space-y-3">
+                  {creativeCenterData.age_levels.map((ageLevel, index) => (
+                    <div key={index}>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium text-gray-700">{ageLevel.age_group}</span>
+                        {ageLevel.percentage !== undefined && (
+                          <span className="text-sm font-semibold text-blue-600">{ageLevel.percentage.toFixed(1)}%</span>
+                        )}
+                        {ageLevel.score !== undefined && (
+                          <span className="text-sm font-semibold text-indigo-600">Score: {ageLevel.score}</span>
+                        )}
+                      </div>
+                      {ageLevel.percentage !== undefined && (
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div
+                            className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(ageLevel.percentage, 100)}%` }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Hashtags from Creative Center */}
+          {creativeCenterData.hashtags && creativeCenterData.hashtags.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span className="text-lg">#️⃣</span> Trending Hashtags
+              </h4>
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+                <div className="flex flex-wrap gap-2">
+                  {creativeCenterData.hashtags.map((hashtag, index) => (
+                    <span
+                      key={index}
+                      className="inline-block bg-white border border-purple-200 text-purple-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-purple-50 transition-colors cursor-pointer"
+                    >
+                      #{hashtag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       <div>
         <h4 className="font-semibold text-gray-900 mb-3">Performance Metrics</h4>

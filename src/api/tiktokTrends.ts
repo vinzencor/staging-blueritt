@@ -171,6 +171,31 @@ export interface TikTokProductDetails {
   [key: string]: any; // For additional API fields
 }
 
+// TikTok Creative Center API Response Interfaces
+export interface AgeLevel {
+  age_group: string;
+  percentage?: number;
+  score?: number;
+}
+
+export interface TikTokCreativeCenterProductDetails {
+  product_id: string;
+  title?: string;
+  description?: string;
+  age_levels?: AgeLevel[];
+  hashtags?: string[];
+  trending_score?: number;
+  engagement_rate?: number;
+  [key: string]: any; // For additional fields
+}
+
+export interface TikTokCreativeCenterResponse {
+  data?: TikTokCreativeCenterProductDetails;
+  status?: string;
+  message?: string;
+  remaining_quota?: number;
+}
+
 export interface TikTokSalesData {
   product_id: string;
   sales_data: Array<{
@@ -335,6 +360,31 @@ export const getTikTokProductDetails = async (productId: string): Promise<{
 }> => {
   const response = await api.get(`/products/tiktok-trends/product-details/${productId}/`);
   return response.data;
+};
+
+/**
+ * Get TikTok Creative Center product details (age levels and hashtags)
+ * This calls the TikTok Creative Center API to fetch audience demographics and trending hashtags
+ */
+export const getTikTokCreativeCenterProductDetails = async (
+  productId: string
+): Promise<TikTokCreativeCenterResponse> => {
+  try {
+    const response = await api.get(`/products/tiktok-trends/creative-center-details/${productId}/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching TikTok Creative Center details:', error);
+    // Return empty response on error
+    return {
+      data: {
+        product_id: productId,
+        age_levels: [],
+        hashtags: [],
+      },
+      status: 'error',
+      message: 'Failed to fetch creative center details',
+    };
+  }
 };
 
 /**

@@ -5,23 +5,25 @@ import { getRootCategories, getSubcategories } from '@/utils/amazonCategories';
 interface CategorySelectorProps {
   selectedCategory: string;
   onCategorySelect: (categoryId: string) => void;
+  onDone?: () => void;
 }
 
-const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, onCategorySelect }) => {
+const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, onCategorySelect, onDone }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [hoveredSubcategory, setHoveredSubcategory] = useState<string | null>(null);
+  const [tempSelectedCategory, setTempSelectedCategory] = useState<string>(selectedCategory);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const rootCategories = getRootCategories();
 
   // Get selected category name for display
   const getSelectedCategoryName = () => {
-    const category = rootCategories.find(cat => cat.id === selectedCategory);
+    const category = rootCategories.find(cat => cat.id === tempSelectedCategory);
     if (category) return category.name;
 
     // Check if it's a subcategory
     for (const root of rootCategories) {
-      const subcat = getSubcategories(root.id).find(sub => sub.id === selectedCategory);
+      const subcat = getSubcategories(root.id).find(sub => sub.id === tempSelectedCategory);
       if (subcat) return subcat.name;
     }
     return 'Select Category (Optional)';
@@ -38,11 +40,22 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, o
     setExpandedCategories(newExpanded);
   };
 
-  // Handle category selection
+  // Handle category selection (temporary, don't close dropdown)
   const handleSelect = (categoryId: string) => {
-    onCategorySelect(categoryId);
-    setIsOpen(false);
+    setTempSelectedCategory(categoryId);
   };
+
+  // Handle Done button click
+  const handleDone = () => {
+    onCategorySelect(tempSelectedCategory);
+    setIsOpen(false);
+    onDone?.();
+  };
+
+  // Sync tempSelectedCategory when selectedCategory changes
+  useEffect(() => {
+    setTempSelectedCategory(selectedCategory);
+  }, [selectedCategory]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -74,7 +87,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, o
           <button
             onClick={() => handleSelect('')}
             className={`w-full px-4 py-3 text-left text-sm border-b border-gray-200 dark:border-gray-700 transition-colors ${
-              selectedCategory === ''
+              tempSelectedCategory === ''
                 ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-900 dark:text-purple-100 font-medium'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
             }`}
@@ -86,7 +99,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, o
           {rootCategories.map((category) => {
             const subcategories = getSubcategories(category.id);
             const isExpanded = expandedCategories.has(category.id);
-            const isSelected = selectedCategory === category.id;
+            const isSelected = tempSelectedCategory === category.id;
 
             return (
               <div key={category.id}>
@@ -120,7 +133,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, o
                         key={subcat.id}
                         onClick={() => handleSelect(subcat.id)}
                         className={`w-full px-8 py-2 text-left text-sm transition-colors ${
-                          selectedCategory === subcat.id
+                          tempSelectedCategory === subcat.id
                             ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-900 dark:text-purple-100 font-medium'
                             : 'hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                         }`}
@@ -133,6 +146,16 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ selectedCategory, o
               </div>
             );
           })}
+
+          {/* Done Button */}
+          <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3">
+            <button
+              onClick={handleDone}
+              className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
+            >
+              Done
+            </button>
+          </div>
         </div>
       )}
     </div>

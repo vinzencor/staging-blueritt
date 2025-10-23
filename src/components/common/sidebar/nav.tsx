@@ -204,20 +204,20 @@ export const MenuItems: any = [
   selected: false,
   children: [
     {
-      path: "/socialpulse/amazon",   // ✅ goes to your SocialPage
-      type: "link",
-      active: false,
-      selected: false,
-      dirchange: false,
-      title: "Amazon Trends",
-    },
-    {
       path: "/socialpulse/tiktok",
       type: "link",
       active: false,
       selected: false,
       dirchange: false,
       title: "TikTok Trends",
+    },
+    {
+      path: "/socialpulse/amazon",   // ✅ goes to your SocialPage
+      type: "link",
+      active: false,
+      selected: false,
+      dirchange: false,
+      title: "Amazon Trends",
     },
     {
       path: "/socialpulse/influencers",

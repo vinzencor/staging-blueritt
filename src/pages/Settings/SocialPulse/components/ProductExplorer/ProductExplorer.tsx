@@ -125,22 +125,55 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     queryFn: async () => {
       console.log('=== FRONTEND BESTSELLERS DEBUG ===');
       console.log('Fetching best sellers with params:', { country, page, type: selectedType });
-      const result = await getAmazonExplorerBestSellers({ country, page, type: selectedType });
-      console.log('Best sellers API response:', result);
-      console.log('Products count:', result?.data?.products?.length || 0);
-      if (result?.data?.products?.length > 0) {
-        console.log('First product:', result.data.products[0]);
-      }
-      console.log('=== END FRONTEND BESTSELLERS DEBUG ===');
 
-      // Update quota if remaining_quota is provided in response
-      if (result?.remaining_quota !== undefined) {
-        updateQuota(result.remaining_quota);
-      }
+      // Fetch multiple pages to get all products (up to 6 pages = ~120 products)
+      const allProducts: any[] = [];
+      const maxPages = 6; // Fetch 6 pages to get more products
 
-      return result;
+      try {
+        for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
+          const result = await getAmazonExplorerBestSellers({
+            country,
+            page: currentPage,
+            type: selectedType
+          });
+
+          if (result?.data?.products && Array.isArray(result.data.products)) {
+            allProducts.push(...result.data.products);
+
+            // Update quota if remaining_quota is provided in response
+            if (result?.remaining_quota !== undefined) {
+              updateQuota(result.remaining_quota);
+            }
+
+            // If we get fewer than 20 products, we've reached the end
+            if (result.data.products.length < 20) {
+              break;
+            }
+          } else {
+            break;
+          }
+        }
+
+        console.log('Best sellers all products fetched:', allProducts.length);
+        console.log('=== END FRONTEND BESTSELLERS DEBUG ===');
+
+        // Return in the expected format
+        return {
+          data: {
+            products: allProducts,
+            total: allProducts.length,
+            page: 1,
+            country: country
+          },
+          status: 'OK'
+        };
+      } catch (error) {
+        console.error('❌ Error fetching all best sellers:', error);
+        throw error;
+      }
     },
-    enabled: viewMode === 'best-sellers',
+    enabled: false, // Disable automatic fetching - only fetch when button is clicked
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 1, // Only retry once to prevent broken pipe errors
     retryDelay: 2000, // Fixed 2 second delay
@@ -157,14 +190,51 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   } = useQuery({
     queryKey: ['amazon-explorer-search', searchQuery, country, page],
     queryFn: async () => {
-      const result = await searchAmazonExplorerProducts({ query: searchQuery, country, page });
+      // Fetch multiple pages to get all search results (up to 6 pages = ~120 products)
+      const allProducts: any[] = [];
+      const maxPages = 6; // Fetch 6 pages to get more products
 
-      // Update quota if remaining_quota is provided in response
-      if (result?.remaining_quota !== undefined) {
-        updateQuota(result.remaining_quota);
+      try {
+        for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
+          const result = await searchAmazonExplorerProducts({
+            query: searchQuery,
+            country,
+            page: currentPage
+          });
+
+          if (result?.data?.products && Array.isArray(result.data.products)) {
+            allProducts.push(...result.data.products);
+
+            // Update quota if remaining_quota is provided in response
+            if (result?.remaining_quota !== undefined) {
+              updateQuota(result.remaining_quota);
+            }
+
+            // If we get fewer than 20 products, we've reached the end
+            if (result.data.products.length < 20) {
+              break;
+            }
+          } else {
+            break;
+          }
+        }
+
+        console.log('Search all products fetched:', allProducts.length);
+
+        // Return in the expected format
+        return {
+          data: {
+            products: allProducts,
+            total: allProducts.length,
+            page: 1,
+            country: country
+          },
+          status: 'OK'
+        };
+      } catch (error) {
+        console.error('❌ Error fetching all search results:', error);
+        throw error;
       }
-
-      return result;
     },
     enabled: false, // Manual trigger only
     staleTime: 1000 * 60 * 10, // 10 minutes
@@ -183,14 +253,51 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   } = useQuery({
     queryKey: ['amazon-explorer-category', selectedCategory, country, page],
     queryFn: async () => {
-      const result = await getAmazonExplorerProductsByCategory({ category_id: selectedCategory, country, page });
+      // Fetch multiple pages to get all category products (up to 6 pages = ~120 products)
+      const allProducts: any[] = [];
+      const maxPages = 6; // Fetch 6 pages to get more products
 
-      // Update quota if remaining_quota is provided in response
-      if (result?.remaining_quota !== undefined) {
-        updateQuota(result.remaining_quota);
+      try {
+        for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
+          const result = await getAmazonExplorerProductsByCategory({
+            category_id: selectedCategory,
+            country,
+            page: currentPage
+          });
+
+          if (result?.data?.products && Array.isArray(result.data.products)) {
+            allProducts.push(...result.data.products);
+
+            // Update quota if remaining_quota is provided in response
+            if (result?.remaining_quota !== undefined) {
+              updateQuota(result.remaining_quota);
+            }
+
+            // If we get fewer than 20 products, we've reached the end
+            if (result.data.products.length < 20) {
+              break;
+            }
+          } else {
+            break;
+          }
+        }
+
+        console.log('Category all products fetched:', allProducts.length);
+
+        // Return in the expected format
+        return {
+          data: {
+            products: allProducts,
+            total: allProducts.length,
+            page: 1,
+            country: country
+          },
+          status: 'OK'
+        };
+      } catch (error) {
+        console.error('❌ Error fetching all category products:', error);
+        throw error;
       }
-
-      return result;
     },
     enabled: false, // Manual trigger only
     staleTime: 1000 * 60 * 10, // 10 minutes
@@ -227,31 +334,57 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         extracted: actualCategoryId
       });
 
-      // Use Real-Time Amazon Data API
-      const result = await getAmazonProductsByCategoryDirect({
-        categoryId: actualCategoryId,
-        country: country,
-        page: page,
-        sortBy: 'RELEVANCE',
-        productCondition: 'ALL',
-        isPrime: false,
-        dealsAndDiscounts: 'NONE',
-      });
+      // Fetch multiple pages to get all products (up to 6 pages = ~120 products)
+      const allProducts: any[] = [];
+      const maxPages = 6; // Fetch 6 pages to get more products
 
-      console.log('🎯 Products Query Result:', {
-        categoryId: selectedCategoryId,
-        extractedId: actualCategoryId,
-        hasResult: !!result,
-        hasData: !!result?.data,
-        hasProducts: !!result?.data?.products,
-        isProductsArray: Array.isArray(result?.data?.products),
-        productsCount: Array.isArray(result?.data?.products) ? result.data.products.length : 0,
-        status: result?.status
-      });
+      try {
+        for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
+          const result = await getAmazonProductsByCategoryDirect({
+            categoryId: actualCategoryId,
+            country: country,
+            page: currentPage,
+            sortBy: 'RELEVANCE',
+            productCondition: 'ALL',
+            isPrime: false,
+            dealsAndDiscounts: 'NONE',
+          });
 
-      return result;
+          if (result?.data?.products && Array.isArray(result.data.products)) {
+            allProducts.push(...result.data.products);
+
+            // If we get fewer than 20 products, we've reached the end
+            if (result.data.products.length < 20) {
+              break;
+            }
+          } else {
+            break;
+          }
+        }
+
+        console.log('🎯 All Products Fetched:', {
+          categoryId: selectedCategoryId,
+          extractedId: actualCategoryId,
+          totalProducts: allProducts.length,
+          pagesProcessed: Math.min(maxPages, Math.ceil(allProducts.length / 20))
+        });
+
+        // Return in the expected format
+        return {
+          data: {
+            products: allProducts,
+            total: allProducts.length,
+            page: 1,
+            country: country
+          },
+          status: 'OK'
+        };
+      } catch (error) {
+        console.error('❌ Error fetching all products:', error);
+        throw error;
+      }
     },
-    enabled: !!selectedCategoryId, // Enable whenever a category is selected (regardless of view mode)
+    enabled: false, // Disable automatic fetching - only fetch when button is clicked
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 1, // Only retry once
     retryDelay: 2000, // Fixed 2 second delay
@@ -411,17 +544,31 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       newCategoryId: categoryId,
       newViewMode: 'category',
       newPage: 1,
-      willTriggerDirectQuery: true
+      willTriggerDirectQuery: false // Changed to false - wait for button click
     });
 
-    // Force a small delay to ensure state is updated before query runs
-    setTimeout(() => {
-      console.log('🔄 State after category selection:', {
-        selectedCategoryId: categoryId,
-        viewMode: 'category',
-        queryWillRun: !!categoryId
-      });
-    }, 100);
+    // Don't auto-fetch - wait for user to click Discover Products button
+  };
+
+  // Handle Discover Products button click
+  const handleDiscoverProducts = () => {
+    console.log('🔍 Discover Products clicked:', {
+      viewMode,
+      selectedCategoryId,
+      selectedLocalSubcategory,
+      country,
+      selectedType
+    });
+
+    if (selectedCategoryId || selectedLocalSubcategory) {
+      // If a category is selected, fetch category products
+      console.log('📦 Fetching category products...');
+      refetchDirectCategoryProducts();
+    } else {
+      // If no category selected, fetch best sellers
+      console.log('🏆 Fetching best sellers...');
+      refetchBestSellers();
+    }
   };
 
   // Handle product details view
@@ -548,8 +695,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   setPage(1);
                 }}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${viewMode === 'best-sellers'
-                    ? 'bg-white dark:bg-gray-800 text-orange-600 dark:text-orange-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'bg-white dark:bg-gray-800 text-orange-600 dark:text-orange-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
               >
                 <TrendingUp className="w-4 h-4 inline mr-2" />
@@ -558,8 +705,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               <button
                 onClick={() => setViewMode('search')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${viewMode === 'search'
-                    ? 'bg-white dark:bg-gray-800 text-[#ffa41c] dark:text-orange-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'bg-white dark:bg-gray-800 text-[#ffa41c] dark:text-orange-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
               >
                 <Search className="w-4 h-4 inline mr-2" />
@@ -568,8 +715,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               <button
                 onClick={() => setViewMode('category')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${viewMode === 'category'
-                    ? 'bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                  ? 'bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
               >
                 <Package className="w-4 h-4 inline mr-2" />
@@ -598,7 +745,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {/* Amazon Searches */}
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
+                      <div className="bg-white  dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
                         <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Amazon Searches</div>
                         <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
                           {quotas.amazon_search}
@@ -723,6 +870,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       setSelectedLocalSubcategory(''); // Reset subcategory when main category changes
                       setSelectedCategoryId(''); // Reset category ID
                       setPage(1);
+                      // Don't auto-fetch - wait for user to select subcategory and click Discover Products
                     }}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
@@ -747,12 +895,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         setSelectedLocalSubcategory(e.target.value);
                         setSelectedCategoryId(e.target.value);
                         setPage(1);
-                        // Fetch products for the selected subcategory
-                        if (e.target.value) {
-                          refetchDirectCategoryProducts();
-                        } else {
-                          refetchBestSellers();
-                        }
+                        // Don't auto-fetch - wait for user to click Discover Products button
                       }}
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
@@ -767,8 +910,20 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 )}
               </div>
 
+              {/* Discover Products Button */}
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={handleDiscoverProducts}
+                  disabled={bestSellersLoading || directCategoryProductsLoading}
+                  className="bg-gradient-to-r from-[#ffa41c] to-[#ff6201] dark:bg-orange-600 text-white py-3 px-6 rounded-lg hover:from-[#ffa41c] hover:to-[#ff6201] dark:hover:bg-orange-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <Package className="w-4 h-4" />
+                  {selectedCategoryId || selectedLocalSubcategory ? 'Discover Category Products' : 'Discover Best Sellers'}
+                </button>
+              </div>
+
               {/* Type Description */}
-              <div className="bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 rounded-lg p-3">
+              {/* <div className="bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 rounded-lg p-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
                   <span className="text-sm font-medium text-blue-900 dark:text-blue-300">
@@ -778,7 +933,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                     {amazonTrendsTypes.find(type => type.value === selectedType)?.description}
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Category Loading State */}
               {bestSellerCategoriesLoading && (
@@ -842,7 +997,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 className="px-6 py-2 bg-[#ffa41c] hover:bg-[#ff6201] dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
               >
                 <Search className="w-4 h-4" />
-                Search
+                Discover Products
               </button>
             </div>
           )}
@@ -938,8 +1093,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                               key={category.id || index}
                               onClick={() => handleCategoryChipSelect(category.id)}
                               className={`group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden ${isSelected
-                                  ? 'bg-green-500 dark:bg-green-600 text-white shadow-xl transform scale-105 ring-4 ring-green-200 dark:ring-green-800'
-                                  : 'bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-800 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:transform hover:scale-102'
+                                ? 'bg-green-500 dark:bg-green-600 text-white shadow-xl transform scale-105 ring-4 ring-green-200 dark:ring-green-800'
+                                : 'bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-800 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:transform hover:scale-102'
                                 }`}
                               title={`Click to browse ${category.name}`}
                             >
@@ -956,6 +1111,18 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* Discover Products Button for Category Mode */}
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={handleDiscoverProducts}
+                  disabled={directCategoryProductsLoading}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 dark:bg-green-600 text-white py-3 px-6 rounded-lg hover:from-green-600 hover:to-emerald-700 dark:hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <Package className="w-4 h-4" />
+                  {selectedCategoryId ? 'Discover Category Products' : 'Select Category First'}
+                </button>
               </div>
 
               {/* Selected Category Display */}
@@ -1012,22 +1179,22 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
             </div>
           )}
 
-          {/* Results Summary */}
-          {!isLoading && products.length > 0 && (
-            <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-              <span>
-                Showing {products.length} of {totalProducts.toLocaleString()} products
-              </span>
-              <span>
-                Page {page}
-              </span>
-            </div>
-          )}
         </div>
       </div>
-
+      <div className="">
+        {!isLoading && products.length > 0 && (
+          <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+            <span>
+              Showing {products.length} of {totalProducts.toLocaleString()} products
+            </span>
+            <span>
+              Page {page}
+            </span>
+          </div>
+        )}
+      </div>
       {/* Products Grid */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden">
         {finalIsLoading ? (
           <div className="space-y-6">
             <div className="flex items-center justify-center py-8">
@@ -1089,7 +1256,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
             </p>
           </div>
         ) : (
-          <div className="p-6 bg-white">
+          <div className="p-6 bg-white dark:bg-gray-800 ">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product: any, index: number) => (
                 <ProductCard
@@ -1165,19 +1332,19 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl transition-shadow duration-300">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
       {/* Product Image */}
-      <div className="relative h-48 bg-gray-50 dark:bg-gray-900">
+      <div className="relative h-48 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
         <img
           src={getProductImageUrl(product)}
           alt={product.product_title}
-          className="w-full h-full object-contain p-4"
+          className="w-full h-full object-contain p-[6px]"
           onError={(e) => {
             (e.target as HTMLImageElement).src = '/placeholder-product.png';
           }}
         />
         {product.is_best_seller && (
-          <div className="absolute top-2 left-2 bg-[#d14901] text-white text-xs px-2 py-1 rounded-md">
+          <div className="absolute top-2 left-2 bg-[#ff6201] text-white text-xs px-2 py-1 rounded-md">
             Best Seller
           </div>
         )}
@@ -1189,40 +1356,43 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails }) => 
       </div>
 
       {/* Product Info */}
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white hover:text-[#de7a22] dark:hover:text-orange-400 text-sm line-clamp-2 mb-2">
-          {product.product_title}
-        </h3>
+      <div className="p-4 flex flex-col flex-1">
+        {/* Content that grows */}
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-900 dark:text-white hover:text-[#de7a22] dark:hover:text-orange-400 text-sm line-clamp-2 mb-4">
+            {product.product_title}
+          </h3>
 
-        {/* Price and Rating */}
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-lg font-bold text-green-600 dark:text-green-400">
-            {formatPrice(product.product_price || '')}
-          </span>
-          {product.product_star_rating && (
-            <div className="flex items-center text-sm text-[#2262a1] dark:text-blue-400">
-              <Star className="w-4 h-4 text-[#de7a22] dark:text-orange-400 fill-current mr-1" />
-              <span className=''>{formatRating(product.product_star_rating)}</span>
-              <span className="ml-1">({formatReviewCount(product.product_num_ratings || 0)})</span>
-            </div>
-          )}
+          {/* Price and Rating */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-lg font-bold text-green-600 dark:text-green-400">
+              {formatPrice(product.product_price || '')}
+            </span>
+            {product.product_star_rating && (
+              <div className="flex items-center text-sm text-[#2262a1] dark:text-blue-400">
+                <Star className="w-4 h-4 text-[#de7a22] dark:text-orange-400 fill-current mr-1" />
+                <span className=''>{formatRating(product.product_star_rating)}</span>
+                <span className="ml-1">({formatReviewCount(product.product_num_ratings || 0)})</span>
+              </div>
+            )}
+          </div>
+
+          {/* Badges */}
+          <div className="flex flex-wrap gap-1 mb-3">
+            {product.is_prime && (
+              <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 px-2 py-1 rounded">Prime</span>
+            )}
+            {product.climate_pledge_friendly && (
+              <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 px-2 py-1 rounded">Climate Pledge</span>
+            )}
+          </div>
         </div>
 
-        {/* Badges */}
-        <div className="flex flex-wrap gap-1 mb-3">
-          {product.is_prime && (
-            <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 px-2 py-1 rounded">Prime</span>
-          )}
-          {product.climate_pledge_friendly && (
-            <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 px-2 py-1 rounded">Climate Pledge</span>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2">
+        {/* Action Buttons - Fixed at bottom */}
+        <div className="flex gap-2 mt-auto pt-4">
           <button
             onClick={onViewDetails}
-            className="flex-1 bg-[#fc8804] dark:bg-orange-600 text-white py-2 px-3 rounded-lg hover:bg-[#ff6201] dark:hover:bg-orange-700 transition-colors text-sm flex items-center justify-center gap-1"
+            className="flex-1 bg-gradient-to-r from-[#ffa41c] to-[#ff6201] dark:bg-orange-600 text-white py-2 px-3 rounded-lg hover:from-[#ffa41c] hover:to-[#ff6201] dark:hover:bg-orange-700 transition-colors text-sm flex items-center justify-center gap-1"
           >
             <Eye className="w-4 h-4" />
             View Details

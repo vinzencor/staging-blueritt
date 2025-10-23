@@ -87,6 +87,15 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const [influencers, setInfluencers] = useState<InfluencerProfile[]>([]);
   const [influencersLoading, setInfluencersLoading] = useState(false);
   const [showAddOnsModal, setShowAddOnsModal] = useState(false);
+  const [categoryDoneClicked, setCategoryDoneClicked] = useState(false);
+
+  // Discover Products/Suppliers state
+  const [discoverCategoryProducts, setDiscoverCategoryProducts] = useState<any[]>([]);
+  const [discoverCategorySuppliers, setDiscoverCategorySuppliers] = useState<any[]>([]);
+  const [isDiscoverProductsLoading, setIsDiscoverProductsLoading] = useState(false);
+  const [isDiscoverSuppliersLoading, setIsDiscoverSuppliersLoading] = useState(false);
+  const [showDiscoverProducts, setShowDiscoverProducts] = useState(false);
+  const [showDiscoverSuppliers, setShowDiscoverSuppliers] = useState(false);
 
   // Country list with all supported countries
   const countries = [
@@ -439,6 +448,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const handleCategorySelect = (categoryId: string) => {
     console.log('🏷️ Category selected:', categoryId);
     setSelectedCategoryId(categoryId);
+    setCategoryDoneClicked(false); // Reset done state when category changes
     setCurrentPage(1); // Reset to first page
 
     // Update filters to include the selected category
@@ -515,6 +525,67 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
       return true;
     }).length;
     setActiveFilterCount(count);
+  };
+
+  // Handle Discover Products
+  const handleDiscoverProducts = async () => {
+    if (!bestSellersCategory) {
+      toast.error('Please select a category first');
+      return;
+    }
+
+    setIsDiscoverProductsLoading(true);
+    setShowDiscoverProducts(true);
+    setDiscoverCategoryProducts([]);
+
+    try {
+      const response = await getAmazonProductsByCategoryDirect({
+        categoryId: bestSellersCategory,
+        country: selectedCountry,
+        page: 1,
+        sortBy: 'RELEVANCE',
+        productCondition: 'ALL',
+        isPrime: false,
+        dealsAndDiscounts: 'NONE',
+      });
+
+      if (response?.data?.products) {
+        setDiscoverCategoryProducts(response.data.products);
+        toast.success(`Found ${response.data.products.length} products`);
+      } else {
+        setDiscoverCategoryProducts([]);
+        toast.info('No products found in this category');
+      }
+    } catch (error) {
+      console.error('Error discovering products:', error);
+      toast.error('Failed to discover products');
+      setDiscoverCategoryProducts([]);
+    } finally {
+      setIsDiscoverProductsLoading(false);
+    }
+  };
+
+  // Handle Discover Suppliers
+  const handleDiscoverSuppliers = async () => {
+    if (!bestSellersCategory) {
+      toast.error('Please select a category first');
+      return;
+    }
+
+    setIsDiscoverSuppliersLoading(true);
+    setShowDiscoverSuppliers(true);
+    // Initially show empty state - suppliers will be fetched when user clicks on a product
+
+    try {
+      // Just show the empty state initially
+      setDiscoverCategorySuppliers([]);
+      toast.info('Select a product to discover suppliers');
+    } catch (error) {
+      console.error('Error in discover suppliers:', error);
+      toast.error('Failed to initialize supplier discovery');
+    } finally {
+      setIsDiscoverSuppliersLoading(false);
+    }
   };
 
   const handleProductClick = (product: AmazonTrendingProduct) => {
@@ -658,12 +729,18 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
       case 'deals':
         return dealsData?.data?.deals || [];
       case 'category':
+        // Only show products if Done button has been clicked
+        if (!categoryDoneClicked) {
+          return [];
+        }
+
         // Prioritize direct API data when available, fallback to trends API data
         const directProducts = categoryProductsData?.data?.products || [];
         const trendsProducts = categoryData?.data?.products || [];
 
         console.log('🔍 Category data debug:', {
           selectedCategoryId,
+          categoryDoneClicked,
           hasDirectProducts: directProducts.length > 0,
           hasTrendsProducts: trendsProducts.length > 0,
           directProductsCount: directProducts.length,
@@ -898,7 +975,152 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
             </p>
           </div>
         )}
+
+        {/* Discover Products and Suppliers Buttons */}
+        {bestSellersCategory && (
+          <div className="mt-4 flex gap-3">
+            <button
+              onClick={handleDiscoverProducts}
+              disabled={isDiscoverProductsLoading}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 font-medium"
+            >
+              {isDiscoverProductsLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-4 h-4" />
+                  Discover Products
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleDiscoverSuppliers}
+              disabled={isDiscoverSuppliersLoading}
+              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 font-medium"
+            >
+              {isDiscoverSuppliersLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4" />
+                  Discover Suppliers
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Discover Products Results Section */}
+      {showDiscoverProducts && (
+        <div className="mb-6 p-4 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-blue-600" />
+              Discovered Products
+            </h3>
+            <button
+              onClick={() => {
+                setShowDiscoverProducts(false);
+                setDiscoverCategoryProducts([]);
+              }}
+              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {isDiscoverProductsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <LoadingSpinner size="md" color="primary" text="Discovering products..." />
+            </div>
+          ) : discoverCategoryProducts.length > 0 ? (
+            <>
+              <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                Found {discoverCategoryProducts.length} products
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {discoverCategoryProducts.map((product: any, index: number) => (
+                  <div
+                    key={product.asin || product.product_id || index}
+                    className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setIsDetailsModalOpen(true);
+                    }}
+                  >
+                    {product.product_photo && (
+                      <img
+                        src={product.product_photo}
+                        alt={product.product_title || 'Product'}
+                        className="w-full h-32 object-cover rounded-lg mb-3"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <h5 className="font-medium text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
+                      {product.product_title || 'Product Title'}
+                    </h5>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        {product.product_price || 'N/A'}
+                      </span>
+                      {product.product_star_rating && (
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {product.product_star_rating}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <ShoppingCart className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+              <p className="text-gray-600 dark:text-gray-400">No products found</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Discover Suppliers Results Section */}
+      {showDiscoverSuppliers && (
+        <div className="mb-6 p-4 bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-700 rounded-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Zap className="w-5 h-5 text-purple-600" />
+              Discover Suppliers
+            </h3>
+            <button
+              onClick={() => {
+                setShowDiscoverSuppliers(false);
+                setDiscoverCategorySuppliers([]);
+              }}
+              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="text-center py-12">
+            <Zap className="w-16 h-16 mx-auto text-purple-400 mb-4 opacity-50" />
+            <p className="text-gray-600 dark:text-gray-400 mb-2">Select a product to discover suppliers</p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">Click on any product from the Discovered Products section above to find suppliers</p>
+          </div>
+        </div>
+      )}
 
       {/* Category Selection Section - Integrated into By Category tab */}
       {activeTab === 'category' && (
@@ -906,8 +1128,8 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
           {/* Country Selector for Categories */}
           <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Filter className="w-5 h-5 text-purple-600" />
+              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Filter className="w-6 h-6 text-purple-600" />
                 Browse by Category
               </h3>
             </div>
@@ -921,6 +1143,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                 onChange={(e) => {
                   setSelectedCountry(e.target.value);
                   setSelectedCategoryId(''); // Reset selected category when country changes
+                  setCategoryDoneClicked(false); // Reset done state when country changes
                 }}
                 className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
               >
@@ -934,12 +1157,13 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
 
             {/* Category Selection with Hover Subcategories */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              <label className="block text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 📂 Browse Categories - Hover to see subcategories
               </label>
               <CategorySelector
                 selectedCategory={selectedCategoryId}
                 onCategorySelect={handleCategorySelect}
+                onDone={() => setCategoryDoneClicked(true)}
               />
             </div>
 
@@ -979,7 +1203,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
             )}
 
             {/* Products by Category Results */}
-            {selectedCategoryId && (
+            {selectedCategoryId && categoryDoneClicked && (
               <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200">
                 <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-purple-600" />

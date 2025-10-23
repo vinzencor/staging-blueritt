@@ -30,55 +30,478 @@ interface InfluencerPost {
   [key: string]: any;
 }
 
-// Influencer names to fetch
-const INFLUENCER_NAMES = [
-  'kylerichards18',
-  'paige_desorbo',
-  'jdroberto',
-  'kandionline',
-  'makhondlovu',
-  '_giagiudice',
-  'madison.lecroy',
-  'lalakent',
-  'harryjowsey',
-  'alix_earle',
-  'influencer-51db6fba',
-  'rockybarnes',
-  'interiordesignerella',
-  'julianna_claire',
-  'aspynovard',
-  'teresalaucar',
-  'the_broadmoor_house',
-  'sweetsavingsandthings',
-  'ourwintonhome',
-  'thesweetimpact',
-  'arinsolange',
-  'alliephunter',
-  'everything.envy',
-  'tiffanyallison7',
-  'thebargainsisters',
-  'clickandlove',
-  'ironmom40',
-  'everyday.holly',
-  'kristen.niblett',
-  'balkanina',
-  'heidisnipes',
-  'tourdelust',
-  'kirasfashionfinds',
-  'shopdandy',
-  'maryamishtiaq',
-  'livinstyleinsta',
-  'meimonstaa',
-  'mikaylavallati',
-  'homesweetpink',
-  'theparentgame',
-  'michellelei',
-  'xojalonda',
-  'playroominspo',
-  'just.jacsy',
-  'thedealparty',
-  'frankietavares',
-  'influencer-cb2630cb'
+// Manual influencer data
+const MANUAL_INFLUENCERS: Influencer[] = [
+  {
+    influencer_name: 'kylerichards18',
+    followers: '125K',
+    following: '890',
+    post_count: '1.2K',
+    engagement_rate: 4.2,
+    bio: 'Lifestyle content creator sharing daily inspiration',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/kylerichards18'
+  },
+  {
+    influencer_name: 'paige_desorbo',
+    followers: '89K',
+    following: '1.2K',
+    post_count: '856',
+    engagement_rate: 3.8,
+    bio: 'Fashion & beauty enthusiast',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/paige_desorbo'
+  },
+  {
+    influencer_name: 'jdroberto',
+    followers: '156K',
+    following: '765',
+    post_count: '2.1K',
+    engagement_rate: 5.1,
+    bio: 'Tech reviewer and gadget lover',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/jdroberto'
+  },
+  {
+    influencer_name: 'kandionline',
+    followers: '78K',
+    following: '432',
+    post_count: '654',
+    engagement_rate: 4.5,
+    bio: 'Home organization expert',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/kandionline'
+  },
+  {
+    influencer_name: 'makhondlovu',
+    followers: '203K',
+    following: '1.5K',
+    post_count: '1.8K',
+    engagement_rate: 6.2,
+    bio: 'Travel content creator exploring the world',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/makhondlovu'
+  },
+  {
+    influencer_name: '_giagiudice',
+    followers: '167K',
+    following: '987',
+    post_count: '1.4K',
+    engagement_rate: 4.8,
+    bio: 'Foodie sharing delicious recipes',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/_giagiudice'
+  },
+  {
+    influencer_name: 'madison.lecroy',
+    followers: '94K',
+    following: '654',
+    post_count: '723',
+    engagement_rate: 3.9,
+    bio: 'Fashion influencer with southern charm',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/madison.lecroy'
+  },
+  {
+    influencer_name: 'lalakent',
+    followers: '145K',
+    following: '876',
+    post_count: '1.1K',
+    engagement_rate: 4.3,
+    bio: 'Mom life and parenting tips',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/lalakent'
+  },
+  {
+    influencer_name: 'harryjowsey',
+    followers: '189K',
+    following: '1.3K',
+    post_count: '987',
+    engagement_rate: 5.4,
+    bio: 'Fitness and wellness coach',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/harryjowsey'
+  },
+  {
+    influencer_name: 'alix_earle',
+    followers: '256K',
+    following: '2.1K',
+    post_count: '1.5K',
+    engagement_rate: 7.1,
+    bio: 'Beauty guru and makeup artist',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/alix_earle'
+  },
+  {
+    influencer_name: 'influencer-51db6fba',
+    followers: '67K',
+    following: '321',
+    post_count: '432',
+    engagement_rate: 3.2,
+    bio: 'Amazon product reviewer',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/influencer-51db6fba'
+  },
+  {
+    influencer_name: 'rockybarnes',
+    followers: '178K',
+    following: '765',
+    post_count: '1.3K',
+    engagement_rate: 4.9,
+    bio: 'Adventure photographer',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/rockybarnes'
+  },
+  {
+    influencer_name: 'interiordesignerella',
+    followers: '112K',
+    following: '543',
+    post_count: '876',
+    engagement_rate: 4.1,
+    bio: 'Interior design expert',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/interiordesignerella'
+  },
+  {
+    influencer_name: 'julianna_claire',
+    followers: '83K',
+    following: '432',
+    post_count: '567',
+    engagement_rate: 3.7,
+    bio: 'Lifestyle and fashion content',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/julianna_claire'
+  },
+  {
+    influencer_name: 'aspynovard',
+    followers: '198K',
+    following: '876',
+    post_count: '1.6K',
+    engagement_rate: 5.6,
+    bio: 'Beauty and lifestyle creator',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/aspynovard'
+  },
+  {
+    influencer_name: 'teresalaucar',
+    followers: '134K',
+    following: '654',
+    post_count: '987',
+    engagement_rate: 4.4,
+    bio: 'Fashion stylist and consultant',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/teresalaucar'
+  },
+  {
+    influencer_name: 'the_broadmoor_house',
+    followers: '76K',
+    following: '234',
+    post_count: '345',
+    engagement_rate: 3.5,
+    bio: 'Home renovation journey',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/the_broadmoor_house'
+  },
+  {
+    influencer_name: 'sweetsavingsandthings',
+    followers: '156K',
+    following: '543',
+    post_count: '1.2K',
+    engagement_rate: 4.7,
+    bio: 'Budget-friendly finds and deals',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/sweetsavingsandthings'
+  },
+  {
+    influencer_name: 'ourwintonhome',
+    followers: '89K',
+    following: '321',
+    post_count: '456',
+    engagement_rate: 3.8,
+    bio: 'Family life and home decor',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/ourwintonhome'
+  },
+  {
+    influencer_name: 'thesweetimpact',
+    followers: '123K',
+    following: '432',
+    post_count: '789',
+    engagement_rate: 4.2,
+    bio: 'Positive lifestyle content',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/thesweetimpact'
+  },
+  {
+    influencer_name: 'arinsolange',
+    followers: '167K',
+    following: '765',
+    post_count: '1.1K',
+    engagement_rate: 5.0,
+    bio: 'Beauty and skincare expert',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/arinsolange'
+  },
+  {
+    influencer_name: 'alliephunter',
+    followers: '98K',
+    following: '543',
+    post_count: '654',
+    engagement_rate: 3.9,
+    bio: 'Fashion and travel content',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/alliephunter'
+  },
+  {
+    influencer_name: 'everything.envy',
+    followers: '145K',
+    following: '654',
+    post_count: '876',
+    engagement_rate: 4.6,
+    bio: 'Luxury lifestyle and fashion',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/everything.envy'
+  },
+  {
+    influencer_name: 'tiffanyallison7',
+    followers: '112K',
+    following: '432',
+    post_count: '567',
+    engagement_rate: 4.0,
+    bio: 'Mom blogger and product reviewer',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/tiffanyallison7'
+  },
+  {
+    influencer_name: 'thebargainsisters',
+    followers: '189K',
+    following: '876',
+    post_count: '1.4K',
+    engagement_rate: 5.3,
+    bio: 'Sisters sharing the best deals',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/thebargainsisters'
+  },
+  {
+    influencer_name: 'clickandlove',
+    followers: '76K',
+    following: '234',
+    post_count: '345',
+    engagement_rate: 3.4,
+    bio: 'Amazon finds and recommendations',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/clickandlove'
+  },
+  {
+    influencer_name: 'ironmom40',
+    followers: '134K',
+    following: '543',
+    post_count: '789',
+    engagement_rate: 4.3,
+    bio: 'Fitness mom and health coach',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/ironmom40'
+  },
+  {
+    influencer_name: 'everyday.holly',
+    followers: '89K',
+    following: '321',
+    post_count: '456',
+    engagement_rate: 3.7,
+    bio: 'Everyday lifestyle content',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/everyday.holly'
+  },
+  {
+    influencer_name: 'kristen.niblett',
+    followers: '156K',
+    following: '654',
+    post_count: '987',
+    engagement_rate: 4.8,
+    bio: 'Beauty and makeup tutorials',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/kristen.niblett'
+  },
+  {
+    influencer_name: 'balkanina',
+    followers: '123K',
+    following: '432',
+    post_count: '678',
+    engagement_rate: 4.1,
+    bio: 'Cultural content and recipes',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/balkanina'
+  },
+  {
+    influencer_name: 'heidisnipes',
+    followers: '98K',
+    following: '543',
+    post_count: '654',
+    engagement_rate: 3.8,
+    bio: 'Home organization expert',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/heidisnipes'
+  },
+  {
+    influencer_name: 'tourdelust',
+    followers: '178K',
+    following: '765',
+    post_count: '1.2K',
+    engagement_rate: 5.2,
+    bio: 'Travel guides and adventures',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/tourdelust'
+  },
+  {
+    influencer_name: 'kirasfashionfinds',
+    followers: '145K',
+    following: '654',
+    post_count: '876',
+    engagement_rate: 4.7,
+    bio: 'Affordable fashion finds',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/kirasfashionfinds'
+  },
+  {
+    influencer_name: 'shopdandy',
+    followers: '112K',
+    following: '432',
+    post_count: '567',
+    engagement_rate: 4.0,
+    bio: 'Shopping recommendations',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/shopdandy'
+  },
+  {
+    influencer_name: 'maryamishtiaq',
+    followers: '167K',
+    following: '765',
+    post_count: '1.1K',
+    engagement_rate: 4.9,
+    bio: 'Beauty and lifestyle content',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/maryamishtiaq'
+  },
+  {
+    influencer_name: 'livinstyleinsta',
+    followers: '89K',
+    following: '321',
+    post_count: '456',
+    engagement_rate: 3.6,
+    bio: 'Style inspiration daily',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/livinstyleinsta'
+  },
+  {
+    influencer_name: 'meimonstaa',
+    followers: '134K',
+    following: '543',
+    post_count: '789',
+    engagement_rate: 4.4,
+    bio: 'Creative content and art',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/meimonstaa'
+  },
+  {
+    influencer_name: 'mikaylavallati',
+    followers: '156K',
+    following: '654',
+    post_count: '987',
+    engagement_rate: 4.8,
+    bio: 'Food and recipe creator',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/mikaylavallati'
+  },
+  {
+    influencer_name: 'homesweetpink',
+    followers: '98K',
+    following: '432',
+    post_count: '567',
+    engagement_rate: 3.9,
+    bio: 'Pink-themed home decor',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/homesweetpink'
+  },
+  {
+    influencer_name: 'theparentgame',
+    followers: '189K',
+    following: '876',
+    post_count: '1.3K',
+    engagement_rate: 5.1,
+    bio: 'Parenting tips and tricks',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/theparentgame'
+  },
+  {
+    influencer_name: 'michellelei',
+    followers: '123K',
+    following: '543',
+    post_count: '678',
+    engagement_rate: 4.2,
+    bio: 'Lifestyle and fashion',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/michellelei'
+  },
+  {
+    influencer_name: 'xojalonda',
+    followers: '145K',
+    following: '654',
+    post_count: '876',
+    engagement_rate: 4.6,
+    bio: 'Beauty and self-care',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/xojalonda'
+  },
+  {
+    influencer_name: 'playroominspo',
+    followers: '76K',
+    following: '234',
+    post_count: '345',
+    engagement_rate: 3.3,
+    bio: 'Kids room inspiration',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/playroominspo'
+  },
+  {
+    influencer_name: 'just.jacsy',
+    followers: '112K',
+    following: '432',
+    post_count: '567',
+    engagement_rate: 4.0,
+    bio: 'Minimalist lifestyle',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/just.jacsy'
+  },
+  {
+    influencer_name: 'thedealparty',
+    followers: '167K',
+    following: '765',
+    post_count: '1.1K',
+    engagement_rate: 4.9,
+    bio: 'Daily deals and discounts',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/thedealparty'
+  },
+  {
+    influencer_name: 'frankietavares',
+    followers: '134K',
+    following: '543',
+    post_count: '789',
+    engagement_rate: 4.3,
+    bio: 'Fitness and nutrition',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/frankietavares'
+  },
+  {
+    influencer_name: 'influencer-cb2630cb',
+    followers: '67K',
+    following: '321',
+    post_count: '432',
+    engagement_rate: 3.1,
+    bio: 'Product reviews and testing',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/influencer-cb2630cb'
+  }
 ];
 
 // Posts Modal Component
@@ -276,61 +699,9 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
 };
 
 const InfluencersPage: React.FC = () => {
-  const [influencers, setInfluencers] = useState<Influencer[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [influencers] = useState<Influencer[]>(MANUAL_INFLUENCERS);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInfluencer, setSelectedInfluencer] = useState<string | null>(null);
-
-  // Fetch influencers on mount
-  useEffect(() => {
-    const fetchInfluencers = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const results: Influencer[] = [];
-
-        for (const name of INFLUENCER_NAMES) {
-          try {
-            const response = await fetch(
-              `https://real-time-amazon-data.p.rapidapi.com/influencer-profile?influencer_name=${name}&country=US`,
-              {
-                method: 'GET',
-                headers: {
-                  'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
-                  'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-                }
-              }
-            );
-
-            if (response.ok) {
-              const data = await response.json();
-              if (data.data) {
-                results.push({
-                  influencer_name: name,
-                  ...data.data
-                });
-              }
-            }
-          } catch (err) {
-            console.error(`Error fetching influencer ${name}:`, err);
-          }
-        }
-
-        setInfluencers(results);
-        if (results.length === 0) {
-          setError('No influencers found. Please check the API connection.');
-        }
-      } catch (err) {
-        console.error('Error fetching influencers:', err);
-        setError('Failed to load influencers');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchInfluencers();
-  }, []);
 
   // Filter influencers based on search
   const filteredInfluencers = influencers.filter((inf) =>
@@ -366,24 +737,8 @@ const InfluencersPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader className="w-8 h-8 animate-spin text-purple-600" />
-            <span className="ml-3 text-gray-600 dark:text-gray-400">Loading influencers...</span>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="flex items-center gap-2 text-red-600 text-sm p-4 bg-red-50 dark:bg-red-900/20 rounded-lg mb-6">
-            <AlertCircle className="w-5 h-5" />
-            {error}
-          </div>
-        )}
-
         {/* Influencers Grid */}
-        {!isLoading && filteredInfluencers.length > 0 && (
+        {filteredInfluencers.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredInfluencers.map((influencer) => (
               <div
@@ -396,40 +751,7 @@ const InfluencersPage: React.FC = () => {
                     {influencer.influencer_name?.charAt(0).toUpperCase() || 'I'}
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">{influencer.influencer_name}</h3>
-                  {influencer.verified && (
-                    <span className="inline-block mt-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs px-3 py-1 rounded-full">
-                      ✓ Verified
-                    </span>
-                  )}
-                </div>
-
-                {/* Bio */}
-                {influencer.bio && (
-                  <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{influencer.bio}</p>
-                  </div>
-                )}
-
-                {/* Stats */}
-                <div className="p-6 space-y-3">
-                  {influencer.followers && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 dark:text-gray-400">👥 Followers</span>
-                      <span className="font-bold text-gray-900 dark:text-white">{influencer.followers}</span>
-                    </div>
-                  )}
-                  {influencer.post_count && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 dark:text-gray-400">📸 Posts</span>
-                      <span className="font-bold text-gray-900 dark:text-white">{influencer.post_count}</span>
-                    </div>
-                  )}
-                  {influencer.following && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 dark:text-gray-400">➡️ Following</span>
-                      <span className="font-bold text-gray-900 dark:text-white">{influencer.following}</span>
-                    </div>
-                  )}
+      
                 </div>
 
                 {/* Action Button */}
@@ -457,7 +779,7 @@ const InfluencersPage: React.FC = () => {
         )}
 
         {/* Empty State */}
-        {!isLoading && filteredInfluencers.length === 0 && !error && (
+        {filteredInfluencers.length === 0 && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -481,4 +803,3 @@ const InfluencersPage: React.FC = () => {
 };
 
 export default InfluencersPage;
-

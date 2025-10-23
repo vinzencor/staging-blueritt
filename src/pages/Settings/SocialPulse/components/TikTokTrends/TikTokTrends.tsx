@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Package, Filter, Search, CheckCircle, Loader2, Eye, ExternalLink, Heart, MessageCircle, Share2, Play, Zap, Truck, X, AlertCircle, ShoppingCart } from 'lucide-react';
+import {
+  TrendingUp, Package, Filter, Search, CheckCircle, Loader2, ExternalLink, Heart, MessageCircle, Share2, Play, Zap, Truck, X, AlertCircle, ShoppingCart, Eye,
+  MousePointer,
+
+  DollarSign,
+  CreditCard,
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
@@ -302,7 +308,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-          <TrendingUp className="w-8 h-8 text-pink-600" />
+          <TrendingUp className="w-8 h-8 text-[#0072D6]" />
           TikTok Trends
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
@@ -473,7 +479,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
           <button
             onClick={handleDoneClick}
             disabled={tiktokLoading}
-            className="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-lg hover:from-pink-600 hover:to-purple-700 focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 shadow-lg"
+            className="px-8 py-3 bg-gradient-to-r from-[#0072D6] to-[#111c43] text-white font-semibold rounded-lg hover:from-[#111c43]] hover:to-[#0072D6] focus:ring-2 focus:ring-[#111c43] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 shadow-lg"
           >
             {tiktokLoading ? (
               <>
@@ -499,7 +505,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
         {/* Loading State */}
         {tiktokLoading && (
           <div className="text-center py-12">
-            <Loader2 className="w-16 h-16 text-pink-500 mx-auto mb-4 animate-spin" />
+            <Loader2 className="w-16 h-16 text-[#111c43] mx-auto mb-4 animate-spin" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               Loading TikTok Trending Products...
             </h3>
@@ -598,7 +604,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                     )}
 
                     {/* Key Performance Metrics - CPR, CVR, CPA, Cost */}
-                    <div className="grid grid-cols-2 gap-2 text-xs mb-4 flex-grow">
+                    <div className="grid grid-cols-2 gap-2 text-xs mb-8 flex-grow">
                       {product.ctr !== undefined && product.ctr > 0 && (
                         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center border border-blue-200 dark:border-blue-800">
                           <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium">CPR</div>
@@ -623,71 +629,24 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                           </div>
                         </div>
                       )}
-                      {product.cost !== undefined && product.cost > 0 && (
+                      {product.cost !== undefined && product.impression > 0 && (
                         <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center border border-orange-200 dark:border-orange-800">
-                          <div className="text-orange-600 dark:text-orange-400 mb-1 font-medium">Cost</div>
+                          <div className="text-orange-600 dark:text-orange-400 mb-1 font-medium">Impressions</div>
                           <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                            ${(product.cost / 100).toFixed(2)}
+                            ${(product.impression).toLocaleString()}
                           </div>
                         </div>
                       )}
+
                     </div>
 
-                    {/* Additional Metrics - Likes, Posts, Shares, Comments */}
-                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 mb-4 border border-gray-200 dark:border-gray-600">
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        {product.like !== undefined && product.like > 0 && (
-                          <div className="flex items-center gap-2">
-                            <Heart className="w-3 h-3 text-red-500" />
-                            <div>
-                              <div className="text-gray-600 dark:text-gray-400">Likes</div>
-                              <div className="font-semibold text-gray-900 dark:text-white">
-                                {product.like.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        {product.post !== undefined && product.post > 0 && (
-                          <div className="flex items-center gap-2">
-                            <Play className="w-3 h-3 text-blue-500" />
-                            <div>
-                              <div className="text-gray-600 dark:text-gray-400">Posts</div>
-                              <div className="font-semibold text-gray-900 dark:text-white">
-                                {product.post.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        {product.share !== undefined && product.share > 0 && (
-                          <div className="flex items-center gap-2">
-                            <Share2 className="w-3 h-3 text-green-500" />
-                            <div>
-                              <div className="text-gray-600 dark:text-gray-400">Shares</div>
-                              <div className="font-semibold text-gray-900 dark:text-white">
-                                {product.share.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        {product.comment !== undefined && product.comment > 0 && (
-                          <div className="flex items-center gap-2">
-                            <MessageCircle className="w-3 h-3 text-yellow-500" />
-                            <div>
-                              <div className="text-gray-600 dark:text-gray-400">Comments</div>
-                              <div className="font-semibold text-gray-900 dark:text-white">
-                                {product.comment.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    
 
                     {/* View Details Button - Always at bottom */}
                     <div className="mt-auto">
                       <button
                         onClick={() => handleViewDetails(product)}
-                        className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-[#0072D6] to-[#111c43] text-white py-2 px-4 rounded-lg hover:from-[#111c43] hover:to-[#0072D6] transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
                       >
                         <Eye className="w-4 h-4" />
                         View Details
@@ -760,22 +719,20 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             <div className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
               <button
                 onClick={() => setActiveModalTab('overview')}
-                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                  activeModalTab === 'overview'
-                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${activeModalTab === 'overview'
+                  ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
               >
                 <Package className="w-4 h-4" />
                 Overview
               </button>
               <button
                 onClick={() => setActiveModalTab('suppliers')}
-                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                  activeModalTab === 'suppliers'
-                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${activeModalTab === 'suppliers'
+                  ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
               >
                 <Truck className="w-4 h-4" />
                 Suppliers
@@ -787,11 +744,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
               </button>
               <button
                 onClick={() => setActiveModalTab('shop-analysis')}
-                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                  activeModalTab === 'shop-analysis'
-                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${activeModalTab === 'shop-analysis'
+                  ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
               >
                 <TrendingUp className="w-4 h-4" />
                 Shop Analysis
@@ -827,337 +783,355 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
               {activeModalTab === 'overview' && (
                 <div className="p-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Product Image */}
-                <div className="space-y-4">
-                  <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
-                    {selectedProduct.cover_url ? (
-                      <img
-                        src={selectedProduct.cover_url}
-                        alt={selectedProduct.url_title || 'TikTok Product'}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-24 h-24 text-gray-400" />
+                    {/* Product Image */}
+                    <div className="space-y-4">
+                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        {selectedProduct.cover_url ? (
+                          <img
+                            src={selectedProduct.cover_url}
+                            alt={selectedProduct.url_title || 'TikTok Product'}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="w-24 h-24 text-gray-400" />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Category */}
-                  {selectedProduct.first_ecom_category && (
-                    <div className="text-center">
-                      <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-4 py-2 rounded-full text-sm font-medium">
-                        {selectedProduct.first_ecom_category.value}
-                      </span>
+                      {/* Category */}
+                      {selectedProduct.first_ecom_category && (
+                        <div className="text-center">
+                          <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-4 py-2 rounded-full text-sm font-medium">
+                            {selectedProduct.first_ecom_category.value}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                {/* Product Information */}
-                <div className="space-y-6">
-                  {/* Title */}
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                      {selectedProduct.url_title || 'Trending Product'}
-                    </h3>
-                  </div>
+                    {/* Product Information */}
+                    <div className="space-y-6">
+                      {/* Title */}
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                          {selectedProduct.url_title || 'Trending Product'}
+                        </h3>
+                      </div>
 
-                  {/* Price Information from Shop Analysis - Show only first matching product */}
-                  {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-6 border border-green-200 dark:border-green-700">
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-green-600" />
-                        TikTok Shop Price
-                      </h4>
-                      {(() => {
-                        const firstProduct = shopAnalysisData.products[0];
-                        return (
-                          <div className="bg-white dark:bg-gray-700 rounded-lg p-6 border border-green-100 dark:border-green-600">
-                            {firstProduct.image_url && (
-                              <div className="mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 h-40 flex items-center justify-center">
-                                <img
-                                  src={firstProduct.image_url}
-                                  alt={firstProduct.title}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3C/svg%3E';
-                                  }}
-                                />
-                              </div>
-                            )}
-                            <div className="text-center">
-                              {/* Clickable Price - Opens Calculator */}
-                              <button
-                                onClick={() => {
-                                  // Create a mock supplier object from shop product data
-                                  const mockSupplier: SupplierInfo & { isTikTokShopProduct?: boolean; tiktokShopPrice?: number } = {
-                                    id: firstProduct.id,
-                                    name: firstProduct.shop_name || 'TikTok Shop',
-                                    supplier_name: firstProduct.shop_name || 'TikTok Shop',
-                                    location: firstProduct.shipping_info.ship_from || 'Unknown',
-                                    verification_status: 'verified',
-                                    verification_badge: 'Gold',
-                                    years_in_business: 5,
-                                    main_products: firstProduct.title,
-                                    certifications: [],
-                                    contact_method: 'TikTok Shop',
-                                    ai_match_score: 85,
-                                    match_explanation: 'High-quality TikTok Shop product with good sales data',
-                                    moq: 1,
-                                    lead_time: '7-15 days',
-                                    estimated_price: `$${firstProduct.price.toFixed(2)}`,
-                                    contact_url: '',
-                                    response_rate: '95%',
-                                    trade_assurance: firstProduct.shipping_info.free_shipping,
-                                    isTikTokShopProduct: true,
-                                    tiktokShopPrice: firstProduct.price
-                                  };
+                      {/* Price Information from Shop Analysis - Show only first matching product */}
+                      {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
+                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-6 border border-green-200 dark:border-green-700">
+                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-green-600" />
+                            TikTok Shop Price
+                          </h4>
+                          {(() => {
+                            const firstProduct = shopAnalysisData.products[0];
+                            return (
+                              <div className="bg-white dark:bg-gray-700 rounded-lg p-6 border border-green-100 dark:border-green-600">
+                                {firstProduct.image_url && (
+                                  <div className="mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 h-40 flex items-center justify-center">
+                                    <img
+                                      src={firstProduct.image_url}
+                                      alt={firstProduct.title}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3C/svg%3E';
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                                <div className="text-center">
+                                  {/* Clickable Price - Opens Calculator */}
+                                  <button
+                                    onClick={() => {
+                                      // Create a mock supplier object from shop product data
+                                      const mockSupplier: SupplierInfo & { isTikTokShopProduct?: boolean; tiktokShopPrice?: number } = {
+                                        id: firstProduct.id,
+                                        name: firstProduct.shop_name || 'TikTok Shop',
+                                        supplier_name: firstProduct.shop_name || 'TikTok Shop',
+                                        location: firstProduct.shipping_info.ship_from || 'Unknown',
+                                        verification_status: 'verified',
+                                        verification_badge: 'Gold',
+                                        years_in_business: 5,
+                                        main_products: firstProduct.title,
+                                        certifications: [],
+                                        contact_method: 'TikTok Shop',
+                                        ai_match_score: 85,
+                                        match_explanation: 'High-quality TikTok Shop product with good sales data',
+                                        moq: 1,
+                                        lead_time: '7-15 days',
+                                        estimated_price: `$${firstProduct.price.toFixed(2)}`,
+                                        contact_url: '',
+                                        response_rate: '95%',
+                                        trade_assurance: firstProduct.shipping_info.free_shipping,
+                                        isTikTokShopProduct: true,
+                                        tiktokShopPrice: firstProduct.price
+                                      };
 
-                                  // Create a mock product object with TikTok Shop data
-                                  const mockProduct = {
-                                    ...selectedProduct,
-                                    price: firstProduct.price,
-                                    title: firstProduct.title,
-                                    image_url: firstProduct.image_url,
-                                    sales_count: firstProduct.sales_count,
-                                    isTikTokShopProduct: true
-                                  };
+                                      // Create a mock product object with TikTok Shop data
+                                      const mockProduct = {
+                                        ...selectedProduct,
+                                        price: firstProduct.price,
+                                        title: firstProduct.title,
+                                        image_url: firstProduct.image_url,
+                                        sales_count: firstProduct.sales_count,
+                                        isTikTokShopProduct: true
+                                      };
 
-                                  setSelectedProduct(mockProduct);
-                                  setSelectedSupplier(mockSupplier);
-                                  setShowProfitCalculator(true);
-                                }}
-                                className="group cursor-pointer inline-block"
-                              >
-                                <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">
-                                  ${firstProduct.price.toFixed(2)}
+                                      setSelectedProduct(mockProduct);
+                                      setSelectedSupplier(mockSupplier);
+                                      setShowProfitCalculator(true);
+                                    }}
+                                    className="group cursor-pointer inline-block"
+                                  >
+                                    <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">
+                                      ${firstProduct.price.toFixed(2)}
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                                      Click to Calculate Profit
+                                    </div>
+                                  </button>
+
+                                  <div className="text-sm text-gray-600 dark:text-gray-300 mb-3 mt-2">
+                                    {firstProduct.currency}
+                                  </div>
+                                  <div className="text-sm text-gray-700 dark:text-gray-200 mb-4 line-clamp-3">
+                                    {firstProduct.title}
+                                  </div>
+
+                                  {/* Product Details Grid */}
+                                  <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                                    {firstProduct.sales_count > 0 && (
+                                      <div className="bg-green-50 dark:bg-green-900/30 rounded p-2">
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">Sales</div>
+                                        <div className="font-semibold text-green-600 dark:text-green-400">
+                                          {firstProduct.sales_count.toLocaleString()}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {firstProduct.product_rating > 0 && (
+                                      <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded p-2">
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">Rating</div>
+                                        <div className="font-semibold text-yellow-600 dark:text-yellow-400">
+                                          ⭐ {firstProduct.product_rating.toFixed(1)}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {firstProduct.shop_name && (
+                                      <div className="bg-blue-50 dark:bg-blue-900/30 rounded p-2 col-span-2">
+                                        <div className="text-xs text-gray-600 dark:text-gray-400">Shop</div>
+                                        <div className="font-semibold text-blue-600 dark:text-blue-400 truncate">
+                                          {firstProduct.shop_name}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {firstProduct.shipping_info.free_shipping && (
+                                      <div className="bg-purple-50 dark:bg-purple-900/30 rounded p-2 col-span-2">
+                                        <div className="text-xs text-purple-600 dark:text-purple-400 font-semibold">
+                                          ✓ Free Shipping
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* View All Products Link */}
+                                  <button
+                                    onClick={() => setActiveModalTab('shop-analysis')}
+                                    className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+                                  >
+                                    View All {shopAnalysisData.products.length} Products
+                                  </button>
                                 </div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
-                                  Click to Calculate Profit
-                                </div>
-                              </button>
-
-                              <div className="text-sm text-gray-600 dark:text-gray-300 mb-3 mt-2">
-                                {firstProduct.currency}
                               </div>
-                              <div className="text-sm text-gray-700 dark:text-gray-200 mb-4 line-clamp-3">
-                                {firstProduct.title}
-                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
 
-                              {/* Product Details Grid */}
-                              <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                                {firstProduct.sales_count > 0 && (
-                                  <div className="bg-green-50 dark:bg-green-900/30 rounded p-2">
-                                    <div className="text-xs text-gray-600 dark:text-gray-400">Sales</div>
-                                    <div className="font-semibold text-green-600 dark:text-green-400">
-                                      {firstProduct.sales_count.toLocaleString()}
-                                    </div>
-                                  </div>
-                                )}
-                                {firstProduct.product_rating > 0 && (
-                                  <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded p-2">
-                                    <div className="text-xs text-gray-600 dark:text-gray-400">Rating</div>
-                                    <div className="font-semibold text-yellow-600 dark:text-yellow-400">
-                                      ⭐ {firstProduct.product_rating.toFixed(1)}
-                                    </div>
-                                  </div>
-                                )}
-                                {firstProduct.shop_name && (
-                                  <div className="bg-blue-50 dark:bg-blue-900/30 rounded p-2 col-span-2">
-                                    <div className="text-xs text-gray-600 dark:text-gray-400">Shop</div>
-                                    <div className="font-semibold text-blue-600 dark:text-blue-400 truncate">
-                                      {firstProduct.shop_name}
-                                    </div>
-                                  </div>
-                                )}
-                                {firstProduct.shipping_info.free_shipping && (
-                                  <div className="bg-purple-50 dark:bg-purple-900/30 rounded p-2 col-span-2">
-                                    <div className="text-xs text-purple-600 dark:text-purple-400 font-semibold">
-                                      ✓ Free Shipping
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                      {/* Loading state for price information */}
+                      {isShopAnalysisLoading && (
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
+                          <div className="flex items-center justify-center gap-3">
+                            <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+                            <span className="text-gray-600 dark:text-gray-300">Loading pricing data...</span>
+                          </div>
+                        </div>
+                      )}
 
-                              {/* View All Products Link */}
-                              <button
-                                onClick={() => setActiveModalTab('shop-analysis')}
-                                className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
-                              >
-                                View All {shopAnalysisData.products.length} Products
-                              </button>
+                      {/* Error state for price information */}
+                      {shopAnalysisError && !isShopAnalysisLoading && (
+                        <div className="bg-red-50 dark:bg-red-900/30 rounded-xl p-6 border border-red-200 dark:border-red-700">
+                          <div className="flex items-center justify-center gap-3 text-red-600 dark:text-red-400">
+                            <AlertCircle className="w-5 h-5" />
+                            <span>Unable to load TikTok Shop pricing data</span>
+                          </div>
+                          <p className="text-sm text-red-500 dark:text-red-400 text-center mt-2">
+                            Please try selecting a different product or check back later
+                          </p>
+                        </div>
+                      )}
+
+                      {/* No products found state */}
+                      {!isShopAnalysisLoading && !shopAnalysisError && shopAnalysisData && shopAnalysisData.products.length === 0 && (
+                        <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700">
+                          <div className="flex items-center justify-center gap-3 text-yellow-600 dark:text-yellow-400">
+                            <AlertCircle className="w-5 h-5" />
+                            <span>No products found for this category</span>
+                          </div>
+                          <p className="text-sm text-yellow-500 dark:text-yellow-400 text-center mt-2">
+                            Try selecting a different trending product
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Statistics Grid */}
+                      <div className="grid grid-cols-2 gap-4">
+                        {selectedProduct.post && (
+                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-700">
+                            <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
+                              <Play className="w-5 h-5" />
+                              <span className="font-medium">Posts</span>
+                            </div>
+                            <div className="text-2xl font-bold text-blue-800 dark:text-blue-300">
+                              {selectedProduct.post.toLocaleString()}
                             </div>
                           </div>
-                        );
-                      })()}
-                    </div>
-                  )}
+                        )}
 
-                  {/* Loading state for price information */}
-                  {isShopAnalysisLoading && (
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
-                      <div className="flex items-center justify-center gap-3">
-                        <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
-                        <span className="text-gray-600 dark:text-gray-300">Loading pricing data...</span>
+                        {selectedProduct.like && (
+                          <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 rounded-lg p-4 text-center border border-red-200 dark:border-red-700">
+                            <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400 mb-2">
+                              <Heart className="w-5 h-5" />
+                              <span className="font-medium">Likes</span>
+                            </div>
+                            <div className="text-2xl font-bold text-red-800 dark:text-red-300">
+                              {selectedProduct.like.toLocaleString()}
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedProduct.share && (
+                          <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
+                            <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
+                              <Share2 className="w-5 h-5" />
+                              <span className="font-medium">Shares</span>
+                            </div>
+                            <div className="text-2xl font-bold text-green-800 dark:text-green-300">
+                              {selectedProduct.share.toLocaleString()}
+                            </div>
+                          </div>
+                        )}
+
+                        {selectedProduct.comment && (
+                          <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
+                            <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
+                              <MessageCircle className="w-5 h-5" />
+                              <span className="font-medium">Comments</span>
+                            </div>
+                            <div className="text-2xl font-bold text-purple-800 dark:text-purple-300">
+                              {selectedProduct.comment.toLocaleString()}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )}
 
-                  {/* Error state for price information */}
-                  {shopAnalysisError && !isShopAnalysisLoading && (
-                    <div className="bg-red-50 dark:bg-red-900/30 rounded-xl p-6 border border-red-200 dark:border-red-700">
-                      <div className="flex items-center justify-center gap-3 text-red-600 dark:text-red-400">
-                        <AlertCircle className="w-5 h-5" />
-                        <span>Unable to load TikTok Shop pricing data</span>
-                      </div>
-                      <p className="text-sm text-red-500 dark:text-red-400 text-center mt-2">
-                        Please try selecting a different product or check back later
-                      </p>
-                    </div>
-                  )}
-
-                  {/* No products found state */}
-                  {!isShopAnalysisLoading && !shopAnalysisError && shopAnalysisData && shopAnalysisData.products.length === 0 && (
-                    <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700">
-                      <div className="flex items-center justify-center gap-3 text-yellow-600 dark:text-yellow-400">
-                        <AlertCircle className="w-5 h-5" />
-                        <span>No products found for this category</span>
-                      </div>
-                      <p className="text-sm text-yellow-500 dark:text-yellow-400 text-center mt-2">
-                        Try selecting a different trending product
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Statistics Grid */}
-                  <div className="grid grid-cols-2 gap-4">
-                    {selectedProduct.post && (
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-700">
-                        <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
-                          <Play className="w-5 h-5" />
-                          <span className="font-medium">Posts</span>
-                        </div>
-                        <div className="text-2xl font-bold text-blue-800 dark:text-blue-300">
-                          {selectedProduct.post.toLocaleString()}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedProduct.like && (
-                      <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 rounded-lg p-4 text-center border border-red-200 dark:border-red-700">
-                        <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400 mb-2">
-                          <Heart className="w-5 h-5" />
-                          <span className="font-medium">Likes</span>
-                        </div>
-                        <div className="text-2xl font-bold text-red-800 dark:text-red-300">
-                          {selectedProduct.like.toLocaleString()}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedProduct.share && (
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
-                        <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
-                          <Share2 className="w-5 h-5" />
-                          <span className="font-medium">Shares</span>
-                        </div>
-                        <div className="text-2xl font-bold text-green-800 dark:text-green-300">
-                          {selectedProduct.share.toLocaleString()}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedProduct.comment && (
-                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
-                        <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
-                          <MessageCircle className="w-5 h-5" />
-                          <span className="font-medium">Comments</span>
-                        </div>
-                        <div className="text-2xl font-bold text-purple-800 dark:text-purple-300">
-                          {selectedProduct.comment.toLocaleString()}
+                      {/* Additional Metrics */}
+                      <div className="space-y-4">
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Additional Metrics</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          {selectedProduct.impression && (
+                            <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700 text-center">
+                              <div className="flex items-center justify-center gap-2 text-yellow-600 dark:text-yellow-400 mb-2">
+                                <Eye className="w-5 h-5" />
+                                <span className="font-medium">Impressions</span>
+                              </div>
+                              <span className="font-semibold text-gray-900 dark:text-white">
+                                {selectedProduct.impression.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                          {selectedProduct.ctr && (
+                            <div className="bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/30 dark:to-pink-800/30 rounded-lg p-4 text-center border border-pink-200 dark:border-pink-700">
+                              <div className="flex items-center justify-center gap-2 text-pink-600 dark:text-pink-400 mb-2">
+                                <MousePointer className="w-5 h-5" />
+                                <span className="font-medium">CTR</span>
+                              </div>
+                              <span className="font-semibold text-gray-900 dark:text-white">
+                                {selectedProduct.ctr}%
+                              </span>
+                            </div>
+                          )}
+                          {selectedProduct.cvr && (
+                            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
+                              <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
+                                <TrendingUp className="w-5 h-5" />
+                                <span className="font-medium">CVR</span>
+                              </div>
+                              <span className="font-semibold text-gray-900 dark:text-white">
+                                {selectedProduct.cvr}%
+                              </span>
+                            </div>
+                          )}
+                          {selectedProduct.cpa && (
+                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-700">
+                              <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
+                                <DollarSign className="w-5 h-5" />
+                                <span className="font-medium">CPA</span>
+                              </div>
+                              <span className="font-semibold text-gray-900 dark:text-white">
+                                ${selectedProduct.cpa}
+                              </span>
+                            </div>
+                          )}
+                          {selectedProduct.cost && (
+                            <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 rounded-lg p-4 text-center border border-orange-200 dark:border-orange-700">
+                              <div className="flex items-center justify-center gap-2 text-orange-600 dark:text-orange-400 mb-2">
+                                <CreditCard className="w-5 h-5" />
+                                <span className="font-medium">Cost</span>
+                              </div>
+                              <span className="font-semibold text-gray-900 dark:text-white">
+                                ${selectedProduct.cost}
+                              </span>
+                            </div>
+                          )}
+                          {selectedProduct.play_six_rate && (
+                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
+                              <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
+                                <Play className="w-5 h-5" />
+                                <span className="font-medium">6s View Rate</span>
+                              </div>
+                              <span className="font-semibold text-gray-900 dark:text-white">
+                                {selectedProduct.play_six_rate}%
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Additional Metrics */}
-                  <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Additional Metrics</h4>
-                    <div className="grid grid-cols-1 gap-3">
-                      {selectedProduct.impression && (
-                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <span className="text-gray-600 dark:text-gray-300">Impressions</span>
-                          <span className="font-semibold text-gray-900 dark:text-white">
-                            {selectedProduct.impression.toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                      {selectedProduct.ctr && (
-                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <span className="text-gray-600 dark:text-gray-300">CTR</span>
-                          <span className="font-semibold text-gray-900 dark:text-white">
-                            {selectedProduct.ctr}%
-                          </span>
-                        </div>
-                      )}
-                      {selectedProduct.cvr && (
-                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <span className="text-gray-600 dark:text-gray-300">CVR</span>
-                          <span className="font-semibold text-gray-900 dark:text-white">
-                            {selectedProduct.cvr}%
-                          </span>
-                        </div>
-                      )}
-                      {selectedProduct.cpa && (
-                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <span className="text-gray-600 dark:text-gray-300">CPA</span>
-                          <span className="font-semibold text-gray-900 dark:text-white">
-                            ${selectedProduct.cpa}
-                          </span>
-                        </div>
-                      )}
-                      {selectedProduct.cost && (
-                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <span className="text-gray-600 dark:text-gray-300">Cost</span>
-                          <span className="font-semibold text-gray-900 dark:text-white">
-                            ${selectedProduct.cost}
-                          </span>
-                        </div>
-                      )}
-                      {selectedProduct.play_six_rate && (
-                        <div className="flex justify-between items-center py-2 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <span className="text-gray-600 dark:text-gray-300">6s View Rate</span>
-                          <span className="font-semibold text-gray-900 dark:text-white">
-                            {selectedProduct.play_six_rate}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3 pt-4">
-                      {selectedProduct.url && (
-                        <a
-                          href={selectedProduct.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
+                      {/* Action Buttons */}
+                      <div className="flex gap-3 pt-4">
+                        {selectedProduct.url && (
+                          <a
+                            href={selectedProduct.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
+                          >
+                            <ExternalLink className="w-5 h-5" />
+                            View Product
+                          </a>
+                        )}
+                        <button
+                          onClick={handleCloseModal}
+                          className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
                         >
-                          <ExternalLink className="w-5 h-5" />
-                          View Product
-                        </a>
-                      )}
-                      <button
-                        onClick={handleCloseModal}
-                        className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
-                      >
-                        Close
-                      </button>
+                          Close
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               )}
 
               {activeModalTab === 'suppliers' && (
@@ -1295,13 +1269,12 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               <div className="flex-1 min-w-0 pr-4">
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <h5 className="font-bold text-gray-900 dark:text-white text-lg">{supplier.name}</h5>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
-                    supplier.verification_status === 'Gold Verified'
-                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
-                      : supplier.verification_status === 'Verified'
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${supplier.verification_status === 'Gold Verified'
+                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                    : supplier.verification_status === 'Verified'
                       ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                       : 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300'
-                  }`}>
+                    }`}>
                     {supplier.verification_status}
                   </span>
                 </div>
@@ -1448,7 +1421,7 @@ const ShopAnalysisTab: React.FC<ShopAnalysisTabProps> = ({
           <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
           <div className="bg-white dark:bg-gray-800 rounded p-4 text-left text-sm text-gray-600 dark:text-gray-300">
             <p className="font-mono text-xs">
-              Category ID: {categoryId}<br/>
+              Category ID: {categoryId}<br />
               Category Name: {categoryName}
             </p>
           </div>
@@ -1470,9 +1443,9 @@ const ShopAnalysisTab: React.FC<ShopAnalysisTabProps> = ({
         <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 text-left text-sm text-gray-600 dark:text-gray-300 inline-block">
           <p className="font-semibold text-blue-800 dark:text-blue-300 mb-2">Debug Information:</p>
           <p className="font-mono text-xs">
-            Category ID: {categoryId}<br/>
-            Category Name: {categoryName}<br/>
-            Shop Data: {shopData ? 'Loaded' : 'Not loaded'}<br/>
+            Category ID: {categoryId}<br />
+            Category Name: {categoryName}<br />
+            Shop Data: {shopData ? 'Loaded' : 'Not loaded'}<br />
             Products: {shopData?.products?.length || 0}
           </p>
         </div>
