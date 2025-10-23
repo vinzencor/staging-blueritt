@@ -11,6 +11,7 @@ import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserD
 import { QuotaNames } from '../../../../../enum';
 import { discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse } from '../../../../../api/tiktokTrends';
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
+import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
 
 // TikTok Categories with IDs
 const TIKTOK_CATEGORIES = [
@@ -806,11 +807,11 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                 {/* Discover Suppliers Button */}
                 <button
                   onClick={handleDiscoverSuppliers}
-                  disabled={isSupplierDiscoveryLoading || suppliers.length > 0}
+                  disabled={isSupplierDiscoveryLoading}
                   className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Zap className="w-4 h-4" />
-                  {isSupplierDiscoveryLoading ? 'Analyzing...' : suppliers.length > 0 ? 'Suppliers Found' : 'Discover Suppliers'}
+                  {isSupplierDiscoveryLoading ? 'Analyzing...' : suppliers.length > 0 ? 'Discover More Suppliers' : 'Discover Suppliers'}
                 </button>
               </div>
             </div>
@@ -1177,6 +1178,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                     suppliers={suppliers}
                     isLoading={isSupplierDiscoveryLoading}
                     analysisTime={supplierAnalysisTime}
+                    onCalculateClick={(supplier) => {
+                      setSelectedSupplier(supplier);
+                      setShowProfitCalculator(true);
+                    }}
                   />
                 </div>
               )}
@@ -1237,6 +1242,19 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
           </div>
         </div>
       )}
+
+      {/* Profit Calculator Modal */}
+      {showProfitCalculator && selectedProduct && selectedSupplier && (
+        <TikTokProfitCalculatorModal
+          product={selectedProduct}
+          supplier={selectedSupplier}
+          isOpen={showProfitCalculator}
+          onClose={() => {
+            setShowProfitCalculator(false);
+            setSelectedSupplier(null);
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -1246,9 +1264,10 @@ interface SuppliersTabProps {
   suppliers: SupplierInfo[];
   isLoading: boolean;
   analysisTime: number;
+  onCalculateClick: (supplier: SupplierInfo) => void;
 }
 
-const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime }) => {
+const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onCalculateClick }) => {
   console.log('🏭 SuppliersTab render:', {
     suppliersCount: suppliers?.length || 0,
     isLoading,
@@ -1390,6 +1409,15 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
             {/* Action Buttons */}
             <div className="flex gap-3">
+              {/* Calculate Button */}
+              <button
+                onClick={() => onCalculateClick(supplier)}
+                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2 px-4 rounded-lg transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
+              >
+                <DollarSign className="w-4 h-4" />
+                Calculate
+              </button>
+
               {/* Contact Supplier Button */}
               {supplier.contact_url && (
                 <a
