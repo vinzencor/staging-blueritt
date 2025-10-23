@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   TrendingUp, Package, Filter, Search, CheckCircle, Loader2, ExternalLink, Heart, MessageCircle, Share2, Play, Zap, Truck, X, AlertCircle, ShoppingCart, Eye,
-  MousePointer,
-
+  MousePointer, Users, Hash,
   DollarSign,
   CreditCard,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
-import { discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse } from '../../../../../api/tiktokTrends';
+import { discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse } from '../../../../../api/tiktokTrends';
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
 
@@ -162,6 +161,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   const [isShopAnalysisLoading, setIsShopAnalysisLoading] = useState(false);
   const [shopAnalysisError, setShopAnalysisError] = useState<string | null>(null);
 
+  // Creative Center data state
+  const [creativeCenterData, setCreativeCenterData] = useState<TikTokCreativeCenterResponse | null>(null);
+  const [isCreativeCenterLoading, setIsCreativeCenterLoading] = useState(false);
+
   // TikTok API Query
   const {
     data: tiktokData,
@@ -228,11 +231,50 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     // Reset shop analysis state
     setShopAnalysisData(null);
     setShopAnalysisError(null);
+    // Reset creative center state
+    setCreativeCenterData(null);
 
     // Check quota before making API call
     if (quotaDetails.quotaValue <= 0) {
       setShopAnalysisError('Search quota exceeded. Please upgrade your plan or wait for quota reset.');
       return;
+    }
+
+    // Fetch Creative Center data (age demographics and hashtags) if third_ecom_category is available
+    if (product.third_ecom_category?.id) {
+      console.log('🎨 Fetching Creative Center data for product ID:', product.third_ecom_category.id);
+      console.log('🔍 Full product data:', product);
+      console.log('📦 third_ecom_category:', product.third_ecom_category);
+      setIsCreativeCenterLoading(true);
+
+      try {
+        const creativeCenterResponse = await getTikTokCreativeCenterProductDetails(product.third_ecom_category.id);
+        setCreativeCenterData(creativeCenterResponse);
+        console.log('✅ Creative Center data loaded:', creativeCenterResponse);
+        console.log('📊 Audience ages:', creativeCenterResponse.data?.info?.audience_ages);
+        console.log('🏷️ Hashtags:', creativeCenterResponse.data?.info?.hashtags);
+      } catch (error) {
+        console.error('❌ Error fetching Creative Center data:', error);
+        // Set empty data on error
+        setCreativeCenterData({
+          code: 1,
+          msg: 'Failed to load',
+          request_id: 'error',
+          data: { info: { audience_ages: [], hashtags: [] } }
+        });
+      } finally {
+        setIsCreativeCenterLoading(false);
+      }
+    } else {
+      console.log('⚠️ No third_ecom_category.id found for Creative Center data');
+      console.log('🔍 Product structure:', product);
+      // Set empty data when no category ID is available
+      setCreativeCenterData({
+        code: 1,
+        msg: 'No category ID available',
+        request_id: 'no-category',
+        data: { info: { audience_ages: [], hashtags: [] } }
+      });
     }
 
     // Fetch shop analysis data if third_ecom_category is available
@@ -275,6 +317,8 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     setActiveModalTab('overview');
     setSuppliers([]);
     setSupplierAnalysisTime(0);
+    // Reset Creative Center data
+    setCreativeCenterData(null);
   };
 
   const handleDiscoverSuppliers = async () => {
@@ -1146,6 +1190,93 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                           )}
                         </div>
                       </div>
+
+                      {/* Creative Center Data - Age Demographics and Hashtags */}
+                      <div className="space-y-6">
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Audience Insights</h4>
+
+                        {/* Debug Info */}
+                        {/* <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                          Debug: creativeCenterData = {creativeCenterData ? 'EXISTS' : 'NULL'} |
+                          Data: {creativeCenterData ? JSON.stringify(creativeCenterData, null, 2) : 'No data'}
+                        </div> */}
+
+                        {/* Age Demographics Chart - Real Data */}
+                        {creativeCenterData?.data?.info?.audience_ages && creativeCenterData.data.info.audience_ages.length > 0 && (
+                          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
+                            <h5 className="text-md font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                              <Users className="w-5 h-5 text-blue-600" />
+                              Age Demographics
+                            </h5>
+                            <div className="space-y-3">
+                              {creativeCenterData.data?.info?.audience_ages?.map((ageData, index) => (
+                                <div key={index} className="flex items-center gap-3">
+                                  <div className="w-12 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {ageData.age_level}+
+                                  </div>
+                                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 relative overflow-hidden">
+                                    <div
+                                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                                      style={{ width: `${ageData.score}%` }}
+                                    />
+                                  </div>
+                                  <div className="w-12 text-sm font-semibold text-blue-600 dark:text-blue-400 text-right">
+                                    {ageData.score}%
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Trending Hashtags - Real Data */}
+                        {creativeCenterData?.data?.info?.hashtags && creativeCenterData.data.info.hashtags.length > 0 && (
+                          <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/30 dark:to-rose-900/30 rounded-xl p-6 border border-pink-200 dark:border-pink-700">
+                            <h5 className="text-md font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                              <Hash className="w-5 h-5 text-pink-600" />
+                              Trending Hashtags
+                            </h5>
+                            <div className="flex flex-wrap gap-2">
+                              {creativeCenterData.data?.info?.hashtags?.slice(0, 10).map((hashtag, index) => (
+                                <span
+                                  key={index}
+                                  className="inline-block bg-gradient-to-r from-pink-100 to-rose-100 dark:from-pink-900/50 dark:to-rose-900/50 text-pink-800 dark:text-pink-300 px-3 py-1 rounded-full text-sm font-medium border border-pink-200 dark:border-pink-700"
+                                >
+                                  #{hashtag}
+                                </span>
+                              ))}
+                            </div>
+                            {(creativeCenterData.data?.info?.hashtags?.length || 0) > 10 && (
+                              <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                                +{(creativeCenterData.data?.info?.hashtags?.length || 0) - 10} more hashtags
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* No data message */}
+                        {creativeCenterData && creativeCenterData.code !== 0 && (
+                          <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700">
+                            <div className="flex items-center justify-center gap-3 text-yellow-600 dark:text-yellow-400">
+                              <AlertCircle className="w-5 h-5" />
+                              <span>No audience insights available for this product</span>
+                            </div>
+                            <p className="text-sm text-yellow-500 dark:text-yellow-400 text-center mt-2">
+                              {creativeCenterData.msg}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Loading state for Creative Center data - Fixed */}
+                      {isCreativeCenterLoading && (
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
+                          <div className="flex items-center justify-center gap-3">
+                            <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                            <span className="text-gray-600 dark:text-gray-300">Loading audience insights...</span>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Action Buttons */}
                       <div className="flex gap-3 pt-4">

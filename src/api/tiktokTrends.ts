@@ -172,17 +172,16 @@ export interface TikTokProductDetails {
 }
 
 // TikTok Creative Center API Response Interfaces
-export interface AgeLevel {
-  age_group: string;
-  percentage?: number;
-  score?: number;
+export interface AudienceAge {
+  age_level: number;
+  score: number;
 }
 
 export interface TikTokCreativeCenterProductDetails {
   product_id: string;
   title?: string;
   description?: string;
-  age_levels?: AgeLevel[];
+  audience_ages?: AudienceAge[];
   hashtags?: string[];
   trending_score?: number;
   engagement_rate?: number;
@@ -190,10 +189,16 @@ export interface TikTokCreativeCenterProductDetails {
 }
 
 export interface TikTokCreativeCenterResponse {
-  data?: TikTokCreativeCenterProductDetails;
-  status?: string;
-  message?: string;
-  remaining_quota?: number;
+  code: number;
+  msg: string;
+  request_id: string;
+  data?: {
+    info?: {
+      audience_ages?: AudienceAge[];
+      hashtags?: string[];
+      [key: string]: any;
+    };
+  };
 }
 
 export interface TikTokSalesData {
@@ -364,25 +369,42 @@ export const getTikTokProductDetails = async (productId: string): Promise<{
 
 /**
  * Get TikTok Creative Center product details (age levels and hashtags)
- * This calls the TikTok Creative Center API to fetch audience demographics and trending hashtags
+ * This calls the TikTok Creative Center API directly to fetch audience demographics and trending hashtags
  */
 export const getTikTokCreativeCenterProductDetails = async (
   productId: string
 ): Promise<TikTokCreativeCenterResponse> => {
   try {
-    const response = await api.get(`/products/tiktok-trends/creative-center-details/${productId}/`);
-    return response.data;
+    console.log('🎨 Calling TikTok Creative Center API with product_id:', productId);
+
+    const response = await fetch(`https://tiktok-creative-center-api.p.rapidapi.com/api/trending/top-products/detail?product_id=${productId}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
+        'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ TikTok Creative Center API response:', data);
+    return data;
   } catch (error) {
-    console.error('Error fetching TikTok Creative Center details:', error);
+    console.error('❌ Error fetching TikTok Creative Center details:', error);
     // Return empty response on error
     return {
+      code: 1,
+      msg: 'Failed to fetch creative center details',
+      request_id: 'error',
       data: {
-        product_id: productId,
-        age_levels: [],
-        hashtags: [],
+        info: {
+          audience_ages: [],
+          hashtags: [],
+        },
       },
-      status: 'error',
-      message: 'Failed to fetch creative center details',
     };
   }
 };
