@@ -14,7 +14,8 @@ import {
   type TikTokTrendingProduct,
   type TikTokProductTrends,
   type TikTokCreativeCenterProductDetails,
-  type SupplierInfo
+  type SupplierInfo,
+  type AudienceAge
 } from '@/api/tiktokTrends';
 
 import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
@@ -428,7 +429,13 @@ interface OverviewTabProps {
   product: TikTokTrendingProduct;
   details?: any;
   trendsData?: TikTokProductTrends;
-  creativeCenterData?: TikTokCreativeCenterProductDetails;
+  creativeCenterData?: {
+    info?: {
+      audience_ages?: AudienceAge[];
+      hashtags?: string[];
+      [key: string]: any;
+    };
+  };
   isLoading: boolean;
   error: any;
 }
@@ -612,32 +619,25 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData,
       {creativeCenterData && (
         <>
           {/* Age Levels from Creative Center */}
-          {creativeCenterData.age_levels && creativeCenterData.age_levels.length > 0 && (
+          {creativeCenterData?.info?.audience_ages && creativeCenterData.info.audience_ages.length > 0 && (
             <div>
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <span className="text-lg">👥</span> Target Age Groups
               </h4>
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
                 <div className="space-y-3">
-                  {creativeCenterData.age_levels.map((ageLevel, index) => (
+                  {creativeCenterData.info.audience_ages.map((ageData: AudienceAge, index: number) => (
                     <div key={index}>
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-gray-700">{ageLevel.age_group}</span>
-                        {ageLevel.percentage !== undefined && (
-                          <span className="text-sm font-semibold text-blue-600">{ageLevel.percentage.toFixed(1)}%</span>
-                        )}
-                        {ageLevel.score !== undefined && (
-                          <span className="text-sm font-semibold text-indigo-600">Score: {ageLevel.score}</span>
-                        )}
+                        <span className="text-sm font-medium text-gray-700">{ageData.age_level}+</span>
+                        <span className="text-sm font-semibold text-blue-600">{ageData.score}%</span>
                       </div>
-                      {ageLevel.percentage !== undefined && (
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
-                          <div
-                            className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500"
-                            style={{ width: `${Math.min(ageLevel.percentage, 100)}%` }}
-                          ></div>
-                        </div>
-                      )}
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(ageData.score, 100)}%` }}
+                        ></div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -646,14 +646,14 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, trendsData,
           )}
 
           {/* Hashtags from Creative Center */}
-          {creativeCenterData.hashtags && creativeCenterData.hashtags.length > 0 && (
+          {creativeCenterData?.info?.hashtags && creativeCenterData.info.hashtags.length > 0 && (
             <div>
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <span className="text-lg">#️⃣</span> Trending Hashtags
               </h4>
               <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
                 <div className="flex flex-wrap gap-2">
-                  {creativeCenterData.hashtags.map((hashtag, index) => (
+                  {creativeCenterData.info.hashtags.map((hashtag: string, index: number) => (
                     <span
                       key={index}
                       className="inline-block bg-white border border-purple-200 text-purple-700 px-3 py-1.5 rounded-full text-sm font-medium hover:bg-purple-50 transition-colors cursor-pointer"

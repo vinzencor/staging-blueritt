@@ -127,6 +127,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   // Product Details Modal State
   const [selectedProduct, setSelectedProduct] = useState<AmazonTrendingProduct | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [autoStartSupplierDiscovery, setAutoStartSupplierDiscovery] = useState(false);
 
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
@@ -613,6 +614,16 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     setIsDetailsModalOpen(true);
   };
 
+  // Handle discover suppliers from product card - opens modal and starts discovery
+  const handleDiscoverSuppliersFromCard = async (product: AmazonTrendingProduct) => {
+    console.log('🚀 Starting discover suppliers from card for Amazon product:', product.product_title);
+
+    // Set the product and open modal with auto-start flag
+    setSelectedProduct(product);
+    setIsDetailsModalOpen(true);
+    setAutoStartSupplierDiscovery(true);
+  };
+
   const renderProductCard = (product: AmazonTrendingProduct, index: number) => {
     const badge = getTrendingBadge(product);
     const price = parseAmazonPrice(product.product_price || '0');
@@ -715,17 +726,32 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
             </div>
           )}
 
-          {/* View Details Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewDetails(product);
-            }}
-            className="w-full mt-3 bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2"
-          >
-            <Eye className="w-4 h-4" />
-            View Details
-          </button>
+          {/* Action Buttons */}
+          <div className="mt-3 space-y-2">
+            {/* Discover Suppliers Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDiscoverSuppliersFromCard(product);
+              }}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 px-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 text-sm flex items-center justify-center gap-2"
+            >
+              <Zap className="w-4 h-4" />
+              Discover Suppliers
+            </button>
+
+            {/* View Details Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewDetails(product);
+              }}
+              className="w-full bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              View Details
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1891,9 +1917,11 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
         <AmazonTrendsProductDetailsModal
           product={selectedProduct}
           isOpen={isDetailsModalOpen}
+          autoStartSupplierDiscovery={autoStartSupplierDiscovery}
           onClose={() => {
             setIsDetailsModalOpen(false);
             setSelectedProduct(null);
+            setAutoStartSupplierDiscovery(false);
           }}
         />
       )}

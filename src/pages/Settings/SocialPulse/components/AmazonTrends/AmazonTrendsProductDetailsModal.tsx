@@ -30,11 +30,12 @@ interface AmazonTrendsProductDetailsModalProps {
   product: AmazonTrendingProduct;
   isOpen: boolean;
   onClose: () => void;
+  autoStartSupplierDiscovery?: boolean;
 }
 
 type TabType = 'overview' | 'suppliers';
 
-const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalProps> = ({ product, isOpen, onClose }) => {
+const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery = false }) => {
   // Quota management for supplier discovery
   const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
 
@@ -55,6 +56,16 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
       setShowSaveModal(false);
     }
   }, [isOpen, product.asin]);
+
+  // Auto-start supplier discovery when modal opens with autoStartSupplierDiscovery flag
+  useEffect(() => {
+    if (isOpen && autoStartSupplierDiscovery && !isSupplierDiscoveryLoading && suppliers.length === 0) {
+      console.log('🚀 Auto-starting supplier discovery for Amazon product:', product.product_title);
+      setTimeout(() => {
+        handleDiscoverSuppliers();
+      }, 500);
+    }
+  }, [isOpen, autoStartSupplierDiscovery, product.asin]);
 
   // Product Details Query
   const {

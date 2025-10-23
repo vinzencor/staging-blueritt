@@ -321,6 +321,33 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     setCreativeCenterData(null);
   };
 
+  // Handle discover suppliers from product card - opens modal and starts discovery
+  const handleDiscoverSuppliersFromCard = async (product: any) => {
+    console.log('🚀 Starting discover suppliers from card for:', product.url_title);
+
+    // First open the modal with the product
+    handleViewDetails(product);
+
+    // Longer delay to ensure modal is fully open and state is properly set
+    setTimeout(async () => {
+      console.log('⚡ Triggering automatic supplier discovery...');
+      console.log('🔍 Selected product check:', selectedProduct?.url_title);
+      console.log('📊 Supplier quota check:', supplierQuotaDetails.quotaValue);
+      console.log('🔄 Loading state check:', isSupplierDiscoveryLoading);
+
+      // Double-check that we have the product set
+      if (!selectedProduct) {
+        console.log('❌ No selected product, retrying in 200ms...');
+        setTimeout(async () => {
+          await handleDiscoverSuppliers();
+        }, 200);
+      } else {
+        // Then trigger supplier discovery
+        await handleDiscoverSuppliers();
+      }
+    }, 500);
+  };
+
   const handleDiscoverSuppliers = async () => {
     if (isSupplierDiscoveryLoading) {
       console.log('Supplier discovery already in progress, ignoring click');
@@ -334,7 +361,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       return;
     }
 
-    console.log('🔍 Starting supplier discovery for:', selectedProduct.url_title);
+    console.log('🔍 Starting supplier discovery for:', selectedProduct?.url_title);
     setIsSupplierDiscoveryLoading(true);
     setActiveModalTab('suppliers');
 
@@ -724,8 +751,18 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
                     
 
-                    {/* View Details Button - Always at bottom */}
-                    <div className="mt-auto">
+                    {/* Action Buttons - Always at bottom */}
+                    <div className="mt-auto space-y-2">
+                      {/* Discover Suppliers Button */}
+                      <button
+                        onClick={() => handleDiscoverSuppliersFromCard(product)}
+                        className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 px-4 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                      >
+                        <Zap className="w-4 h-4" />
+                        Discover Suppliers
+                      </button>
+
+                      {/* View Details Button */}
                       <button
                         onClick={() => handleViewDetails(product)}
                         className="w-full bg-gradient-to-r from-[#0072D6] to-[#111c43] text-white py-2 px-4 rounded-lg hover:from-[#111c43] hover:to-[#0072D6] transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
