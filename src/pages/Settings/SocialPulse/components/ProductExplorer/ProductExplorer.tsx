@@ -75,6 +75,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const [localRootCategories, setLocalRootCategories] = useState<AmazonCategoryItem[]>([]);
   const [selectedLocalRootCategory, setSelectedLocalRootCategory] = useState<string>('');
   const [selectedLocalSubcategory, setSelectedLocalSubcategory] = useState<string>('');
+  const [selectedCategoryPath, setSelectedCategoryPath] = useState<string>(''); // Store full category path for display
 
   // Load local Amazon categories on mount
   React.useEffect(() => {
@@ -896,6 +897,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       setSelectedLocalRootCategory(e.target.value);
                       setSelectedLocalSubcategory(''); // Reset subcategory when main category changes
                       setSelectedCategoryId(''); // Reset category ID
+                      setSelectedCategoryPath(''); // Reset category path
                       setPage(1);
                       // Don't auto-fetch - wait for user to select subcategory and click Discover Products
                     }}
@@ -921,6 +923,13 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       onChange={(e) => {
                         setSelectedLocalSubcategory(e.target.value);
                         setSelectedCategoryId(e.target.value);
+
+                        // Build category path for display
+                        const mainCategoryName = localRootCategories.find(cat => cat.id === selectedLocalRootCategory)?.name || '';
+                        const subcategoryName = getSubcategories(selectedLocalRootCategory).find(sub => sub.id === e.target.value)?.name || '';
+                        const fullPath = mainCategoryName && subcategoryName ? `${mainCategoryName} > ${subcategoryName}` : '';
+                        setSelectedCategoryPath(fullPath);
+
                         setPage(1);
                         // Don't auto-fetch - wait for user to click Discover Products button
                       }}
@@ -976,13 +985,16 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               {selectedCategoryId && (
                 <div className="bg-orange-50 dark:bg-gray-800 border border-orange-200 dark:border-gray-700 rounded-lg p-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <span className="inline-flex items-center gap-1 bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 px-3 py-1 rounded-full text-xs font-semibold">
                         <span className="w-1.5 h-1.5 bg-orange-500 dark:bg-orange-400 rounded-full"></span>
                         Category Selected
                       </span>
                       <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                        {bestSellerCategories.find(cat => cat.category_path === selectedCategoryId)?.name || 'Selected Category'}
+                        {selectedCategoryPath || bestSellerCategories.find(cat => cat.category_path === selectedCategoryId)?.name || 'Selected Category'}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                        {countries.find(c => c.code === country)?.name || country}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                         {amazonTrendsTypes.find(type => type.value === selectedType)?.name}
@@ -991,6 +1003,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                     <button
                       onClick={() => {
                         setSelectedCategoryId('');
+                        setSelectedCategoryPath('');
                         setViewMode('best-sellers');
                         setPage(1);
                         refetchBestSellers();
@@ -1124,6 +1137,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                           onClick={() => {
                             setSelectedLocalRootCategory('');
                             setSelectedCategoryId('');
+                            setSelectedCategoryPath('');
                           }}
                           className="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm flex items-center gap-1"
                         >
@@ -1212,7 +1226,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         </svg>
                       </button>
                       <button
-                        onClick={() => setSelectedCategoryId('')}
+                        onClick={() => {
+                          setSelectedCategoryId('');
+                          setSelectedCategoryPath('');
+                        }}
                         className="w-8 h-8 bg-white/50 hover:bg-white/80 rounded-full flex items-center justify-center transition-colors group"
                         title="Clear selection"
                       >

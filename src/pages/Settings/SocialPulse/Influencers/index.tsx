@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, AlertCircle, Loader, X } from 'lucide-react';
+import { Users, AlertCircle, Loader, X, ExternalLink } from 'lucide-react';
 
 interface Influencer {
   influencer_name: string;
@@ -11,6 +11,7 @@ interface Influencer {
   verified?: boolean;
   profile_link?: string;
   profile_description?: string;
+  profile_image?: string;
   [key: string]: any;
 }
 
@@ -30,7 +31,7 @@ interface InfluencerPost {
   [key: string]: any;
 }
 
-// Manual influencer data
+// Complete manual influencer data with all 45 profiles
 const MANUAL_INFLUENCERS: Influencer[] = [
   {
     influencer_name: 'kylerichards18',
@@ -40,7 +41,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.2,
     bio: 'Lifestyle content creator sharing daily inspiration',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/kylerichards18'
+    profile_link: 'https://amazon.com/influencer/kylerichards18',
+    profile_image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'paige_desorbo',
@@ -50,7 +52,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.8,
     bio: 'Fashion & beauty enthusiast',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/paige_desorbo'
+    profile_link: 'https://amazon.com/influencer/paige_desorbo',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'jdroberto',
@@ -60,7 +63,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 5.1,
     bio: 'Tech reviewer and gadget lover',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/jdroberto'
+    profile_link: 'https://amazon.com/influencer/jdroberto',
+    profile_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'kandionline',
@@ -70,7 +74,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.5,
     bio: 'Home organization expert',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/kandionline'
+    profile_link: 'https://amazon.com/influencer/kandionline',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'makhondlovu',
@@ -80,7 +85,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 6.2,
     bio: 'Travel content creator exploring the world',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/makhondlovu'
+    profile_link: 'https://amazon.com/influencer/makhondlovu',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: '_giagiudice',
@@ -90,7 +96,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.8,
     bio: 'Foodie sharing delicious recipes',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/_giagiudice'
+    profile_link: 'https://amazon.com/influencer/_giagiudice',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'madison.lecroy',
@@ -100,7 +107,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.9,
     bio: 'Fashion influencer with southern charm',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/madison.lecroy'
+    profile_link: 'https://amazon.com/influencer/madison.lecroy',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'lalakent',
@@ -110,7 +118,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.3,
     bio: 'Mom life and parenting tips',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/lalakent'
+    profile_link: 'https://amazon.com/influencer/lalakent',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'harryjowsey',
@@ -120,7 +129,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 5.4,
     bio: 'Fitness and wellness coach',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/harryjowsey'
+    profile_link: 'https://amazon.com/influencer/harryjowsey',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'alix_earle',
@@ -130,7 +140,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 7.1,
     bio: 'Beauty guru and makeup artist',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/alix_earle'
+    profile_link: 'https://amazon.com/influencer/alix_earle',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'influencer-51db6fba',
@@ -140,7 +151,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.2,
     bio: 'Amazon product reviewer',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/influencer-51db6fba'
+    profile_link: 'https://amazon.com/influencer/influencer-51db6fba',
+    profile_image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'rockybarnes',
@@ -150,7 +162,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.9,
     bio: 'Adventure photographer',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/rockybarnes'
+    profile_link: 'https://amazon.com/influencer/rockybarnes',
+    profile_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'interiordesignerella',
@@ -160,7 +173,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.1,
     bio: 'Interior design expert',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/interiordesignerella'
+    profile_link: 'https://amazon.com/influencer/interiordesignerella',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'julianna_claire',
@@ -170,7 +184,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.7,
     bio: 'Lifestyle and fashion content',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/julianna_claire'
+    profile_link: 'https://amazon.com/influencer/julianna_claire',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'aspynovard',
@@ -180,7 +195,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 5.6,
     bio: 'Beauty and lifestyle creator',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/aspynovard'
+    profile_link: 'https://amazon.com/influencer/aspynovard',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'teresalaucar',
@@ -190,7 +206,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.4,
     bio: 'Fashion stylist and consultant',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/teresalaucar'
+    profile_link: 'https://amazon.com/influencer/teresalaucar',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'the_broadmoor_house',
@@ -200,7 +217,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.5,
     bio: 'Home renovation journey',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/the_broadmoor_house'
+    profile_link: 'https://amazon.com/influencer/the_broadmoor_house',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'sweetsavingsandthings',
@@ -210,7 +228,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.7,
     bio: 'Budget-friendly finds and deals',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/sweetsavingsandthings'
+    profile_link: 'https://amazon.com/influencer/sweetsavingsandthings',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'ourwintonhome',
@@ -220,7 +239,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.8,
     bio: 'Family life and home decor',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/ourwintonhome'
+    profile_link: 'https://amazon.com/influencer/ourwintonhome',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'thesweetimpact',
@@ -230,7 +250,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.2,
     bio: 'Positive lifestyle content',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/thesweetimpact'
+    profile_link: 'https://amazon.com/influencer/thesweetimpact',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'arinsolange',
@@ -240,7 +261,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 5.0,
     bio: 'Beauty and skincare expert',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/arinsolange'
+    profile_link: 'https://amazon.com/influencer/arinsolange',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'alliephunter',
@@ -250,7 +272,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.9,
     bio: 'Fashion and travel content',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/alliephunter'
+    profile_link: 'https://amazon.com/influencer/alliephunter',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'everything.envy',
@@ -260,7 +283,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.6,
     bio: 'Luxury lifestyle and fashion',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/everything.envy'
+    profile_link: 'https://amazon.com/influencer/everything.envy',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'tiffanyallison7',
@@ -270,7 +294,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.0,
     bio: 'Mom blogger and product reviewer',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/tiffanyallison7'
+    profile_link: 'https://amazon.com/influencer/tiffanyallison7',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'thebargainsisters',
@@ -280,7 +305,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 5.3,
     bio: 'Sisters sharing the best deals',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/thebargainsisters'
+    profile_link: 'https://amazon.com/influencer/thebargainsisters',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'clickandlove',
@@ -290,7 +316,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.4,
     bio: 'Amazon finds and recommendations',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/clickandlove'
+    profile_link: 'https://amazon.com/influencer/clickandlove',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'ironmom40',
@@ -300,7 +327,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.3,
     bio: 'Fitness mom and health coach',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/ironmom40'
+    profile_link: 'https://amazon.com/influencer/ironmom40',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'everyday.holly',
@@ -310,7 +338,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.7,
     bio: 'Everyday lifestyle content',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/everyday.holly'
+    profile_link: 'https://amazon.com/influencer/everyday.holly',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'kristen.niblett',
@@ -320,7 +349,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.8,
     bio: 'Beauty and makeup tutorials',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/kristen.niblett'
+    profile_link: 'https://amazon.com/influencer/kristen.niblett',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'balkanina',
@@ -330,7 +360,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.1,
     bio: 'Cultural content and recipes',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/balkanina'
+    profile_link: 'https://amazon.com/influencer/balkanina',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'heidisnipes',
@@ -340,7 +371,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.8,
     bio: 'Home organization expert',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/heidisnipes'
+    profile_link: 'https://amazon.com/influencer/heidisnipes',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'tourdelust',
@@ -350,7 +382,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 5.2,
     bio: 'Travel guides and adventures',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/tourdelust'
+    profile_link: 'https://amazon.com/influencer/tourdelust',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'kirasfashionfinds',
@@ -360,7 +393,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.7,
     bio: 'Affordable fashion finds',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/kirasfashionfinds'
+    profile_link: 'https://amazon.com/influencer/kirasfashionfinds',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'shopdandy',
@@ -370,7 +404,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.0,
     bio: 'Shopping recommendations',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/shopdandy'
+    profile_link: 'https://amazon.com/influencer/shopdandy',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'maryamishtiaq',
@@ -380,7 +415,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.9,
     bio: 'Beauty and lifestyle content',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/maryamishtiaq'
+    profile_link: 'https://amazon.com/influencer/maryamishtiaq',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'livinstyleinsta',
@@ -390,7 +426,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.6,
     bio: 'Style inspiration daily',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/livinstyleinsta'
+    profile_link: 'https://amazon.com/influencer/livinstyleinsta',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'meimonstaa',
@@ -400,7 +437,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.4,
     bio: 'Creative content and art',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/meimonstaa'
+    profile_link: 'https://amazon.com/influencer/meimonstaa',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'mikaylavallati',
@@ -410,7 +448,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.8,
     bio: 'Food and recipe creator',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/mikaylavallati'
+    profile_link: 'https://amazon.com/influencer/mikaylavallati',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'homesweetpink',
@@ -420,7 +459,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.9,
     bio: 'Pink-themed home decor',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/homesweetpink'
+    profile_link: 'https://amazon.com/influencer/homesweetpink',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'theparentgame',
@@ -430,7 +470,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 5.1,
     bio: 'Parenting tips and tricks',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/theparentgame'
+    profile_link: 'https://amazon.com/influencer/theparentgame',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'michellelei',
@@ -440,7 +481,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.2,
     bio: 'Lifestyle and fashion',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/michellelei'
+    profile_link: 'https://amazon.com/influencer/michellelei',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'xojalonda',
@@ -450,7 +492,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.6,
     bio: 'Beauty and self-care',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/xojalonda'
+    profile_link: 'https://amazon.com/influencer/xojalonda',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'playroominspo',
@@ -460,7 +503,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.3,
     bio: 'Kids room inspiration',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/playroominspo'
+    profile_link: 'https://amazon.com/influencer/playroominspo',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'just.jacsy',
@@ -470,7 +514,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.0,
     bio: 'Minimalist lifestyle',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/just.jacsy'
+    profile_link: 'https://amazon.com/influencer/just.jacsy',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'thedealparty',
@@ -480,7 +525,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.9,
     bio: 'Daily deals and discounts',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/thedealparty'
+    profile_link: 'https://amazon.com/influencer/thedealparty',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'frankietavares',
@@ -490,7 +536,8 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 4.3,
     bio: 'Fitness and nutrition',
     verified: true,
-    profile_link: 'https://amazon.com/influencer/frankietavares'
+    profile_link: 'https://amazon.com/influencer/frankietavares',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
   },
   {
     influencer_name: 'influencer-cb2630cb',
@@ -500,11 +547,12 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     engagement_rate: 3.1,
     bio: 'Product reviews and testing',
     verified: false,
-    profile_link: 'https://amazon.com/influencer/influencer-cb2630cb'
+    profile_link: 'https://amazon.com/influencer/influencer-cb2630cb',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
   }
 ];
 
-// Posts Modal Component
+// Posts Modal Component (same as before)
 interface PostsModalProps {
   isOpen: boolean;
   influencerName: string;
@@ -580,132 +628,186 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-            Posts by {influencerName}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+  <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    {/* Header */}
+    <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+        Posts by {influencerName}
+      </h2>
+      <button
+        onClick={onClose}
+        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+      >
+        <X className="w-6 h-6" />
+      </button>
+    </div>
 
-        {/* Content */}
-        <div className="p-4">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <Loader className="w-6 h-6 animate-spin text-purple-600 mb-2" />
-              <p className="text-sm text-gray-600 dark:text-gray-400">Loading posts...</p>
-            </div>
-          ) : error ? (
-            <div className="flex items-start gap-3 text-orange-600 text-sm p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium">{error}</p>
-                <p className="text-xs mt-1 opacity-75">Influencer: {influencerName}</p>
-              </div>
-            </div>
-          ) : posts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {posts.map((post, index) => (
-                <div
-                  key={post.post_id || index}
-                  className="bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  {/* Post Image/Thumbnail */}
-                  {(post.post_thumbnail || post.image_url || post.image) && (
-                    <div className="w-full h-40 bg-gray-200 dark:bg-gray-600 overflow-hidden">
+    {/* Content */}
+    <div className="p-4">
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-8">
+          <Loader className="w-6 h-6 animate-spin text-purple-600 mb-2" />
+          <p className="text-sm text-gray-600 dark:text-gray-400">Loading posts...</p>
+        </div>
+      ) : error ? (
+        <div className="flex items-start gap-3 text-orange-600 text-sm p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium">{error}</p>
+            <p className="text-xs mt-1 opacity-75">Influencer: {influencerName}</p>
+          </div>
+        </div>
+      ) : posts.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
+          {posts.map((post, index) => (
+            <div
+              key={post.post_id || index}
+              className="bg-white h-[294px] dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md transition-shadow flex flex-col"
+            >
+              {/* Image and Content Side by Side */}
+              <div className="flex flex-1 justify-center items-center">
+                {/* Post Image/Thumbnail */}
+                {(post.post_thumbnail || post.image_url || post.image) && (
+                  <div className="w-1/3 flex-shrink-0">
+                    <div className="h-full bg-gray-200 dark:bg-gray-600 overflow-hidden">
                       <img
                         src={post.post_thumbnail || post.image_url || post.image}
                         alt={post.post_title || 'Post'}
-                        className="w-full h-full object-cover"
+                        className="w-full h-[215px] object-cover p-2"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
                     </div>
+                  </div>
+                )}
+
+                {/* Post Info */}
+                <div className="flex-1 p-4 flex flex-col">
+                  {/* Post Type Badge */}
+                  {post.post_type && (
+                    <div className="mb-2">
+                      <span className="inline-block bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs px-2 py-1 rounded">
+                        {post.post_type}
+                      </span>
+                    </div>
                   )}
 
-                  {/* Post Info */}
-                  <div className="p-3">
-                    {/* Post Type Badge */}
-                    {post.post_type && (
-                      <div className="mb-2">
-                        <span className="inline-block bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs px-2 py-1 rounded">
-                          {post.post_type}
-                        </span>
-                      </div>
+                  {(post.post_title || post.title) && (
+                    <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
+                      {post.post_title || post.title}
+                    </h3>
+                  )}
+
+                  {(post.post_description || post.description) && (
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-3 flex-1">
+                      {post.post_description || post.description}
+                    </p>
+                  )}
+
+                  {/* Stats */}
+                  <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
+                    {(post.likes_count || post.likes) && (
+                      <span className="flex items-center gap-1">
+                        <span>❤️</span>
+                        <span>{post.likes_count || post.likes}</span>
+                      </span>
                     )}
-
-                    {(post.post_title || post.title) && (
-                      <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
-                        {post.post_title || post.title}
-                      </h3>
+                    {(post.comments_count || post.comments) && (
+                      <span className="flex items-center gap-1">
+                        <span>💬</span>
+                        <span>{post.comments_count || post.comments}</span>
+                      </span>
                     )}
-
-                    {(post.post_description || post.description) && (
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
-                        {post.post_description || post.description}
-                      </p>
+                    {post.video_duration && (
+                      <span className="flex items-center gap-1">
+                        <span>⏱️</span>
+                        <span>{post.video_duration}</span>
+                      </span>
                     )}
-
-                    {/* Stats */}
-                    <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400 mb-2">
-                      {(post.likes_count || post.likes) && (
-                        <span>❤️ {post.likes_count || post.likes}</span>
-                      )}
-                      {(post.comments_count || post.comments) && (
-                        <span>💬 {post.comments_count || post.comments}</span>
-                      )}
-                      {post.video_duration && (
-                        <span>⏱️ {post.video_duration}</span>
-                      )}
-                      {post.list_items_count && (
-                        <span>📋 {post.list_items_count} items</span>
-                      )}
-                      {post.is_pinned && (
-                        <span>📌 Pinned</span>
-                      )}
-                    </div>
-
-                    {/* View Post Link */}
-                    {(post.post_url || post.url) && (
-                      <a
-                        href={post.post_url || post.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block mt-2 text-xs text-purple-600 dark:text-purple-400 hover:underline font-medium"
-                      >
-                        View Post →
-                      </a>
+                    {post.list_items_count && (
+                      <span className="flex items-center gap-1">
+                        <span>📋</span>
+                        <span>{post.list_items_count} items</span>
+                      </span>
+                    )}
+                    {post.is_pinned && (
+                      <span className="flex items-center gap-1">
+                        <span>📌</span>
+                        <span>Pinned</span>
+                      </span>
                     )}
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* View Post Button - Full width at bottom */}
+              {(post.post_url || post.url) && (
+                <div className="border-t border-gray-200 dark:border-gray-600">
+                  <a
+                    href={post.post_url || post.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#ffa41c] hover:bg-[#e59419] text-white text-center py-3 px-4 block text-sm font-medium transition-colors duration-200"
+                  >
+                    View Post
+                  </a>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">No posts available</p>
-            </div>
-          )}
+          ))}
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center mb-4">
+            <AlertCircle className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            No posts found
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 max-w-md">
+            No posts available for {influencerName}. This influencer might not have any public posts or there might be an issue with the data source.
+          </p>
+        </div>
+      )}
     </div>
+  </div>
+</div>
   );
 };
 
 const InfluencersPage: React.FC = () => {
-  const [influencers] = useState<Influencer[]>(MANUAL_INFLUENCERS);
+  const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInfluencer, setSelectedInfluencer] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch influencer data with profile images
+  useEffect(() => {
+    const fetchInfluencerData = async () => {
+      setIsLoading(true);
+      try {
+        const influencersWithImages = MANUAL_INFLUENCERS.map(influencer => ({
+          ...influencer,
+          profile_image: influencer.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(influencer.influencer_name)}&background=random&size=150`
+        }));
+
+        setInfluencers(influencersWithImages);
+      } catch (error) {
+        console.error('Error fetching influencer data:', error);
+        setInfluencers(MANUAL_INFLUENCERS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInfluencerData();
+  }, []);
 
   // Filter influencers based on search
   const filteredInfluencers = influencers.filter((inf) =>
-    inf.influencer_name.toLowerCase().includes(searchQuery.toLowerCase())
+    inf.influencer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    inf.bio?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -729,7 +831,7 @@ const InfluencersPage: React.FC = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search influencers by name..."
+              placeholder="Search influencers by name or bio..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
@@ -737,41 +839,99 @@ const InfluencersPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-12">
+            <Loader className="w-8 h-8 animate-spin text-purple-600" />
+          </div>
+        )}
+
         {/* Influencers Grid */}
-        {filteredInfluencers.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {!isLoading && filteredInfluencers.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredInfluencers.map((influencer) => (
               <div
                 key={influencer.influencer_name}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col"
               >
-                {/* Header with Avatar */}
-                <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 p-6 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full mx-auto mb-4 flex items-center justify-center text-white font-bold text-2xl">
-                    {influencer.influencer_name?.charAt(0).toUpperCase() || 'I'}
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">{influencer.influencer_name}</h3>
-      
-                </div>
-
-                {/* Action Button */}
-                <div className="px-6 pb-6 space-y-2">
-                  <button
-                    onClick={() => setSelectedInfluencer(influencer.influencer_name)}
-                    className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-sm"
-                  >
-                    View Posts
-                  </button>
-                  {influencer.profile_link && (
+                {/* Profile Header */}
+                <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="relative mb-3">
+                      <img
+                        src={influencer.profile_image}
+                        alt={influencer.influencer_name}
+                        className="w-20 h-20 rounded-full object-cover border-2 border-white dark:border-gray-800 shadow-sm"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(influencer.influencer_name)}&background=random&size=150`;
+                        }}
+                      />
+                      {influencer.verified && (
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 mb-1">
+                      <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                        {influencer.influencer_name}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      {influencer.followers || 'N/A'} followers
+                    </p>
                     <a
                       href={influencer.profile_link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block w-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 font-medium text-sm text-center"
+                      className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
                     >
-                      View Profile
+                      <ExternalLink className="w-4 h-4" />
                     </a>
-                  )}
+                  </div>
+                </div>
+
+                {/* Bio */}
+                <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 text-center leading-relaxed">
+                    {influencer.bio || 'No bio available'}
+                  </p>
+                </div>
+
+                {/* Stats */}
+                <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">
+                        {influencer.post_count || 'N/A'}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Posts</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">
+                        {influencer.following || 'N/A'}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Following</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">
+                        {influencer.engagement_rate ? `${influencer.engagement_rate}%` : 'N/A'}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Engagement</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Button */}
+                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 mt-auto">
+                  <button
+                    onClick={() => setSelectedInfluencer(influencer.influencer_name)}
+                    className="w-full bg-[#ffa41c] hover:bg-[#e59419] text-white py-3 px-4 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm"
+                  >
+                    View Posts
+                  </button>
                 </div>
               </div>
             ))}
@@ -779,7 +939,7 @@ const InfluencersPage: React.FC = () => {
         )}
 
         {/* Empty State */}
-        {filteredInfluencers.length === 0 && (
+        {!isLoading && filteredInfluencers.length === 0 && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
