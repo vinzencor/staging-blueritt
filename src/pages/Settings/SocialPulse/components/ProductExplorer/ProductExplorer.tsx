@@ -889,7 +889,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 {/* Main Category Dropdown */}
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                    New Category
+                    Category
                   </label>
                   <select
                     value={selectedLocalRootCategory}
@@ -950,7 +950,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               <div className="flex justify-center mt-4">
                 <button
                   onClick={handleDiscoverProducts}
-                  disabled={bestSellersLoading || directCategoryProductsLoading}
+                  disabled={bestSellersLoading || directCategoryProductsLoading || !selectedLocalSubcategory}
                   className="bg-gradient-to-r from-[#ffa41c] to-[#ff6201] dark:bg-orange-600 text-white py-3 px-6 rounded-lg hover:from-[#ffa41c] hover:to-[#ff6201] dark:hover:bg-orange-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Package className="w-4 h-4" />
