@@ -489,7 +489,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-[#0072D6]" />
-          Blueritt TikTok Trends
+          Blueritt - TikTok Trends
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
           Discover trending products from TikTok Creative Center API
@@ -703,7 +703,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
         <div className="lg:col-span-2">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Trending Products
+              Top Tiktok Trending Products
             </h2>
 
         {/* Loading State */}
@@ -742,7 +742,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
         {tiktokData?.data?.list && tiktokData.data.list.length > 0 && !tiktokLoading && (
           <div className="space-y-6">
             {/* Results Summary */}
-            <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg p-4 border border-pink-100 dark:border-pink-700">
+            {/* <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg p-4 border border-pink-100 dark:border-pink-700">
               <h3 className="font-semibold text-gray-900 dark:text-white">
                 Found {tiktokData.data.list.length} trending products
               </h3>
@@ -752,7 +752,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                 <p>Sort: {SORT_OPTIONS.find(s => s.value === selectedSortBy)?.label} ({selectedSortOrder})</p>
                 {searchKeyword && <p>Keyword: {searchKeyword}</p>}
               </div>
-            </div>
+            </div> */}
 
             {/* Products Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
