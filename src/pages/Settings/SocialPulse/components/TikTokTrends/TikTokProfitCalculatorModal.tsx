@@ -441,9 +441,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
         data: {
           asin: product.id || 'tiktok_product',
           product_title: product.title || 'TikTok Product',
-          product_price: typeof product.price === 'number'
-            ? `$${product.price.toFixed(2)}`
-            : (product.price || '$0.00'),
+          product_price: product.price || '$0.00',
           product_photo: product.image_url || '',
           product_star_rating: product.rating || 0,
           product_num_ratings: product.review_count || 0,

@@ -414,7 +414,7 @@ const parsePrice = (
 
   if (currencySymbol) {
     // Handle numeric prices (convert to string with currency symbol)
-    let priceStr = price;
+    let priceStr: string | null = price as string | null;
     if (typeof price === 'number') {
       priceStr = `${currencySymbol}${price.toFixed(2)}`;
     }
