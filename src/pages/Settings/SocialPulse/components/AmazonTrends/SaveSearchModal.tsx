@@ -128,6 +128,8 @@ const SaveSearchModal: React.FC<SaveSearchModalProps> = ({
           is_best_seller: product.is_best_seller,
           climate_pledge_friendly: product.climate_pledge_friendly,
           country: 'US', // Default country for Amazon products
+          seller_name: 'Amazon.com',
+          seller_country: 'US',
         },
         parameters: {
           country: 'US',

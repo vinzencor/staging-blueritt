@@ -769,79 +769,79 @@ const ProProfitPro = () => {
 
         // Product Sourcing Cost -> psc
         psc_manufacturingCost:
-          parseFloat(data.sourcing_cost.manufacturing_cost) || 0,
-        psc_shippingCost: parseFloat(data.sourcing_cost.shipping_cost) || 0,
-        psc_productLogoCost: parseFloat(data.sourcing_cost.logo_box_cost) || 0,
-        psc_orderQuantity: parseFloat(data.sourcing_cost.order_quantity) || 0,
-        psc_miscCost: parseFloat(data.sourcing_cost.miscellaneous_cost) || 0,
-        psc_perUnitCost: parseFloat(data.sourcing_cost.cost_per_unit) || 0,
-        psc_totalCost: parseFloat(data.sourcing_cost.total) || 0,
+          parseFloat(data.sourcing_cost?.manufacturing_cost) || 0,
+        psc_shippingCost: parseFloat(data.sourcing_cost?.shipping_cost) || 0,
+        psc_productLogoCost: parseFloat(data.sourcing_cost?.logo_box_cost) || 0,
+        psc_orderQuantity: parseFloat(data.sourcing_cost?.order_quantity) || 0,
+        psc_miscCost: parseFloat(data.sourcing_cost?.miscellaneous_cost) || 0,
+        psc_perUnitCost: parseFloat(data.sourcing_cost?.cost_per_unit) || 0,
+        psc_totalCost: parseFloat(data.sourcing_cost?.total) || 0,
 
         // Fulfillment model -> fm
-        fm_model: data.fulfillment.fulfillment_type || "FBA",
-        fm_referrfalFees: parseFloat(data.fulfillment.referral_fees) || 0,
+        fm_model: data.fulfillment?.fulfillment_type || "FBA",
+        fm_referrfalFees: parseFloat(data.fulfillment?.referral_fees) || 0,
         fm_fbaFulfillmentFees:
-          parseFloat(data.fulfillment.fba_fulfillment_fees) || 0,
+          parseFloat(data.fulfillment?.fba_fulfillment_fees) || 0,
         fm_monthlyStorageFees:
-          parseFloat(data.fulfillment.monthly_storage_fees) || 0,
+          parseFloat(data.fulfillment?.monthly_storage_fees) || 0,
         fm_longTermStorageFees:
-          parseFloat(data.fulfillment.long_term_storage_fees) || 0,
+          parseFloat(data.fulfillment?.long_term_storage_fees) || 0,
         fm_inboundShippingCost:
-          parseFloat(data.fulfillment.inbound_shipping_cost) || 0,
-        fm_returnsRate: parseFloat(data.fulfillment.returns_refunds_rate) || 0,
+          parseFloat(data.fulfillment?.inbound_shipping_cost) || 0,
+        fm_returnsRate: parseFloat(data.fulfillment?.returns_refunds_rate) || 0,
 
-        fm_shippingFees: parseFloat(data.fulfillment.shipping_fee) || 0,
-        fm_handlingCost: parseFloat(data.fulfillment.handling_cost) || 0,
-        fm_storageCost: parseFloat(data.fulfillment.storage_cost) || 0,
-        fm_miscCost: parseFloat(data.fulfillment.miscellaneous_cost) || 0,
-        fm_perUnitCost: parseFloat(data.fulfillment.cost_per_unit) || 0,
-        fm_totalCost: parseFloat(data.fulfillment.total) || 0,
+        fm_shippingFees: parseFloat(data.fulfillment?.shipping_fee) || 0,
+        fm_handlingCost: parseFloat(data.fulfillment?.handling_cost) || 0,
+        fm_storageCost: parseFloat(data.fulfillment?.storage_cost) || 0,
+        fm_miscCost: parseFloat(data.fulfillment?.miscellaneous_cost) || 0,
+        fm_perUnitCost: parseFloat(data.fulfillment?.cost_per_unit) || 0,
+        fm_totalCost: parseFloat(data.fulfillment?.total) || 0,
 
         // Marketing, Advertisement and Ranking Cost -> marc
-        marc_marketingCost: parseFloat(data.marketing.ppc_costs) || 0,
-        marc_attributionCost: parseFloat(data.marketing.attribution_costs) || 0,
+        marc_marketingCost: parseFloat(data.marketing?.ppc_costs) || 0,
+        marc_attributionCost: parseFloat(data.marketing?.attribution_costs) || 0,
         marc_influencerCost:
-          parseFloat(data.marketing.influencer_promotion_costs) || 0,
-        marc_miscCost: parseFloat(data.marketing.miscellaneous_cost) || 0,
-        marc_marketingVATCost: parseFloat(data.marketing.ppc_vat_costs) || 0,
-        marc_totalCost: parseFloat(data.marketing.total) || 0,
-        marc_perUnitCost: parseFloat(data.marketing.cost_per_unit) || 0,
+          parseFloat(data.marketing?.influencer_promotion_costs) || 0,
+        marc_miscCost: parseFloat(data.marketing?.miscellaneous_cost) || 0,
+        marc_marketingVATCost: parseFloat(data.marketing?.ppc_vat_costs) || 0,
+        marc_totalCost: parseFloat(data.marketing?.total) || 0,
+        marc_perUnitCost: parseFloat(data.marketing?.cost_per_unit) || 0,
 
         // Taxes
-        tax_region: data.taxes.region || "",
-        tax_VAT: parseFloat(data.taxes.vat) || 0,
-        tax_GST: parseFloat(data.taxes.gst) || 0,
-        tax_salesTax: parseFloat(data.taxes.sales_tax) || 0,
-        tax_miscCost: parseFloat(data.taxes.miscellaneous_cost) || 0,
-        tax_perUnitCost: parseFloat(data.taxes.total_taxes_unit) || 0,
-        tax_totalCost: parseFloat(data.taxes.total_taxes_qty) || 0,
+        tax_region: data.taxes?.region || "",
+        tax_VAT: parseFloat(data.taxes?.vat) || 0,
+        tax_GST: parseFloat(data.taxes?.gst) || 0,
+        tax_salesTax: parseFloat(data.taxes?.sales_tax) || 0,
+        tax_miscCost: parseFloat(data.taxes?.miscellaneous_cost) || 0,
+        tax_perUnitCost: parseFloat(data.taxes?.total_taxes_unit) || 0,
+        tax_totalCost: parseFloat(data.taxes?.total_taxes_qty) || 0,
 
         // Graphics Cost -> gc
         gc_imagingAndPhotographyCost:
-          parseFloat(data.graphics.imaging_photography) || 0,
-        gc_videographyCost: parseFloat(data.graphics.videography_cost) || 0,
+          parseFloat(data.graphics?.imaging_photography) || 0,
+        gc_videographyCost: parseFloat(data.graphics?.videography_cost) || 0,
         gc_productPackingCost:
-          parseFloat(data.graphics.product_packaging_cost) || 0,
-        gc_3dAnimationCost: parseFloat(data.graphics.animation_cost) || 0,
-        gc_miscCost: parseFloat(data.graphics.miscellaneous_cost) || 0,
-        gc_totalCost: parseFloat(data.graphics.total) || 0,
-        gc_perUnitCost: parseFloat(data.graphics.cost_per_unit) || 0,
+          parseFloat(data.graphics?.product_packaging_cost) || 0,
+        gc_3dAnimationCost: parseFloat(data.graphics?.animation_cost) || 0,
+        gc_miscCost: parseFloat(data.graphics?.miscellaneous_cost) || 0,
+        gc_totalCost: parseFloat(data.graphics?.total) || 0,
+        gc_perUnitCost: parseFloat(data.graphics?.cost_per_unit) || 0,
 
         // Product Feedback Cost -> pfc
-        pfc_vineProgramCost: parseFloat(data.vine_misc.vine_program) || 0,
-        pfc_miscCost: parseFloat(data.vine_misc.miscellaneous_cost) || 0,
-        pfc_totalCost: parseFloat(data.vine_misc.total) || 0,
-        pfc_perUnitCost: parseFloat(data.vine_misc.cost_per_unit) || 0,
+        pfc_vineProgramCost: parseFloat(data.vine_misc?.vine_program) || 0,
+        pfc_miscCost: parseFloat(data.vine_misc?.miscellaneous_cost) || 0,
+        pfc_totalCost: parseFloat(data.vine_misc?.total) || 0,
+        pfc_perUnitCost: parseFloat(data.vine_misc?.cost_per_unit) || 0,
 
         // Other costs -> oc
         oc_competitorProductSamples:
-          parseFloat(data.other_costs.competitor_samples) || 0,
+          parseFloat(data.other_costs?.competitor_samples) || 0,
         oc_preLaunchSamples:
-          parseFloat(data.other_costs.pre_launch_samples) || 0,
-        oc_employeesCost: parseFloat(data.other_costs.employee_cost) || 0,
-        oc_anyOtherCost: parseFloat(data.other_costs.other_cost) || 0,
-        oc_totalCost: parseFloat(data.other_costs.total) || 0,
-        oc_perUnitCost: parseFloat(data.other_costs.cost_per_unit) || 0,
+          parseFloat(data.other_costs?.pre_launch_samples) || 0,
+        oc_employeesCost: parseFloat(data.other_costs?.employee_cost) || 0,
+        oc_anyOtherCost: parseFloat(data.other_costs?.other_cost) || 0,
+        oc_totalCost: parseFloat(data.other_costs?.total) || 0,
+        oc_perUnitCost: parseFloat(data.other_costs?.cost_per_unit) || 0,
       };
     }
   };

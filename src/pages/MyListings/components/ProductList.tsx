@@ -351,31 +351,39 @@ const ProductList: React.FC<ProductListProps> = ({
                 />
 
                 {/* Display profit information if available */}
-                {(product.gross_profit || product.net_profit || product.total_revenue) && (
-                  <div className="p-4 bg-green-50 border-t">
-                    <h4 className="font-semibold text-gray-900 mb-3">Profit Information</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      {product.total_revenue && (
-                        <div>
-                          <p className="text-gray-600">Total Revenue</p>
-                          <p className="font-semibold text-green-600">${parseFloat(product.total_revenue as any).toFixed(2)}</p>
-                        </div>
-                      )}
-                      {product.gross_profit && (
-                        <div>
-                          <p className="text-gray-600">Gross Profit</p>
-                          <p className="font-semibold text-blue-600">${parseFloat(product.gross_profit as any).toFixed(2)}</p>
-                        </div>
-                      )}
-                      {product.net_profit && (
-                        <div>
-                          <p className="text-gray-600">Net Profit</p>
-                          <p className="font-semibold text-purple-600">${parseFloat(product.net_profit as any).toFixed(2)}</p>
-                        </div>
-                      )}
+                {(() => {
+                  // Check for profit data from product fields or calculation_data
+                  const calcData = product.amazon_product?.calculation_data;
+                  const totalRevenue = product.total_revenue || calcData?.pi_totalRevenue;
+                  const grossProfit = product.gross_profit || calcData?.grossProfit;
+                  const netProfit = product.net_profit || calcData?.netProfit;
+
+                  return (totalRevenue || grossProfit || netProfit) ? (
+                    <div className="p-4 bg-green-50 border-t">
+                      <h4 className="font-semibold text-gray-900 mb-3">Profit Information</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        {totalRevenue && (
+                          <div>
+                            <p className="text-gray-600">Total Revenue</p>
+                            <p className="font-semibold text-green-600">${parseFloat(totalRevenue as any).toFixed(2)}</p>
+                          </div>
+                        )}
+                        {grossProfit && (
+                          <div>
+                            <p className="text-gray-600">Gross Profit</p>
+                            <p className="font-semibold text-blue-600">${parseFloat(grossProfit as any).toFixed(2)}</p>
+                          </div>
+                        )}
+                        {netProfit && (
+                          <div>
+                            <p className="text-gray-600">Net Profit</p>
+                            <p className="font-semibold text-purple-600">${parseFloat(netProfit as any).toFixed(2)}</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  ) : null;
+                })()}
               </div>
 
               {/* Seller/Supplier Info - Show seller info for Amazon/TikTok or Alibaba supplier */}

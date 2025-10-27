@@ -174,7 +174,11 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
           ships_from: product.country || 'US',
           seller_link: product.video_url || 'https://tiktok.com',
           delivery_price: product.free_shipping ? 'Free Shipping' : 'Standard Shipping',
-          delivery_time: 'Standard Delivery'
+          delivery_time: 'Standard Delivery',
+          product_price: formattedPrice,
+          product_original_price: formattedPrice,
+          product_condition: 'New',
+          currency: 'USD'
         },
         source: 'tiktok_trends',
         saved_at: new Date().toISOString(),
