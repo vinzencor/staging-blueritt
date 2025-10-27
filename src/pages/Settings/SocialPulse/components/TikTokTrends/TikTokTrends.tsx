@@ -690,7 +690,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             ) : (
               <>
                 <CheckCircle className="w-5 h-5" />
-                Done - Get Trending Products
+                Discover Trending Products
               </>
             )}
           </button>
