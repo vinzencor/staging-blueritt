@@ -489,7 +489,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-[#0072D6]" />
-          TikTok Trends
+          Blueritt TikTok Trends
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
           Discover trending products from TikTok Creative Center API
