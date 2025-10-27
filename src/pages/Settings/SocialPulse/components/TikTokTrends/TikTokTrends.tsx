@@ -1277,7 +1277,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                 <span className="font-medium">CTR</span>
                               </div>
                               <span className="font-semibold text-gray-900 dark:text-white">
-                                {selectedProduct.ctr}%
+                                {selectedProduct.ctr}
                               </span>
                             </div>
                           )}
@@ -1288,7 +1288,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                 <span className="font-medium">CVR</span>
                               </div>
                               <span className="font-semibold text-gray-900 dark:text-white">
-                                {selectedProduct.cvr}%
+                                {selectedProduct.cvr}
                               </span>
                             </div>
                           )}
@@ -1299,7 +1299,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                 <span className="font-medium">CPA</span>
                               </div>
                               <span className="font-semibold text-gray-900 dark:text-white">
-                                ${selectedProduct.cpa}
+                                {selectedProduct.cpa}
                               </span>
                             </div>
                           )}
@@ -1310,7 +1310,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                 <span className="font-medium">Total Ad Spend</span>
                               </div>
                               <span className="font-semibold text-gray-900 dark:text-white">
-                                ${selectedProduct.cost}
+                                {selectedProduct.cost}
                               </span>
                             </div>
                           )}
@@ -1321,7 +1321,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                 <span className="font-medium">6s View Rate</span>
                               </div>
                               <span className="font-semibold text-gray-900 dark:text-white">
-                                {selectedProduct.play_six_rate}%
+                                {selectedProduct.play_six_rate}
                               </span>
                             </div>
                           )}
