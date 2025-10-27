@@ -819,15 +819,15 @@ const InfluencersPage: React.FC = () => {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center">
               <Users className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Amazon Influencers</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Influencers Link</h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
-            Discover and analyze top Amazon influencers
+            Discover and analyze top influencers
           </p>
         </div>
 
         {/* Search */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+        {/* <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
           <div className="relative">
             <input
               type="text"
@@ -837,7 +837,7 @@ const InfluencersPage: React.FC = () => {
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Loading State */}
         {isLoading && (

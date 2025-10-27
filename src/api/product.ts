@@ -405,7 +405,7 @@ const Currencies = {
 };
 
 const parsePrice = (
-  price: string | null,
+  price: string | null | number,
   searchCountry: string
 ): { value: number; currency: string } => {
   const regionCurrencies: RegionCurrencyMap = Currencies;
@@ -413,8 +413,14 @@ const parsePrice = (
   const currencySymbol = regionCurrencies[searchCountry];
 
   if (currencySymbol) {
+    // Handle numeric prices (convert to string with currency symbol)
+    let priceStr = price;
+    if (typeof price === 'number') {
+      priceStr = `${currencySymbol}${price.toFixed(2)}`;
+    }
+
     // Remove currency symbol and any spaces
-    const cleanedPrice = handleDifferentPriceFormats(price, currencySymbol);
+    const cleanedPrice = handleDifferentPriceFormats(priceStr, currencySymbol);
 
     const value = parseFloat(cleanedPrice);
 

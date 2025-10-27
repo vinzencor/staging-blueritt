@@ -10,14 +10,16 @@ type TProduct = {
   name: string;
   description: string;
   selling_price: string;
-  gross_profit?: number;
-  net_profit?: number;
+  gross_profit?: number | string;
+  net_profit?: number | string;
+  total_revenue?: number | string;
   percentage_gross_profit?: number;
   percentage_net_profit?: number;
   created_at?: string;
   modified_at?: string;
   amazon_product?: any;
   alibaba_product?: TAlibabaProduct;
+  supplier_info?: any;
 };
 
 type TCategoryDetail = {
@@ -311,6 +313,13 @@ const ProductList: React.FC<ProductListProps> = ({
                     Selected Product
                   </div>
                 </div>
+                {/* Display product name if available */}
+                {product.name && (
+                  <div className="px-4 py-2 bg-blue-50 border-b">
+                    <p className="text-sm text-gray-600">Product Name:</p>
+                    <p className="font-semibold text-gray-900">{product.name}</p>
+                  </div>
+                )}
                 <SpkbgCards
                   key={`amazon-${product.id}`}
                   mode="basic"
@@ -340,6 +349,33 @@ const ProductList: React.FC<ProductListProps> = ({
                   buttonCheck={false}
                   Loading={false}
                 />
+
+                {/* Display profit information if available */}
+                {(product.gross_profit || product.net_profit || product.total_revenue) && (
+                  <div className="p-4 bg-green-50 border-t">
+                    <h4 className="font-semibold text-gray-900 mb-3">Profit Information</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      {product.total_revenue && (
+                        <div>
+                          <p className="text-gray-600">Total Revenue</p>
+                          <p className="font-semibold text-green-600">${parseFloat(product.total_revenue as any).toFixed(2)}</p>
+                        </div>
+                      )}
+                      {product.gross_profit && (
+                        <div>
+                          <p className="text-gray-600">Gross Profit</p>
+                          <p className="font-semibold text-blue-600">${parseFloat(product.gross_profit as any).toFixed(2)}</p>
+                        </div>
+                      )}
+                      {product.net_profit && (
+                        <div>
+                          <p className="text-gray-600">Net Profit</p>
+                          <p className="font-semibold text-purple-600">${parseFloat(product.net_profit as any).toFixed(2)}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Seller/Supplier Info - Show seller info for Amazon/TikTok or Alibaba supplier */}
@@ -365,57 +401,92 @@ const ProductList: React.FC<ProductListProps> = ({
                       {...mapToAlibabaProps(product.alibaba_product)}
                     />
                   ) : (
-                    /* Show seller info for Amazon/TikTok products */
-                    hasAmazonData && (
-                      <div className="p-4">
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="font-semibold text-gray-900 mb-3">Seller Details</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="text-gray-600">Seller Name:</span>
-                              <span className="ml-2 font-medium">{amazonData.sellerName || 'N/A'}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Seller Rating:</span>
-                              <span className="ml-2 font-medium">
-                                {amazonData.sellerRating ? `${amazonData.sellerRating}/5` : 'N/A'}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Ships From:</span>
-                              <span className="ml-2 font-medium">{amazonData.sellerShipsFrom || 'N/A'}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Country:</span>
-                              <span className="ml-2 font-medium">{amazonData.sellerCountry || 'N/A'}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Delivery:</span>
-                              <span className="ml-2 font-medium">{amazonData.deliveryPrice || 'N/A'}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Delivery Time:</span>
-                              <span className="ml-2 font-medium">{amazonData.sellerDeliveryTime || 'N/A'}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">Product Source:</span>
-                              <span className="ml-2 font-medium">
-                                {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' : 'Amazon Trends'}
-                              </span>
-                            </div>
-                            {product.amazon_product?.source === 'tiktok_trends' && (
-                              <div className="col-span-2">
-                                <span className="text-gray-600">TikTok Metrics:</span>
-                                <span className="ml-2 font-medium">
-                                  {product.amazon_product?.data?.likes_count ? `${product.amazon_product.data.likes_count.toLocaleString()} likes` : ''}
-                                  {product.amazon_product?.data?.sales_count ? ` • ${product.amazon_product.data.sales_count.toLocaleString()} sales` : ''}
-                                </span>
+                    /* Show seller/supplier info for Amazon/TikTok products */
+                    <div className="p-4">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h4 className="font-semibold text-gray-900 mb-3">
+                          {product.supplier_info ? 'Supplier Information' : 'Seller Details'}
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          {/* Display supplier info if available (from TikTok calculator) */}
+                          {product.supplier_info ? (
+                            <>
+                              <div>
+                                <span className="text-gray-600">Supplier Name:</span>
+                                <span className="ml-2 font-medium">{product.supplier_info.name || 'N/A'}</span>
                               </div>
-                            )}
-                          </div>
+                              <div>
+                                <span className="text-gray-600">Location:</span>
+                                <span className="ml-2 font-medium">{product.supplier_info.location || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Estimated Price:</span>
+                                <span className="ml-2 font-medium">{product.supplier_info.estimated_price || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Minimum Order:</span>
+                                <span className="ml-2 font-medium">{product.supplier_info.minimum_order || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">AI Match Score:</span>
+                                <span className="ml-2 font-medium">{product.supplier_info.ai_match_score || 'N/A'}%</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Product Source:</span>
+                                <span className="ml-2 font-medium">TikTok Trends</span>
+                              </div>
+                            </>
+                          ) : (
+                            /* Display Amazon seller info */
+                            hasAmazonData && (
+                              <>
+                                <div>
+                                  <span className="text-gray-600">Seller Name:</span>
+                                  <span className="ml-2 font-medium">{amazonData.sellerName || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Seller Rating:</span>
+                                  <span className="ml-2 font-medium">
+                                    {amazonData.sellerRating ? `${amazonData.sellerRating}/5` : 'N/A'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Ships From:</span>
+                                  <span className="ml-2 font-medium">{amazonData.sellerShipsFrom || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Country:</span>
+                                  <span className="ml-2 font-medium">{amazonData.sellerCountry || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Delivery:</span>
+                                  <span className="ml-2 font-medium">{amazonData.deliveryPrice || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Delivery Time:</span>
+                                  <span className="ml-2 font-medium">{amazonData.sellerDeliveryTime || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Product Source:</span>
+                                  <span className="ml-2 font-medium">
+                                    {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' : 'Amazon Trends'}
+                                  </span>
+                                </div>
+                                {product.amazon_product?.source === 'tiktok_trends' && (
+                                  <div className="col-span-2">
+                                    <span className="text-gray-600">TikTok Metrics:</span>
+                                    <span className="ml-2 font-medium">
+                                      {product.amazon_product?.data?.likes_count ? `${product.amazon_product.data.likes_count.toLocaleString()} likes` : ''}
+                                      {product.amazon_product?.data?.sales_count ? ` • ${product.amazon_product.data.sales_count.toLocaleString()} sales` : ''}
+                                    </span>
+                                  </div>
+                                )}
+                              </>
+                            )
+                          )}
                         </div>
                       </div>
-                    )
+                    </div>
                   )}
 
                 <div className="col-span-1 lg:col-span-2 flex justify-end p-2">

@@ -128,6 +128,11 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
     setIsSaving(true);
 
     // Transform TikTok product data to match backend expectations (same structure as Amazon)
+    // Format price as string with currency symbol for proper parsing
+    const formattedPrice = typeof product.price === 'number'
+      ? `$${product.price.toFixed(2)}`
+      : product.price;
+
     const productData = {
       name: productName.trim(),
       description: `TikTok Trends Product - ID: ${product.id}`,
@@ -136,7 +141,7 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
         data: {
           asin: product.id || 'tiktok_product',
           product_title: product.title,
-          product_price: product.price,
+          product_price: formattedPrice,
           product_star_rating: product.rating || 0,
           product_num_ratings: product.review_count || 0,
           product_url: product.video_url || '',

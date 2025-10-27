@@ -299,9 +299,10 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
 
           <button
             onClick={() => setIsMobileOpen(false)}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            aria-label="Close products panel"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
       </div>

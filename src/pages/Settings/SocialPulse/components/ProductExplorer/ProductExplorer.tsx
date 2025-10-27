@@ -1271,11 +1271,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               />
             </div>
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {[...Array(8)].map((_, index) => (
                   <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
                     <div className="h-48 bg-gray-200"></div>
-                    <div className="p-4 space-y-3">
+                    <div className="p-4 space-y-6">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                       <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                       <div className="flex justify-between items-center">
@@ -1322,7 +1322,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           </div>
         ) : (
           <div className="p-6 bg-white dark:bg-gray-800 ">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
               {products.map((product: any, index: number) => (
                 <ProductCard
                   key={`${product.asin}-${index}`}
@@ -1465,7 +1465,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onDis
               e.stopPropagation();
               onDiscoverSuppliers();
             }}
-            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 px-3 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 text-sm flex items-center justify-center gap-2"
+            className="w-full bg-[#213168] text-white py-2 px-3 rounded-lg hover:bg-[#0f1a35] transition-all duration-200 text-sm flex items-center justify-center gap-2"
           >
             <Zap className="w-4 h-4" />
             Discover Suppliers

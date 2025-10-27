@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { X, Calculator, Save, DollarSign, Package } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -108,6 +108,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
   const [newCategoryName, setNewCategoryName] = useState('');
   const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const saveSectionRef = useRef<HTMLDivElement>(null);
 
   // Initialize with product and supplier data
   useEffect(() => {
@@ -425,19 +426,24 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       fm_perUnitCost: calculation.fm_perUnitCost.toFixed(2),
       fm_totalCost: calculation.fm_totalCost.toFixed(2),
 
-      // Profit Information
-      gross_profit: calculation.grossProfit.toFixed(2),
+      // Profit Information (save percentages in gross_profit/net_profit fields for compatibility)
+      gross_profit: calculation.grossProfitMargin.toFixed(2),
       gross_profit_margin: calculation.grossProfitMargin.toFixed(2),
-      net_profit: calculation.netProfit.toFixed(2),
+      net_profit: calculation.netProfitMargin.toFixed(2),
       net_profit_margin: calculation.netProfitMargin.toFixed(2),
+      total_revenue: calculation.pi_totalRevenue.toFixed(2),
+      selling_price: calculation.pi_sellingPrice.toFixed(2),
       simple_profit_pro: false,
 
       // TikTok product data (using amazon_product key for compatibility)
+      // Format price as string with currency symbol for proper parsing
       amazon_product: {
         data: {
           asin: product.id || 'tiktok_product',
           product_title: product.title || 'TikTok Product',
-          product_price: product.price || '$0.00',
+          product_price: typeof product.price === 'number'
+            ? `$${product.price.toFixed(2)}`
+            : (product.price || '$0.00'),
           product_photo: product.image_url || '',
           product_star_rating: product.rating || 0,
           product_num_ratings: product.review_count || 0,
@@ -453,6 +459,20 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
         },
         source: 'tiktok_trends',
         saved_at: new Date().toISOString(),
+        // Store calculation data for display
+        calculation_data: {
+          pi_sellingPrice: calculation.pi_sellingPrice,
+          pi_totalRevenue: calculation.pi_totalRevenue,
+          pi_quantity: calculation.pi_quantity,
+          psc_manufacturingCost: calculation.psc_manufacturingCost,
+          psc_shippingCost: calculation.psc_shippingCost,
+          psc_totalCost: calculation.psc_totalCost,
+          fm_totalCost: calculation.fm_totalCost,
+          grossProfit: calculation.grossProfit,
+          grossProfitMargin: calculation.grossProfitMargin,
+          netProfit: calculation.netProfit,
+          netProfitMargin: calculation.netProfitMargin,
+        },
       },
 
       // Supplier Information
@@ -491,7 +511,13 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
           <div className="flex items-center gap-3">
             {/* Save to Vault Button */}
             <button
-              onClick={() => setShowSaveSection(!showSaveSection)}
+              onClick={() => {
+                setShowSaveSection(true);
+                // Auto-scroll to save section after state update
+                setTimeout(() => {
+                  saveSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+              }}
               className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-colors flex items-center gap-2 font-medium shadow-md"
             >
               <Save className="w-4 h-4" />
@@ -937,7 +963,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
 
             {/* Save Section */}
             {showSaveSection && (
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div ref={saveSectionRef} className="bg-gray-50 rounded-lg p-4">
                     <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <Save className="w-5 h-5 text-green-600" />
                       Save to Product Vault

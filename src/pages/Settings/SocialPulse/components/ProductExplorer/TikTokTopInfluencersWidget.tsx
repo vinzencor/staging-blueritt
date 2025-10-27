@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, AlertCircle, X, ChevronDown, ChevronUp, Loader } from 'lucide-react';
+import { Flame, ChevronDown, ChevronUp, Loader, Hash, Loader2, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 // TikTok Hashtag interface
@@ -41,79 +41,7 @@ if (typeof document !== 'undefined') {
   document.head.appendChild(style);
 }
 
-// Loading Skeleton Component
-const LoadingSkeleton: React.FC = () => (
-  <div className="space-y-3">
-    {Array.from({ length: 5 }).map((_, index) => (
-      <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 animate-pulse">
-        <div className="space-y-2">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
 
-// Empty State Component
-const EmptyState: React.FC = () => (
-  <div className="flex flex-col items-center justify-center py-8 text-center">
-    <Flame className="w-12 h-12 text-gray-400 dark:text-gray-600 mb-3" />
-    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">No Hashtags Available</h3>
-    <p className="text-xs text-gray-600 dark:text-gray-400">Check back later for trending hashtags!</p>
-  </div>
-);
-
-// TikTok Hashtag Card Component
-const TikTokHashtagCard: React.FC<{ hashtag: TikTokHashtag; rank: number }> = ({ hashtag, rank }) => {
-  const handleClick = () => {
-    // Open TikTok hashtag search
-    const hashtagName = hashtag.hashtag_name.startsWith('#') ? hashtag.hashtag_name.slice(1) : hashtag.hashtag_name;
-    window.open(`https://www.tiktok.com/tag/${hashtagName}`, '_blank');
-  };
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
-  };
-
-  return (
-    <div
-      onClick={handleClick}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-[#111c43] dark:hover:border-[#0072D6] hover:shadow-md dark:hover:shadow-lg transition-all duration-300 p-3 cursor-pointer"
-    >
-      <div className="flex items-start gap-3">
-        {/* Rank Badge */}
-        <div className="flex-shrink-0">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#0072D6] to-[#111c43] rounded-full flex items-center justify-center text-white font-bold text-sm">
-            {rank}
-          </div>
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
-            {hashtag.hashtag_name || 'Unknown'}
-          </h3>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-1.5 mt-2 text-xs">
-            <div className="bg-orange-50 dark:bg-orange-900/20 rounded px-1.5 py-0.5">
-              <span className="text-gray-600 dark:text-gray-400">🎬 </span>
-              <span className="font-semibold text-[#0072D6] dark:text-[#0072D6]">{formatNumber(hashtag.publish_cnt)}</span>
-            </div>
-            <div className="bg-red-50 dark:bg-red-900/20 rounded px-1.5 py-0.5">
-              <span className="text-gray-600 dark:text-gray-400">👁️ </span>
-              <span className="font-semibold text-[#0072D6]  dark:text-[#0072D6]">{formatNumber(hashtag.video_views)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Mobile Toggle Button Component
 interface MobileToggleProps {
@@ -135,121 +63,54 @@ const MobileToggle: React.FC<MobileToggleProps> = ({ isOpen, onClick, hashtagCou
   </button>
 );
 
+// Constants for hashtag filters
+const HASHTAG_PERIOD_OPTIONS = [
+  { value: '7', label: 'Last 7 Days' },
+  { value: '30', label: 'Last 30 Days' },
+  { value: '120', label: 'Last 120 Days' },
+];
+
+const COUNTRY_OPTIONS = [
+  { value: 'US', label: 'United States' },
+  { value: 'GB', label: 'United Kingdom' },
+  { value: 'CA', label: 'Canada' },
+  { value: 'AU', label: 'Australia' },
+  { value: 'IN', label: 'India' },
+  { value: 'BR', label: 'Brazil' },
+  { value: 'MX', label: 'Mexico' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'FR', label: 'France' },
+  { value: 'JP', label: 'Japan' },
+];
+
+const INDUSTRY_OPTIONS = [
+  { id: 'beauty', name: 'Beauty' },
+  { id: 'fashion', name: 'Fashion' },
+  { id: 'food', name: 'Food & Beverage' },
+  { id: 'fitness', name: 'Fitness' },
+  { id: 'tech', name: 'Technology' },
+  { id: 'gaming', name: 'Gaming' },
+  { id: 'music', name: 'Music' },
+  { id: 'travel', name: 'Travel' },
+];
+
 // Main TikTokTrendingHashtagsWidget Component
 export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ className = '' }) => {
   const location = useLocation();
-  const [hashtags, setHashtags] = useState<TikTokHashtag[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  // New state for hashtag filters
+  const [trendingHashtags, setTrendingHashtags] = useState<any[]>([]);
+  const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
+  const [hashtagsError, setHashtagsError] = useState<string | null>(null);
+  const [hashtagPeriod, setHashtagPeriod] = useState('120');
+  const [hashtagCountry, setHashtagCountry] = useState('US');
+  const [hashtagIndustry, setHashtagIndustry] = useState('');
 
   // Determine if we're on TikTok page
   const isTikTokPage = location.pathname.includes('/socialpulse/tiktok');
 
-  // Fetch TikTok trending hashtags
-  useEffect(() => {
-    if (!isTikTokPage) return;
 
-    const fetchHashtags = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(
-          'https://tiktok-creative-center-api.p.rapidapi.com/api/trending/hashtag?page=1&limit=20&period=120&country=US&sort_by=popular',
-          {
-            method: 'GET',
-            headers: {
-              'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
-              'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-            }
-          }
-        );
-
-        console.log('Hashtag API Response Status:', response.status);
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Hashtag API Response:', data);
-
-          // Handle the API response structure: data.data.list
-          let hashtagsList: TikTokHashtag[] = [];
-
-          if (data.data && data.data.list && Array.isArray(data.data.list)) {
-            // Add rank to each hashtag
-            hashtagsList = data.data.list.map((hashtag: any, index: number) => ({
-              ...hashtag,
-              rank: index + 1
-            }));
-            console.log('Hashtags extracted:', hashtagsList.length);
-            setHashtags(hashtagsList);
-          } else if (Array.isArray(data)) {
-            hashtagsList = data.map((hashtag: any, index: number) => ({
-              ...hashtag,
-              rank: index + 1
-            }));
-            setHashtags(hashtagsList);
-          } else {
-            console.warn('Unexpected API response structure:', data);
-            setError('No hashtags found in response');
-          }
-        } else {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('API Error:', errorData);
-          setError(`Failed to load trending hashtags (Status: ${response.status})`);
-        }
-      } catch (err) {
-        console.error('Error fetching trending hashtags:', err);
-        setError('Failed to load trending hashtags. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchHashtags();
-  }, [isTikTokPage]);
-
-  // Auto-scroll effect - continuous carousel scroll
-  useEffect(() => {
-    if (!scrollContainerRef.current || hashtags.length === 0 || isLoading) return;
-
-    const container = scrollContainerRef.current;
-    let scrollInterval: NodeJS.Timeout;
-    let isHovering = false;
-
-    const startAutoScroll = () => {
-      scrollInterval = setInterval(() => {
-        if (!isHovering && container) {
-          // Scroll down continuously
-          container.scrollTop += 2;
-
-          // Reset to top when reaching bottom for infinite loop
-          if (container.scrollTop >= container.scrollHeight - container.clientHeight - 10) {
-            container.scrollTop = 0;
-          }
-        }
-      }, 50); // Smooth scrolling speed
-    };
-
-    const handleMouseEnter = () => {
-      isHovering = true;
-    };
-
-    const handleMouseLeave = () => {
-      isHovering = false;
-    };
-
-    container.addEventListener('mouseenter', handleMouseEnter);
-    container.addEventListener('mouseleave', handleMouseLeave);
-
-    startAutoScroll();
-
-    return () => {
-      clearInterval(scrollInterval);
-      container.removeEventListener('mouseenter', handleMouseEnter);
-      container.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, [hashtags, isLoading]);
 
   // Close mobile widget when clicking outside
   useEffect(() => {
@@ -264,6 +125,48 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileOpen]);
 
+  // Handle fetching trending hashtags with filters
+  const handleFetchTrendingHashtags = async () => {
+    setIsHashtagsLoading(true);
+    setHashtagsError(null);
+    try {
+      const params = new URLSearchParams({
+        page: '1',
+        limit: '50',
+        period: hashtagPeriod,
+        country: hashtagCountry,
+        sort_by: 'popular',
+      });
+
+      const response = await fetch(
+        `https://tiktok-creative-center-api.p.rapidapi.com/api/trending/hashtag?${params}`,
+        {
+          method: 'GET',
+          headers: {
+            'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
+            'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data && data.data.list && Array.isArray(data.data.list)) {
+          setTrendingHashtags(data.data.list);
+        } else {
+          setHashtagsError('No hashtags found');
+        }
+      } else {
+        setHashtagsError('Failed to fetch hashtags');
+      }
+    } catch (err) {
+      console.error('Error fetching hashtags:', err);
+      setHashtagsError('Error fetching hashtags. Please try again.');
+    } finally {
+      setIsHashtagsLoading(false);
+    }
+  };
+
   // Don't render if not on TikTok page
   if (!isTikTokPage) {
     return null;
@@ -271,54 +174,190 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
 
   // Widget content component to avoid duplication
   const WidgetContent = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg h-full flex flex-col">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          {/* Icon with hover text */}
-          <div className="relative group">
-            <div className="flex items-center min-h-[28px]">
-              {/* Always show icon */}
-              <Flame className="w-5 h-5 text-[#0072D6] dark:text-[#0072D6]-400" />
-
-              {/* Show text on hover with smooth transition */}
-              <span className="ml-2 text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                Trending Hashtags
-              </span>
-
-              {/* Always show count */}
-              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                ({hashtags.length})
-              </span>
-            </div>
-          </div>
-
+    <div className="lg:col-span-1">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Hash className="w-5 h-5 text-pink-600" />
+            Trending Hashtags
+          </h2>
+          {/* Close button - only visible on mobile */}
           <button
             onClick={() => setIsMobileOpen(false)}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            aria-label="Close hashtags panel"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
-      </div>
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 p-4 overflow-y-auto scroll-smooth"
-      >
-        {isLoading ? (
-          <LoadingSkeleton />
-        ) : error ? (
-          <div className="flex items-center gap-2 text-[#0072D6] dark:text-[#0072D6] text-sm p-3 bg-[#111c43] dark:bg-[#111c43] rounded-lg">
-            <AlertCircle className="w-4 h-4" />
-            {error}
+
+        {/* Filters */}
+        <div className="space-y-4 mb-6">
+          {/* Period Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Period
+            </label>
+            <select
+              value={hashtagPeriod}
+              onChange={(e) => setHashtagPeriod(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            >
+              {HASHTAG_PERIOD_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
-        ) : hashtags.length > 0 ? (
-          <div className="space-y-3">
-            {hashtags.map((hashtag, index) => (
-              <TikTokHashtagCard key={hashtag.hashtag_id || index} hashtag={hashtag} rank={index + 1} />
+
+          {/* Country Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Country
+            </label>
+            <select
+              value={hashtagCountry}
+              onChange={(e) => setHashtagCountry(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            >
+              {COUNTRY_OPTIONS.map((country) => (
+                <option key={country.value} value={country.value}>
+                  {country.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Industry Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Industry (Optional)
+            </label>
+            <select
+              value={hashtagIndustry}
+              onChange={(e) => setHashtagIndustry(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            >
+              <option value="">All Industries</option>
+              {INDUSTRY_OPTIONS.map((industry) => (
+                <option key={industry.id} value={industry.id}>
+                  {industry.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Fetch Button */}
+        <button
+          onClick={handleFetchTrendingHashtags}
+          disabled={isHashtagsLoading}
+          className="w-full px-4 py-2 bg-[#081c64] text-white font-semibold rounded-lg hover:bg-[#0a237a] focus:ring-2 focus:ring-[#081c64] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg text-sm mb-6"
+        >
+          {isHashtagsLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Loading...
+            </>
+          ) : (
+            <>
+              <Hash className="w-4 h-4" />
+              Fetch Hashtags
+            </>
+          )}
+        </button>
+
+        {/* Error State */}
+        {hashtagsError && !isHashtagsLoading && (
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-4">
+            <h3 className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
+              Error Loading Hashtags
+            </h3>
+            <p className="text-xs text-red-600 dark:text-red-400 mb-3">{hashtagsError}</p>
+            <button
+              onClick={handleFetchTrendingHashtags}
+              className="w-full px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isHashtagsLoading && (
+          <div className="text-center py-8">
+            <Loader2 className="w-8 h-8 text-[#081c64] mx-auto mb-2 animate-spin" />
+            <p className="text-xs text-gray-600 dark:text-gray-300">
+              Fetching hashtags...
+            </p>
+          </div>
+        )}
+
+        {/* Hashtags List */}
+        {trendingHashtags.length > 0 && !isHashtagsLoading && (
+          <div className="space-y-3 max-h-[600px] overflow-y-auto">
+            {/* Results Summary */}
+            <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/30 dark:to-rose-900/30 rounded-lg p-3 border border-pink-100 dark:border-pink-700 mb-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                {trendingHashtags.length} Hashtags
+              </h3>
+              <div className="mt-2 text-xs text-gray-600 dark:text-gray-300 space-y-1">
+                <p>{HASHTAG_PERIOD_OPTIONS.find(p => p.value === hashtagPeriod)?.label}</p>
+                <p>{COUNTRY_OPTIONS.find(c => c.value === hashtagCountry)?.label}</p>
+              </div>
+            </div>
+
+            {/* Hashtags List */}
+            {trendingHashtags.map((hashtag, index) => (
+              <div
+                key={index}
+                className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-3 border border-pink-200 dark:border-pink-700 hover:shadow-md transition-all duration-200"
+              >
+                <div className="mb-2">
+                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                    #{hashtag.hashtag_name || hashtag.name || `Hashtag ${index + 1}`}
+                  </h4>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Rank: #{index + 1}
+                  </p>
+                </div>
+
+                {/* Hashtag Stats */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {hashtag.post_count !== undefined && (
+                    <div className="bg-white dark:bg-gray-700 rounded p-2 text-center">
+                      <div className="text-gray-600 dark:text-gray-400 mb-1">Posts</div>
+                      <div className="font-semibold text-gray-900 dark:text-white">
+                        {(hashtag.post_count / 1000000).toFixed(1)}M
+                      </div>
+                    </div>
+                  )}
+                  {hashtag.view_count !== undefined && (
+                    <div className="bg-white dark:bg-gray-700 rounded p-2 text-center">
+                      <div className="text-gray-600 dark:text-gray-400 mb-1">Views</div>
+                      <div className="font-semibold text-gray-900 dark:text-white">
+                        {(hashtag.view_count / 1000000000).toFixed(1)}B
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
-        ) : (
-          <EmptyState />
+        )}
+
+        {/* Initial State */}
+        {!isHashtagsLoading && trendingHashtags.length === 0 && !hashtagsError && (
+          <div className="text-center py-8">
+            <Hash className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+              Ready to Fetch
+            </h3>
+            <p className="text-xs text-gray-600 dark:text-gray-300">
+              Click "Fetch Hashtags" to discover trending hashtags
+            </p>
+          </div>
         )}
       </div>
     </div>
@@ -330,7 +369,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
       <MobileToggle
         isOpen={isMobileOpen}
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        hashtagCount={hashtags.length}
+        hashtagCount={trendingHashtags.length}
       />
 
       {/* Mobile Bottom Sheet */}

@@ -698,7 +698,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       </div>
 
       {/* Main Content - Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* Left Column - Products Section (2/3 width) */}
         <div className="lg:col-span-2">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -851,7 +851,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       {/* Discover Suppliers Button */}
                       <button
                         onClick={() => handleDiscoverSuppliersFromCard(product)}
-                        className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 px-4 rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                        className="w-full bg-[#213168] text-white py-2 px-3 rounded-lg hover:bg-[#0f1a35] transition-all duration-200 text-sm flex items-center justify-center gap-2"
                       >
                         <Zap className="w-4 h-4" />
                         Discover Suppliers
@@ -914,183 +914,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
         </div>
 
         {/* Right Column - Trending Hashtags Section (1/3 width) */}
-        <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Hash className="w-5 h-5 text-pink-600" />
-              Trending Hashtags
-            </h2>
-
-            {/* Filters */}
-            <div className="space-y-4 mb-6">
-              {/* Period Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Period
-                </label>
-                <select
-                  value={hashtagPeriod}
-                  onChange={(e) => setHashtagPeriod(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                >
-                  {HASHTAG_PERIOD_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Country Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Country
-                </label>
-                <select
-                  value={hashtagCountry}
-                  onChange={(e) => setHashtagCountry(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                >
-                  {COUNTRY_OPTIONS.map((country) => (
-                    <option key={country.value} value={country.value}>
-                      {country.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Industry Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Industry (Optional)
-                </label>
-                <select
-                  value={hashtagIndustry}
-                  onChange={(e) => setHashtagIndustry(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                >
-                  <option value="">All Industries</option>
-                  {INDUSTRY_OPTIONS.map((industry) => (
-                    <option key={industry.id} value={industry.id}>
-                      {industry.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Fetch Button */}
-            <button
-              onClick={handleFetchTrendingHashtags}
-              disabled={isHashtagsLoading}
-              className="w-full px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold rounded-lg hover:from-pink-600 hover:to-rose-600 focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shadow-lg text-sm mb-6"
-            >
-              {isHashtagsLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                <>
-                  <Hash className="w-4 h-4" />
-                  Fetch Hashtags
-                </>
-              )}
-            </button>
-
-            {/* Error State */}
-            {hashtagsError && !isHashtagsLoading && (
-              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 mb-4">
-                <h3 className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
-                  Error Loading Hashtags
-                </h3>
-                <p className="text-xs text-red-600 dark:text-red-400 mb-3">{hashtagsError}</p>
-                <button
-                  onClick={handleFetchTrendingHashtags}
-                  className="w-full px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            )}
-
-            {/* Loading State */}
-            {isHashtagsLoading && (
-              <div className="text-center py-8">
-                <Loader2 className="w-8 h-8 text-pink-600 mx-auto mb-2 animate-spin" />
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  Fetching hashtags...
-                </p>
-              </div>
-            )}
-
-            {/* Hashtags List */}
-            {trendingHashtags.length > 0 && !isHashtagsLoading && (
-              <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                {/* Results Summary */}
-                <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/30 dark:to-rose-900/30 rounded-lg p-3 border border-pink-100 dark:border-pink-700 mb-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
-                    {trendingHashtags.length} Hashtags
-                  </h3>
-                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-300 space-y-1">
-                    <p>{HASHTAG_PERIOD_OPTIONS.find(p => p.value === hashtagPeriod)?.label}</p>
-                    <p>{COUNTRY_OPTIONS.find(c => c.value === hashtagCountry)?.label}</p>
-                  </div>
-                </div>
-
-                {/* Hashtags List */}
-                {trendingHashtags.map((hashtag, index) => (
-                  <div
-                    key={index}
-                    className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-3 border border-pink-200 dark:border-pink-700 hover:shadow-md transition-all duration-200"
-                  >
-                    <div className="mb-2">
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
-                        #{hashtag.hashtag_name || hashtag.name || `Hashtag ${index + 1}`}
-                      </h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        Rank: #{index + 1}
-                      </p>
-                    </div>
-
-                    {/* Hashtag Stats */}
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {hashtag.post_count !== undefined && (
-                        <div className="bg-white dark:bg-gray-700 rounded p-2 text-center">
-                          <div className="text-gray-600 dark:text-gray-400 mb-1">Posts</div>
-                          <div className="font-semibold text-gray-900 dark:text-white">
-                            {(hashtag.post_count / 1000000).toFixed(1)}M
-                          </div>
-                        </div>
-                      )}
-                      {hashtag.view_count !== undefined && (
-                        <div className="bg-white dark:bg-gray-700 rounded p-2 text-center">
-                          <div className="text-gray-600 dark:text-gray-400 mb-1">Views</div>
-                          <div className="font-semibold text-gray-900 dark:text-white">
-                            {(hashtag.view_count / 1000000000).toFixed(1)}B
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Initial State */}
-            {!isHashtagsLoading && trendingHashtags.length === 0 && !hashtagsError && (
-              <div className="text-center py-8">
-                <Hash className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                  Ready to Fetch
-                </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  Click "Fetch Hashtags" to discover trending hashtags
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+        {/*  */}
       </div>
 
       {/* Product Details Modal */}
