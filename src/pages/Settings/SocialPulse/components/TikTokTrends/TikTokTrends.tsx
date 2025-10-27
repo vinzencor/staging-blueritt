@@ -813,7 +813,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center border border-blue-200 dark:border-blue-800">
                           <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium">CTR</div>
                           <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                            {(product.ctr * 100).toFixed(2)}%
+                            {(product.ctr * 100).toFixed(2)}
                           </div>
                         </div>
                       )}
@@ -821,7 +821,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                         <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center border border-purple-200 dark:border-purple-800">
                           <div className="text-purple-600 dark:text-purple-400 mb-1 font-medium">CVR</div>
                           <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                            {(product.cvr * 100).toFixed(2)}%
+                            {(product.cvr * 100).toFixed(2)}
                           </div>
                         </div>
                       )}
@@ -829,7 +829,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                         <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center border border-green-200 dark:border-green-800">
                           <div className="text-green-600 dark:text-green-400 mb-1 font-medium">CPA</div>
                           <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                            ${product.cpa.toFixed(2)}
+                            {product.cpa.toFixed(2)}
                           </div>
                         </div>
                       )}
@@ -837,7 +837,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                         <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center border border-orange-200 dark:border-orange-800">
                           <div className="text-orange-600 dark:text-orange-400 mb-1 font-medium">Impressions</div>
                           <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                            ${(product.impression).toLocaleString()}
+                            {(product.impression).toLocaleString()}
                           </div>
                         </div>
                       )}
