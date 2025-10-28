@@ -17,7 +17,7 @@ const getSavedProductsDetail = ({ id }: { id: string }) => {
 };
 
 const deleteSavedProducts = ({ saveID }: { saveID: string }) => {
-  return api.delete(`/calculator/product/${saveID}`);
+  return api.delete(`/calculator/product/${saveID}/`);
 };
 
 const getProfitProCalculations = ({ saveID }: { saveID: string }) => {

@@ -26,21 +26,21 @@ const AmazonCard: React.FC<{ amazonProduct: TAmazonProduct }> = ({
   const transformedAmazonProduct = getProcessedProductData(amazonProduct, amazonProduct.parameters.country);
   return (
     <SpkbgCards
-      key={`amazon-${amazonProduct.data.asin}`}
+      key={`amazon-${amazonProduct.data.asin || 'unknown'}`}
       mode="basic"
       Title={amazonProduct.data.product_title || "No name available"}
       Price={transformedAmazonProduct.price || 0}
       Imgsrc={amazonProduct.data.product_photo || ""}
       Asin={amazonProduct.data.asin || ""}
       Currency={transformedAmazonProduct.currency || ""}
-      StarRating={amazonProduct.data.product_star_rating.toString() || "0"}
-      ratingCount={amazonProduct.data.product_num_ratings}
+      StarRating={amazonProduct.data.product_star_rating?.toString() || "0"}
+      ratingCount={amazonProduct.data.product_num_ratings || 0}
       BestSeller={amazonProduct.data.is_best_seller || false}
       AmazonChoice={amazonProduct.data.is_amazon_choice || false}
-      SalesVolume={`${transformedAmazonProduct.salesVolume}`}
+      SalesVolume={`${transformedAmazonProduct.salesVolume || 0}`}
       IsPrime={amazonProduct.data.is_prime || false}
       IsClimateFriendly={amazonProduct.data.climate_pledge_friendly || false}
-      productOffers={amazonProduct.data.product_num_offers}
+      productOffers={amazonProduct.data.product_num_offers || 0}
       buttonCheck={false}
       Loading={false}
     />

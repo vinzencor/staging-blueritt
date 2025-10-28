@@ -1,5 +1,7 @@
 export enum QuotaNames {
     AmazonSearch = "amazon_search",
+    TikTokSearches = "tiktok_searches",
+    SupplierDiscovery = "supplier_discovery",
     NoOfGrossProfitCalculations = "no_of_gross_profit_calculations",
     NoOfNetProfitCalculations = "no_of_net_profit_calculations",
     AlibabaMatchPerProduct = "alibaba_match_per_product",
@@ -26,8 +28,6 @@ export enum QuotaNames {
     TikTokTrendsData = "tiktok_trends_data",
     TikTokCategories = "tiktok_categories",
     TikTokCountries = "tiktok_countries",
-    // Supplier Discovery
-    SupplierDiscovery = "supplier_discovery",
   }
 
   export enum EAccessTypes {

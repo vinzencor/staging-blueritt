@@ -1,9 +1,12 @@
-import { getSavedCategoriesDetail } from "@/api/savedProducts";
-import { useQuery } from "@tanstack/react-query";
+import { getSavedCategoriesDetail, deleteSavedProducts } from "@/api/savedProducts";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import SpkbgCards from "@/@spk/uielements/spkbgcards";
 import { useNavigate } from "react-router-dom";
 import type { TAlibabaProduct, TAmazonProduct } from "@/types/product";
 import { getProcessedProductData } from "@/api/product";
+import { toast } from "react-toastify";
+import { Trash2 } from "lucide-react";
+import { useState } from "react";
 
 type TProduct = {
   id: string;
@@ -20,6 +23,7 @@ type TProduct = {
   amazon_product?: any;
   alibaba_product?: TAlibabaProduct;
   supplier_info?: any;
+  simple_profit_pro?: any; // Stores calculation data for TikTok/Amazon Trends products
 };
 
 type TCategoryDetail = {
@@ -42,14 +46,37 @@ const ProductList: React.FC<ProductListProps> = ({
   categoryName,
 }) => {
   const navigate = useNavigate();
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
-  const { data: categoryDetail, isLoading } = useQuery<TCategoryDetail>({
+  const { data: categoryDetail, isLoading, refetch } = useQuery<TCategoryDetail>({
     queryKey: ["getSavedCategoriesDetail", categoryId],
     queryFn: async () => {
       const response = await getSavedCategoriesDetail({ id: categoryId });
       return response.data;
     },
   });
+
+  // Delete product mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: deleteSavedProducts,
+    onSuccess: () => {
+      toast.success("Product deleted successfully");
+      setDeletingProductId(null);
+      refetch(); // Refresh the product list
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Failed to delete product");
+      setDeletingProductId(null);
+    },
+  });
+
+  // Handle delete product
+  const handleDeleteProduct = (productId: string, productName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${productName}"?`)) {
+      setDeletingProductId(productId);
+      deleteProductMutation.mutate({ saveID: productId });
+    }
+  };
 
   const products = categoryDetail?.products || [];
 
@@ -308,16 +335,30 @@ const ProductList: React.FC<ProductListProps> = ({
                 <div className="font-medium p-4 text-gray-500 flex justify-between lg:justify-between items-center">
                   <div>Search saved at: {formatDate(product.created_at)}</div>
 
-                  <div className="font-bold text-gray-700 flex items-center gap-2">
-                    <i className="bi bi-journal-bookmark-fill"></i>
-                    Selected Product
+                  <div className="flex items-center gap-3">
+                    <div className="font-bold text-gray-700 flex items-center gap-2">
+                      <i className="bi bi-journal-bookmark-fill"></i>
+                      Selected Product
+                    </div>
+                    <button
+                      onClick={() => handleDeleteProduct(product.id, product.name || 'this product')}
+                      disabled={deletingProductId === product.id}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete product"
+                    >
+                      {deletingProductId === product.id ? (
+                        <div className="w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Trash2 className="w-5 h-5" />
+                      )}
+                    </button>
                   </div>
                 </div>
                 {/* Display product name if available */}
                 {product.name && (
-                  <div className="px-4 py-2 bg-blue-50 border-b">
-                    <p className="text-sm text-gray-600">Product Name:</p>
-                    <p className="font-semibold text-gray-900">{product.name}</p>
+                  <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Product Name:</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">{product.name}</p>
                   </div>
                 )}
                 <SpkbgCards
@@ -352,16 +393,25 @@ const ProductList: React.FC<ProductListProps> = ({
 
                 {/* Display profit information if available */}
                 {(() => {
-                  // Check for profit data from product fields or calculation_data
+                  // Check for profit data from multiple sources
                   const calcData = product.amazon_product?.calculation_data;
-                  const totalRevenue = product.total_revenue || calcData?.pi_totalRevenue;
-                  const grossProfit = product.gross_profit || calcData?.grossProfit;
-                  const netProfit = product.net_profit || calcData?.netProfit;
+                  const simpleProfitData = product.simple_profit_pro;
+
+                  // Try to get data from simple_profit_pro first (TikTok/Amazon Trends), then fallback to other sources
+                  const totalRevenue = product.total_revenue ||
+                                      (typeof simpleProfitData === 'object' ? simpleProfitData?.total_revenue : null) ||
+                                      calcData?.pi_totalRevenue;
+                  const grossProfit = product.gross_profit ||
+                                     (typeof simpleProfitData === 'object' ? simpleProfitData?.gross_profit : null) ||
+                                     calcData?.grossProfit;
+                  const netProfit = product.net_profit ||
+                                   (typeof simpleProfitData === 'object' ? simpleProfitData?.net_profit : null) ||
+                                   calcData?.netProfit;
 
                   return (totalRevenue || grossProfit || netProfit) ? (
-                    <div className="p-4 bg-green-50 border-t">
-                      <h4 className="font-semibold text-gray-900 mb-3">Profit Information</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div>
+                      {/* <h4 className="font-semibold text-gray-900 mb-3">Profit Informationa</h4> */}
+                      {/* <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                         {totalRevenue && (
                           <div>
                             <p className="text-gray-600">Total Revenue</p>
@@ -380,7 +430,7 @@ const ProductList: React.FC<ProductListProps> = ({
                             <p className="font-semibold text-purple-600">${parseFloat(netProfit as any).toFixed(2)}</p>
                           </div>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                   ) : null;
                 })()}

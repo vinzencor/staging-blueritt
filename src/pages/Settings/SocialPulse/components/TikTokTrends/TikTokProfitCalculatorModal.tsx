@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { X, Calculator, Save, DollarSign, Package } from 'lucide-react';
+import { X, Calculator, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-toastify';
-
 import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
 import { type TikTokTrendingProduct, type SupplierInfo } from '@/api/tiktokTrends';
 
@@ -20,21 +19,17 @@ interface Category {
   image?: string;
 }
 
-interface ProfitCalculation {
-  // Product Information
+interface EnhancedProfitCalculation {
   pi_sellingPrice: number;
   pi_totalRevenue: number;
   pi_quantity: number;
-
-  // Product Sourcing Cost
   psc_manufacturingCost: number;
   psc_shippingCost: number;
+  psc_productLogoCost: number;
   psc_miscCost: number;
   psc_orderQuantity: number;
   psc_perUnitCost: number;
   psc_totalCost: number;
-
-  // Fulfillment Model
   fm_model: string;
   fm_referrfalFees: number;
   fm_fbaFulfillmentFees: number;
@@ -48,14 +43,66 @@ interface ProfitCalculation {
   fm_miscCost: number;
   fm_perUnitCost: number;
   fm_totalCost: number;
-
-  // Calculated Results
+  marc_marketingCost: number;
+  marc_attributionCost: number;
+  marc_influencerCost: number;
+  marc_miscCost: number;
+  marc_marketingVATCost: number;
+  marc_totalCost: number;
+  marc_perUnitCost: number;
+  tax_region: string;
+  tax_VAT: number;
+  tax_GST: number;
+  tax_salesTax: number;
+  tax_miscCost: number;
+  tax_perUnitCost: number;
+  tax_totalCost: number;
+  gc_imagingAndPhotographyCost: number;
+  gc_videographyCost: number;
+  gc_productPackingCost: number;
+  gc_3dAnimationCost: number;
+  gc_miscCost: number;
+  gc_totalCost: number;
+  gc_perUnitCost: number;
+  pfc_vineProgramCost: number;
+  pfc_miscCost: number;
+  pfc_totalCost: number;
+  pfc_perUnitCost: number;
+  oc_competitorProductSamples: number;
+  oc_preLaunchSamples: number;
+  oc_employeesCost: number;
+  oc_anyOtherCost: number;
+  oc_totalCost: number;
+  oc_perUnitCost: number;
   grossProfit: number;
   grossProfitMargin: number;
-  netProfit: number;
-  netProfitMargin: number;
+  netProfitBeforeTaxes: number;
+  netProfitBeforeTaxesMargin: number;
+  netProfitAfterTaxes: number;
+  netProfitAfterTaxesMargin: number;
 }
 
+const TAX_OPTIONS = [
+  { country: "United States", code: "US", vat: 0, gst: 10, salesTax: 0 },
+  { country: "Canada", code: "CA", vat: 0, gst: 5, salesTax: 13 },
+  { country: "Mexico", code: "MX", vat: 16, gst: 0, salesTax: 0 },
+  { country: "Brazil", code: "BR", vat: 5, gst: 5, salesTax: 0 },
+  { country: "United Kingdom", code: "GB", vat: 20, gst: 0, salesTax: 0 },
+  { country: "Germany", code: "DE", vat: 19, gst: 0, salesTax: 0 },
+  { country: "Sweden", code: "SE", vat: 25, gst: 0, salesTax: 0 },
+  { country: "Poland", code: "PL", vat: 23, gst: 0, salesTax: 0 },
+  { country: "Turkey", code: "TR", vat: 18, gst: 0, salesTax: 0 },
+  { country: "UAE", code: "AE", vat: 5, gst: 0, salesTax: 0 },
+  { country: "India", code: "IN", vat: 0, gst: 18, salesTax: 0 },
+  { country: "France", code: "FR", vat: 20, gst: 0, salesTax: 0 },
+  { country: "Italy", code: "IT", vat: 22, gst: 0, salesTax: 0 },
+  { country: "Spain", code: "ES", vat: 21, gst: 0, salesTax: 0 },
+  { country: "Netherlands", code: "NL", vat: 21, gst: 0, salesTax: 0 },
+  { country: "Saudi Arabia", code: "SA", vat: 15, gst: 0, salesTax: 0 },
+  { country: "Japan", code: "JP", vat: 0, gst: 0, salesTax: 10 },
+  { country: "Singapore", code: "SG", vat: 0, gst: 8, salesTax: 0 },
+  { country: "Australia", code: "AU", vat: 0, gst: 10, salesTax: 0 },
+];
 
 const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = ({
   product,
@@ -63,292 +110,63 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
   isOpen,
   onClose,
 }) => {
-  // Calculation state using MarginMax Basic structure
-  const [calculation, setCalculation] = useState<ProfitCalculation>({
-    // Product Information
-    pi_sellingPrice: 0,
-    pi_totalRevenue: 0,
-    pi_quantity: 100,
-
-    // Product Sourcing Cost
-    psc_manufacturingCost: 0,
-    psc_shippingCost: 0,
-    psc_miscCost: 0,
-    psc_orderQuantity: 100,
-    psc_perUnitCost: 0,
-    psc_totalCost: 0,
-
-    // Fulfillment Model
-    fm_model: "FBA", // Using FBA as default for TikTok Shop
-    fm_referrfalFees: 0,
-    fm_fbaFulfillmentFees: 0,
-    fm_monthlyStorageFees: 0,
-    fm_longTermStorageFees: 0,
-    fm_inboundShippingCost: 0,
-    fm_returnsRate: 0,
-    fm_shippingFees: 0,
-    fm_handlingCost: 0,
-    fm_storageCost: 0,
-    fm_miscCost: 0,
-    fm_perUnitCost: 0,
-    fm_totalCost: 0,
-
-    // Calculated Results
-    grossProfit: 0,
-    grossProfitMargin: 0,
-    netProfit: 0,
-    netProfitMargin: 0,
+  const [calculation, setCalculation] = useState<EnhancedProfitCalculation>({
+    pi_sellingPrice: 0, pi_totalRevenue: 0, pi_quantity: 100,
+    psc_manufacturingCost: 0, psc_shippingCost: 0, psc_productLogoCost: 0, psc_miscCost: 0,
+    psc_orderQuantity: 100, psc_perUnitCost: 0, psc_totalCost: 0,
+    fm_model: "FBA", fm_referrfalFees: 0, fm_fbaFulfillmentFees: 0, fm_monthlyStorageFees: 0,
+    fm_longTermStorageFees: 0, fm_inboundShippingCost: 0, fm_returnsRate: 0, fm_shippingFees: 0,
+    fm_handlingCost: 0, fm_storageCost: 0, fm_miscCost: 0, fm_perUnitCost: 0, fm_totalCost: 0,
+    marc_marketingCost: 0, marc_attributionCost: 0, marc_influencerCost: 0, marc_miscCost: 0,
+    marc_marketingVATCost: 0, marc_totalCost: 0, marc_perUnitCost: 0,
+    tax_region: "US", tax_VAT: 0, tax_GST: 10, tax_salesTax: 0, tax_miscCost: 0,
+    tax_perUnitCost: 0, tax_totalCost: 0,
+    gc_imagingAndPhotographyCost: 0, gc_videographyCost: 0, gc_productPackingCost: 0,
+    gc_3dAnimationCost: 0, gc_miscCost: 0, gc_totalCost: 0, gc_perUnitCost: 0,
+    pfc_vineProgramCost: 0, pfc_miscCost: 0, pfc_totalCost: 0, pfc_perUnitCost: 0,
+    oc_competitorProductSamples: 0, oc_preLaunchSamples: 0, oc_employeesCost: 0,
+    oc_anyOtherCost: 0, oc_totalCost: 0, oc_perUnitCost: 0,
+    grossProfit: 0, grossProfitMargin: 0, netProfitBeforeTaxes: 0, netProfitBeforeTaxesMargin: 0,
+    netProfitAfterTaxes: 0, netProfitAfterTaxesMargin: 0,
   });
 
-  // Save section state
+  const [expandedSections, setExpandedSections] = useState({
+    productInfo: true, sourcing: true, fulfillment: true, marketing: false,
+    taxes: false, graphics: false, feedback: false, other: false,
+  });
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [saveTitle, setSaveTitle] = useState('');
+  const [saveDescription, setSaveDescription] = useState('');
   const [showSaveSection, setShowSaveSection] = useState(false);
-  const [productName, setProductName] = useState('');
-  const [productDescription, setProductDescription] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const saveSectionRef = useRef<HTMLDivElement>(null);
+  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
-  // Initialize with product and supplier data
-  useEffect(() => {
-    if (isOpen && product && supplier) {
-      // Check if this is a TikTok Shop product
-      const isTikTokShop = (supplier as any)?.isTikTokShopProduct === true;
-      const tiktokShopPrice = (supplier as any)?.tiktokShopPrice || product.price || 0;
-
-      // For TikTok Shop products, use the original product price as selling price
-      // For regular suppliers, parse the supplier's estimated price
-      let supplierPrice = 0;
-      if (isTikTokShop) {
-        // Use the original TikTok Shop product price
-        supplierPrice = tiktokShopPrice;
-      } else {
-        // Parse supplier estimated price for regular suppliers
-        supplierPrice = parseFloat(supplier.estimated_price.replace(/[^0-9.]/g, '') || '0');
-      }
-
-      // For TikTok Shop products, use the shop price as selling price
-      // For regular suppliers, apply 2.5x markup to cost
-      const suggestedPrice = isTikTokShop ? tiktokShopPrice : supplierPrice * 2.5;
-
-      // For TikTok Shop products, estimate cost based on typical margins
-      // For regular suppliers, use actual supplier price
-      let costPrice = supplierPrice;
-      let estimatedShipping = supplier.moq > 500 ? 2.50 : 5.00;
-
-      if (isTikTokShop) {
-        // TikTok Shop products typically have 40-50% cost margin
-        // Estimate cost as 45% of selling price
-        costPrice = suggestedPrice * 0.45;
-        estimatedShipping = 0; // Usually included in TikTok Shop price
-      }
-
-      // Estimate TikTok Shop fees (roughly 5-8% of selling price)
-      const estimatedTikTokFees = suggestedPrice * 0.06; // 6% average
-
-      // Estimate fulfillment fees (roughly $2-4 per unit)
-      const fulfillmentFees = isTikTokShop ? 1.50 : 3.00; // Lower for TikTok Shop
-
-      // Estimate storage fees (roughly $0.30-0.50 per unit per month)
-      const storageFees = isTikTokShop ? 0.20 : 0.40;
-
-      // Estimate processing fees (roughly $0.20-0.30 per unit)
-      const processingFees = 0.15;
-
-      const initialCalc: ProfitCalculation = {
-        // Product Information
-        pi_sellingPrice: suggestedPrice,
-        pi_totalRevenue: suggestedPrice * 100,
-        pi_quantity: 100,
-
-        // Product Sourcing Cost
-        psc_manufacturingCost: costPrice,
-        psc_shippingCost: estimatedShipping,
-        psc_miscCost: 0,
-        psc_orderQuantity: 100,
-        psc_perUnitCost: costPrice + estimatedShipping,
-        psc_totalCost: (costPrice + estimatedShipping) * 100,
-
-        // Fulfillment Model (TikTok Shop)
-        fm_model: "FBA", // Using FBA model for TikTok Shop
-        fm_referrfalFees: estimatedTikTokFees,
-        fm_fbaFulfillmentFees: fulfillmentFees,
-        fm_monthlyStorageFees: storageFees,
-        fm_longTermStorageFees: processingFees,
-        fm_inboundShippingCost: 0,
-        fm_returnsRate: 0,
-        fm_shippingFees: 0,
-        fm_handlingCost: 0,
-        fm_storageCost: 0,
-        fm_miscCost: 0,
-        fm_perUnitCost: estimatedTikTokFees + fulfillmentFees + storageFees + processingFees,
-        fm_totalCost: (estimatedTikTokFees + fulfillmentFees + storageFees + processingFees) * 100,
-
-        // Calculated Results
-        grossProfit: 0,
-        grossProfitMargin: 0,
-        netProfit: 0,
-        netProfitMargin: 0,
-      };
-
-      // Calculate profits
-      const totalRevenue = initialCalc.pi_totalRevenue;
-      const totalSourcingCost = initialCalc.psc_totalCost;
-      const totalFulfillmentCost = initialCalc.fm_totalCost;
-
-      initialCalc.grossProfit = totalRevenue - totalSourcingCost;
-      initialCalc.grossProfitMargin = totalRevenue > 0 ? (initialCalc.grossProfit / totalRevenue) * 100 : 0;
-      initialCalc.netProfit = totalRevenue - totalSourcingCost - totalFulfillmentCost;
-      initialCalc.netProfitMargin = totalRevenue > 0 ? (initialCalc.netProfit / totalRevenue) * 100 : 0;
-
-      setCalculation(initialCalc);
-
-      // Initialize save form
-      setProductName(product.title || '');
-      setProductDescription(`TikTok Trends Product - ID: ${product.id} | Supplier: ${supplier.name}`);
-      setSelectedCategory('');
-      setShowSaveSection(false);
-      setShowNewCategoryForm(false);
-      setNewCategoryName('');
-    }
-  }, [isOpen, product, supplier]);
-
-  // MarginMax Basic calculation functions
-  // MarginMax Basic calculation functions
-  const calculateFulfillmentTotals = (
-    fm_model: string,
-    fm_referrfalFees: number,
-    fm_fbaFulfillmentFees: number,
-    fm_monthlyStorageFees: number,
-    fm_longTermStorageFees: number,
-    fm_inboundShippingCost: number,
-    fm_shippingFees: number,
-    fm_handlingCost: number,
-    fm_storageCost: number,
-    fm_miscCost: number,
-    fm_returnsRate: number,
-    pi_quantity: number = 0
-  ) => {
-    const quantity = pi_quantity || calculation.pi_quantity || 0;
-
-    let sum = 0;
-    if (fm_model === "FBA") {
-      sum = fm_referrfalFees + fm_fbaFulfillmentFees + fm_monthlyStorageFees +
-            fm_longTermStorageFees + fm_inboundShippingCost;
-    } else {
-      sum = fm_referrfalFees + fm_shippingFees + fm_handlingCost +
-            fm_storageCost + fm_miscCost;
-    }
-
-    // Calculate refund loss based on returns rate
-    const refundLoss = ((quantity || 0) * (fm_returnsRate / 100) * (sum - fm_referrfalFees)) / (quantity || 1);
-    const perUnitCost = sum + refundLoss;
-    const totalCost = perUnitCost * quantity;
-
-    return { perUnitCost, totalCost };
-  };
-
-  const updateCalculation = (field: keyof ProfitCalculation, value: number | string) => {
-    const newCalc = { ...calculation, [field]: value };
-
-    // Recalculate dependent values based on MarginMax Basic logic
-    if (field === 'pi_sellingPrice' || field === 'pi_quantity') {
-      newCalc.pi_totalRevenue = newCalc.pi_sellingPrice * newCalc.pi_quantity;
-    }
-
-    // Product Sourcing Cost calculations
-    if (['psc_manufacturingCost', 'psc_shippingCost', 'psc_miscCost', 'psc_orderQuantity'].includes(field)) {
-      const costPerUnit = newCalc.psc_manufacturingCost + newCalc.psc_shippingCost + newCalc.psc_miscCost;
-      newCalc.psc_perUnitCost = costPerUnit;
-      newCalc.psc_totalCost = costPerUnit * newCalc.psc_orderQuantity;
-    }
-
-    // Fulfillment calculations
-    const fulfillmentFields = ['fm_referrfalFees', 'fm_fbaFulfillmentFees', 'fm_monthlyStorageFees',
-                              'fm_longTermStorageFees', 'fm_inboundShippingCost', 'fm_shippingFees',
-                              'fm_handlingCost', 'fm_storageCost', 'fm_miscCost', 'fm_returnsRate'];
-
-    if (fulfillmentFields.includes(field) || field === 'pi_quantity' || field === 'fm_model') {
-      const { perUnitCost, totalCost } = calculateFulfillmentTotals(
-        newCalc.fm_model,
-        newCalc.fm_referrfalFees,
-        newCalc.fm_fbaFulfillmentFees,
-        newCalc.fm_monthlyStorageFees,
-        newCalc.fm_longTermStorageFees,
-        newCalc.fm_inboundShippingCost,
-        newCalc.fm_shippingFees,
-        newCalc.fm_handlingCost,
-        newCalc.fm_storageCost,
-        newCalc.fm_miscCost,
-        newCalc.fm_returnsRate,
-        newCalc.pi_quantity
-      );
-
-      newCalc.fm_perUnitCost = perUnitCost;
-      newCalc.fm_totalCost = totalCost;
-    }
-
-    // Calculate profits (MarginMax Basic style)
-    const totalRevenue = newCalc.pi_totalRevenue;
-    const totalCosts = newCalc.psc_totalCost + newCalc.fm_totalCost;
-
-    newCalc.grossProfit = totalRevenue - newCalc.psc_totalCost - newCalc.fm_totalCost;
-    newCalc.grossProfitMargin = totalRevenue > 0 ? (newCalc.grossProfit / totalRevenue) * 100 : 0;
-    newCalc.netProfit = totalRevenue - totalCosts;
-    newCalc.netProfitMargin = totalRevenue > 0 ? (newCalc.netProfit / totalRevenue) * 100 : 0;
-
-    setCalculation(newCalc);
-  };
-
-  // Categories query - only fetch when save section is shown
-  const { data: categories = [], refetch: refetchCategories } = useQuery({
-    queryKey: ['categories'],
+  const { data: categoriesData } = useQuery({
+    queryKey: ["getCategories"],
     queryFn: getCategory,
-    select: (response) => response.data || [],
-    enabled: showSaveSection, // Only fetch when needed to reduce requests
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
+
+  useEffect(() => {
+    if (categoriesData) setCategories(categoriesData.data);
+  }, [categoriesData]);
 
   // Create category mutation
   const createCategoryMutation = useMutation({
     mutationFn: createCategory,
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success('Category created successfully');
+      setCategories(prev => [...prev, data.data]);
+      setSelectedCategory(data.data.id);
       setNewCategoryName('');
       setShowNewCategoryForm(false);
-      refetchCategories();
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to create category');
     },
   });
-
-  // Utility functions
-  const formatPrice = (price: number | string | undefined) => {
-    if (price === undefined || price === null) {
-      return '$0.00';
-    }
-    const numPrice = typeof price === 'string' ? parseFloat(price.replace(/[^0-9.]/g, '')) : price;
-    if (isNaN(numPrice)) {
-      return '$0.00';
-    }
-    return `$${numPrice.toFixed(2)}`;
-  };
-
-  const formatNumber = (num: number | undefined | null) => {
-    // Handle undefined, null, or invalid numbers
-    if (num === undefined || num === null || isNaN(num)) {
-      return '0';
-    }
-
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
-  };
 
   // Save product mutation
   const saveProductMutation = useMutation({
@@ -359,29 +177,29 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       setIsSaving(false);
       onClose();
     },
-    onError: () => {
-      toast.error('Failed to save product. Please try again.');
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to save product');
       setIsSaving(false);
     },
   });
 
-  // Save functionality handlers
-
+  // Handle create category
   const handleCreateCategory = () => {
     if (!newCategoryName.trim()) {
-      toast.error('Category name is required');
+      toast.error('Please enter a category name');
       return;
     }
 
     createCategoryMutation.mutate({
       name: newCategoryName.trim(),
-      description: `Category for TikTok products`,
+      description: `Category for ${newCategoryName.trim()} products`
     });
   };
 
+  // Handle product save
   const handleSaveProduct = () => {
-    if (!productName.trim()) {
-      toast.error('Product name is required');
+    if (!saveTitle.trim()) {
+      toast.error('Please enter a product name');
       return;
     }
 
@@ -390,102 +208,121 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       return;
     }
 
+    if (!supplier) {
+      toast.error('No supplier selected');
+      return;
+    }
+
     setIsSaving(true);
+
+    // Helper function to extract numeric price from string and format with currency
+    const extractPrice = (priceValue: any): string => {
+      if (!priceValue && priceValue !== 0) return '$0';
+
+      if (typeof priceValue === 'number') {
+        // If it's already a number, format it with currency
+        return `$${priceValue.toFixed(2)}`;
+      }
+
+      if (typeof priceValue === 'string') {
+        // Extract numeric value from string
+        const numericPrice = priceValue.replace(/[^0-9.]/g, '');
+        if (numericPrice) {
+          const parsedValue = parseFloat(numericPrice);
+          return isNaN(parsedValue) ? '$0' : `$${parsedValue.toFixed(2)}`;
+        }
+      }
+
+      return '$0';
+    };
+
+    // Debug logging
+    console.log('🔍 TikTok Product Save Debug:', {
+      productId: product.id,
+      productTitle: product.title,
+      productPrice: product.price,
+      productPriceType: typeof product.price,
+      extractedPrice: extractPrice(product.price),
+      saveTitle: saveTitle.trim(),
+      sellerName: product.seller_name,
+      supplierName: supplier.name,
+      imageUrl: product.image_url,
+      coverUrl: product.cover_url,
+      rating: product.rating,
+      reviewCount: product.review_count,
+      salesCount: product.sales_count,
+    });
 
     // Prepare product data with MarginMax Basic field structure
     const productData = {
-      name: productName.trim(),
-      description: productDescription.trim(),
+      name: saveTitle.trim(),
+      description: saveDescription.trim(),
       category: selectedCategory,
 
-      // Product Information (MarginMax Basic format)
-      pi_sellingPrice: calculation.pi_sellingPrice.toFixed(2),
-      pi_totalRevenue: calculation.pi_totalRevenue.toFixed(2),
-      pi_quantity: calculation.pi_quantity,
-
-      // Product Sourcing Cost (MarginMax Basic format)
-      psc_manufacturingCost: calculation.psc_manufacturingCost.toFixed(2),
-      psc_shippingCost: calculation.psc_shippingCost.toFixed(2),
-      psc_miscCost: calculation.psc_miscCost.toFixed(2),
-      psc_orderQuantity: calculation.psc_orderQuantity,
-      psc_perUnitCost: calculation.psc_perUnitCost.toFixed(2),
-      psc_totalCost: calculation.psc_totalCost.toFixed(2),
-
-      // Fulfillment Model (MarginMax Basic format)
-      fm_model: calculation.fm_model,
-      fm_referrfalFees: calculation.fm_referrfalFees.toFixed(2),
-      fm_fbaFulfillmentFees: calculation.fm_fbaFulfillmentFees.toFixed(2),
-      fm_monthlyStorageFees: calculation.fm_monthlyStorageFees.toFixed(2),
-      fm_longTermStorageFees: calculation.fm_longTermStorageFees.toFixed(2),
-      fm_inboundShippingCost: calculation.fm_inboundShippingCost.toFixed(2),
-      fm_returnsRate: calculation.fm_returnsRate,
-      fm_shippingFees: calculation.fm_shippingFees.toFixed(2),
-      fm_handlingCost: calculation.fm_handlingCost.toFixed(2),
-      fm_storageCost: calculation.fm_storageCost.toFixed(2),
-      fm_miscCost: calculation.fm_miscCost.toFixed(2),
-      fm_perUnitCost: calculation.fm_perUnitCost.toFixed(2),
-      fm_totalCost: calculation.fm_totalCost.toFixed(2),
-
-      // Profit Information (save percentages in gross_profit/net_profit fields for compatibility)
-      gross_profit: calculation.grossProfitMargin.toFixed(2),
-      gross_profit_margin: calculation.grossProfitMargin.toFixed(2),
-      net_profit: calculation.netProfitMargin.toFixed(2),
-      net_profit_margin: calculation.netProfitMargin.toFixed(2),
-      total_revenue: calculation.pi_totalRevenue.toFixed(2),
-      selling_price: calculation.pi_sellingPrice.toFixed(2),
+      // Default values for required fields
       simple_profit_pro: false,
 
-      // TikTok product data (using amazon_product key for compatibility)
-      // Format price as string with currency symbol for proper parsing
+      // Add profit summary fields for Product Vault display
+      // Note: ListingDetail expects gross_profit/net_profit to be percentages, not dollar amounts
+      selling_price: parseFloat(calculation.pi_sellingPrice.toFixed(2)),
+      quantity: parseInt(calculation.pi_quantity.toString(), 10),
+      total_revenue: parseFloat(calculation.pi_totalRevenue.toFixed(2)),
+      gross_profit: parseFloat(calculation.grossProfitMargin.toFixed(2)), // Percentage
+      net_profit: parseFloat(calculation.netProfitAfterTaxesMargin.toFixed(2)), // Percentage
+      product_gross_profit: parseFloat(calculation.grossProfit.toFixed(2)), // Dollar amount
+      product_net_profit: parseFloat(calculation.netProfitAfterTaxes.toFixed(2)), // Dollar amount
+
+      // Amazon product field (database schema requires this field name)
+      // Convert TikTok product format to Amazon product format for compatibility
       amazon_product: {
         data: {
-          asin: product.id || 'tiktok_product',
+          asin: product.id || 'tiktok_' + Date.now(),
           product_title: product.title || 'TikTok Product',
-          product_price: product.price || '$0.00',
-          product_photo: product.image_url || '',
-          product_star_rating: product.rating || 0,
-          product_num_ratings: product.review_count || 0,
-          brand: 'TikTok Shop',
-          category: 'TikTok Product',
-          is_prime: false,
-          is_amazon_choice: false,
-          is_best_seller: false,
+          product_price: extractPrice(product.price),
+          product_original_price: extractPrice(product.price),
+          currency: 'USD',
           country: product.country || 'US',
-          seller_name: supplier.name || 'TikTok Official Store',
-          seller_country: product.country || 'US',
+          product_byline: supplier.name || 'Unknown Supplier',
+          product_byline_link: supplier.contact_url || '',
+          product_star_rating: (product.rating || 0).toString(),
+          product_num_ratings: product.review_count || 0,
+          product_url: product.video_url || '',
+          product_photo: product.image_url || product.cover_url || '',
+          product_num_offers: 1,
+          product_availability: 'In Stock',
+          is_best_seller: false,
+          is_amazon_choice: false,
+          is_prime: false,
+          climate_pledge_friendly: false,
+          sales_volume: (product.sales_count || 0).toString(),
+          about_product: product.description ? [product.description] : [],
+          product_description: product.description || '',
+          product_information: {},
+          product_videos: product.video_url ? [product.video_url] : [],
+          product_photos: product.image_url ? [product.image_url] : [],
+          has_video: !!product.video_url,
+          product_details: {},
         },
         parameters: {
-          searchCountry: product.country || 'US',
-        },
-        offer: {
-          seller: supplier.name || 'TikTok Official Store',
-          seller_id: product.id || 'tiktok_seller',
-          seller_star_rating: product.rating ? product.rating.toString() : '4.2',
-          seller_star_rating_info: product.review_count ? product.review_count.toString() : '500',
-          ships_from: product.country || 'US',
-          seller_link: product.video_url || 'https://tiktok.com',
-          delivery_price: product.free_shipping ? 'Free Shipping' : 'Standard Shipping',
-          delivery_time: 'Standard Delivery',
-          product_price: product.price || '$0.00',
-          product_original_price: product.price || '$0.00',
-          product_condition: 'New',
-          currency: 'USD'
+          searchCountry: 'US',
+          country: product.country || 'US',
         },
         source: 'tiktok_trends',
         saved_at: new Date().toISOString(),
-        // Store calculation data for display
-        calculation_data: {
-          pi_sellingPrice: calculation.pi_sellingPrice,
-          pi_totalRevenue: calculation.pi_totalRevenue,
-          pi_quantity: calculation.pi_quantity,
-          psc_manufacturingCost: calculation.psc_manufacturingCost,
-          psc_shippingCost: calculation.psc_shippingCost,
-          psc_totalCost: calculation.psc_totalCost,
-          fm_totalCost: calculation.fm_totalCost,
-          grossProfit: calculation.grossProfit,
-          grossProfitMargin: calculation.grossProfitMargin,
-          netProfit: calculation.netProfit,
-          netProfitMargin: calculation.netProfitMargin,
+        // Add offer object with seller information for Product Vault display
+        offer: {
+          product_price: extractPrice(product.price),
+          product_original_price: extractPrice(product.price),
+          product_condition: 'New',
+          seller: supplier.name || 'Unknown Supplier',
+          seller_id: supplier.id || '',
+          seller_link: supplier.contact_url || '',
+          seller_star_rating: (supplier.rating || 0).toString(),
+          seller_star_rating_info: (supplier.total_transactions || 0).toString(),
+          currency: 'USD',
+          delivery_price: product.free_shipping ? 'Free Shipping' : 'Standard Shipping',
+          delivery_time: supplier.lead_time || '7-14 days',
+          ships_from: supplier.location || 'China',
         },
       },
 
@@ -493,577 +330,940 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       supplier_info: {
         name: supplier.name,
         location: supplier.location,
-        price_per_unit: supplier.estimated_price,
+        moq: supplier.moq,
+        lead_time: supplier.lead_time,
         estimated_price: supplier.estimated_price,
-        minimum_order: supplier.moq,
-        contact_url: supplier.contact_url,
+        verification_status: supplier.verification_status,
         ai_match_score: supplier.ai_match_score,
       },
+
+      // Product Information (MarginMax Basic format)
+      pi_sellingPrice: parseFloat(calculation.pi_sellingPrice.toFixed(2)),
+      pi_totalRevenue: parseFloat(calculation.pi_totalRevenue.toFixed(2)),
+      pi_quantity: parseInt(calculation.pi_quantity.toString(), 10),
+
+      // Product Sourcing Cost (MarginMax Basic format)
+      psc_manufacturingCost: parseFloat(calculation.psc_manufacturingCost.toFixed(2)),
+      psc_shippingCost: parseFloat(calculation.psc_shippingCost.toFixed(2)),
+      psc_miscCost: parseFloat(calculation.psc_miscCost.toFixed(2)),
+      psc_orderQuantity: parseInt(calculation.psc_orderQuantity.toString(), 10),
+      psc_perUnitCost: parseFloat(calculation.psc_perUnitCost.toFixed(2)),
+      psc_totalCost: parseFloat(calculation.psc_totalCost.toFixed(2)),
+
+      // Fulfillment Model (MarginMax Basic format)
+      fm_model: calculation.fm_model,
+      fm_referrfalFees: parseFloat(calculation.fm_referrfalFees.toFixed(2)),
+      fm_fbaFulfillmentFees: parseFloat(calculation.fm_fbaFulfillmentFees.toFixed(2)),
+      fm_monthlyStorageFees: parseFloat(calculation.fm_monthlyStorageFees.toFixed(2)),
+      fm_longTermStorageFees: parseFloat(calculation.fm_longTermStorageFees.toFixed(2)),
+      fm_inboundShippingCost: parseFloat(calculation.fm_inboundShippingCost.toFixed(2)),
+      fm_returnsRate: parseFloat(calculation.fm_returnsRate.toFixed(2)),
+      fm_shippingFees: parseFloat(calculation.fm_shippingFees.toFixed(2)),
+      fm_handlingCost: parseFloat(calculation.fm_handlingCost.toFixed(2)),
+      fm_storageCost: parseFloat(calculation.fm_storageCost.toFixed(2)),
+      fm_miscCost: parseFloat(calculation.fm_miscCost.toFixed(2)),
+      fm_perUnitCost: parseFloat(calculation.fm_perUnitCost.toFixed(2)),
+      fm_totalCost: parseFloat(calculation.fm_totalCost.toFixed(2)),
+
+      // Marketing, Advertisement and Ranking Cost
+      marc_marketingCost: parseFloat(calculation.marc_marketingCost.toFixed(2)),
+      marc_attributionCost: parseFloat(calculation.marc_attributionCost.toFixed(2)),
+      marc_influencerCost: parseFloat(calculation.marc_influencerCost.toFixed(2)),
+      marc_miscCost: parseFloat(calculation.marc_miscCost.toFixed(2)),
+      marc_marketingVATCost: parseFloat(calculation.marc_marketingVATCost.toFixed(2)),
+      marc_totalCost: parseFloat(calculation.marc_totalCost.toFixed(2)),
+      marc_perUnitCost: parseFloat(calculation.marc_perUnitCost.toFixed(2)),
+
+      // Taxes
+      tax_region: calculation.tax_region,
+      tax_VAT: parseFloat(calculation.tax_VAT.toFixed(2)),
+      tax_GST: parseFloat(calculation.tax_GST.toFixed(2)),
+      tax_salesTax: parseFloat(calculation.tax_salesTax.toFixed(2)),
+      tax_miscCost: parseFloat(calculation.tax_miscCost.toFixed(2)),
+      tax_perUnitCost: parseFloat(calculation.tax_perUnitCost.toFixed(2)),
+      tax_totalCost: parseFloat(calculation.tax_totalCost.toFixed(2)),
+
+      // Graphics Cost
+      gc_imagingAndPhotographyCost: parseFloat(calculation.gc_imagingAndPhotographyCost.toFixed(2)),
+      gc_videographyCost: parseFloat(calculation.gc_videographyCost.toFixed(2)),
+      gc_productPackingCost: parseFloat(calculation.gc_productPackingCost.toFixed(2)),
+      gc_3dAnimationCost: parseFloat(calculation.gc_3dAnimationCost.toFixed(2)),
+      gc_miscCost: parseFloat(calculation.gc_miscCost.toFixed(2)),
+      gc_totalCost: parseFloat(calculation.gc_totalCost.toFixed(2)),
+      gc_perUnitCost: parseFloat(calculation.gc_perUnitCost.toFixed(2)),
+
+      // Product Feedback Cost
+      pfc_vineProgramCost: parseFloat(calculation.pfc_vineProgramCost.toFixed(2)),
+      pfc_miscCost: parseFloat(calculation.pfc_miscCost.toFixed(2)),
+      pfc_totalCost: parseFloat(calculation.pfc_totalCost.toFixed(2)),
+      pfc_perUnitCost: parseFloat(calculation.pfc_perUnitCost.toFixed(2)),
+
+      // Other Costs
+      oc_competitorProductSamples: parseFloat(calculation.oc_competitorProductSamples.toFixed(2)),
+      oc_preLaunchSamples: parseFloat(calculation.oc_preLaunchSamples.toFixed(2)),
+      oc_employeesCost: parseFloat(calculation.oc_employeesCost.toFixed(2)),
+      oc_anyOtherCost: parseFloat(calculation.oc_anyOtherCost.toFixed(2)),
+      oc_totalCost: parseFloat(calculation.oc_totalCost.toFixed(2)),
+      oc_perUnitCost: parseFloat(calculation.oc_perUnitCost.toFixed(2)),
+
+      // Profit Results
+      grossProfit: parseFloat(calculation.grossProfit.toFixed(2)),
+      grossProfitMargin: parseFloat(calculation.grossProfitMargin.toFixed(2)),
+      netProfitBeforeTaxes: parseFloat(calculation.netProfitBeforeTaxes.toFixed(2)),
+      netProfitBeforeTaxesMargin: parseFloat(calculation.netProfitBeforeTaxesMargin.toFixed(2)),
+      netProfitAfterTaxes: parseFloat(calculation.netProfitAfterTaxes.toFixed(2)),
+      netProfitAfterTaxesMargin: parseFloat(calculation.netProfitAfterTaxesMargin.toFixed(2)),
     };
 
     console.log('🔥 CATEGORY:', selectedCategory);
     console.log('🔥 PRODUCT DATA:', productData);
+    console.log('🔥 AMAZON PRODUCT DATA:', {
+      asin: productData.amazon_product.data.asin,
+      product_title: productData.amazon_product.data.product_title,
+      product_price: productData.amazon_product.data.product_price,
+      product_photo: productData.amazon_product.data.product_photo,
+      product_star_rating: productData.amazon_product.data.product_star_rating,
+      product_num_ratings: productData.amazon_product.data.product_num_ratings,
+      sales_volume: productData.amazon_product.data.sales_volume,
+    });
     saveProductMutation.mutate(productData);
+  };
+
+  useEffect(() => {
+    if (isOpen && product && supplier) {
+      const isTikTokShop = (supplier as any)?.isTikTokShopProduct === true;
+      const shopPrice = (supplier as any)?.tiktokShopPrice || product.price || 0;
+      let supplierPrice = isTikTokShop ? shopPrice : parseFloat(supplier.estimated_price?.replace(/[^0-9.]/g, '') || '0');
+      const suggestedPrice = isTikTokShop ? shopPrice : supplierPrice * 2.5;
+      let costPrice = supplierPrice;
+      let estimatedShipping = supplier.moq > 500 ? 2.50 : 5.00;
+
+      if (isTikTokShop) {
+        costPrice = suggestedPrice * 0.45;
+        estimatedShipping = 0;
+      }
+
+      const estimatedTikTokFees = suggestedPrice * 0.06;
+      const fulfillmentFees = isTikTokShop ? 1.50 : 3.00;
+      const storageFees = isTikTokShop ? 0.20 : 0.40;
+      const processingFees = 0.15;
+
+      const initialCalc: EnhancedProfitCalculation = {
+        pi_sellingPrice: suggestedPrice, pi_totalRevenue: suggestedPrice * 100, pi_quantity: 100,
+        psc_manufacturingCost: costPrice, psc_shippingCost: estimatedShipping, psc_productLogoCost: 0,
+        psc_miscCost: 0, psc_orderQuantity: 100, psc_perUnitCost: costPrice + estimatedShipping,
+        psc_totalCost: (costPrice + estimatedShipping) * 100,
+        fm_model: "FBA", fm_referrfalFees: estimatedTikTokFees, fm_fbaFulfillmentFees: fulfillmentFees,
+        fm_monthlyStorageFees: storageFees, fm_longTermStorageFees: 0, fm_inboundShippingCost: 0,
+        fm_returnsRate: 0, fm_shippingFees: 0, fm_handlingCost: 0, fm_storageCost: 0, fm_miscCost: processingFees,
+        fm_perUnitCost: estimatedTikTokFees + fulfillmentFees + storageFees + processingFees,
+        fm_totalCost: (estimatedTikTokFees + fulfillmentFees + storageFees + processingFees) * 100,
+        marc_marketingCost: 0, marc_attributionCost: 0, marc_influencerCost: 0, marc_miscCost: 0,
+        marc_marketingVATCost: 0, marc_totalCost: 0, marc_perUnitCost: 0,
+        tax_region: "US", tax_VAT: 0, tax_GST: 10, tax_salesTax: 0, tax_miscCost: 0, tax_perUnitCost: 0, tax_totalCost: 0,
+        gc_imagingAndPhotographyCost: 0, gc_videographyCost: 0, gc_productPackingCost: 0, gc_3dAnimationCost: 0,
+        gc_miscCost: 0, gc_totalCost: 0, gc_perUnitCost: 0,
+        pfc_vineProgramCost: 0, pfc_miscCost: 0, pfc_totalCost: 0, pfc_perUnitCost: 0,
+        oc_competitorProductSamples: 0, oc_preLaunchSamples: 0, oc_employeesCost: 0, oc_anyOtherCost: 0,
+        oc_totalCost: 0, oc_perUnitCost: 0,
+        grossProfit: 0, grossProfitMargin: 0, netProfitBeforeTaxes: 0, netProfitBeforeTaxesMargin: 0,
+        netProfitAfterTaxes: 0, netProfitAfterTaxesMargin: 0,
+      };
+
+      // Calculate all profit metrics
+      const totalRevenue = initialCalc.pi_totalRevenue;
+      const totalCostsBeforeTax = initialCalc.psc_totalCost + initialCalc.fm_totalCost +
+                                   initialCalc.marc_totalCost + initialCalc.gc_totalCost +
+                                   initialCalc.pfc_totalCost + initialCalc.oc_totalCost;
+
+      initialCalc.grossProfit = totalRevenue - initialCalc.psc_totalCost;
+      initialCalc.grossProfitMargin = totalRevenue > 0 ? (initialCalc.grossProfit / totalRevenue) * 100 : 0;
+      initialCalc.netProfitBeforeTaxes = totalRevenue - totalCostsBeforeTax;
+      initialCalc.netProfitBeforeTaxesMargin = totalRevenue > 0 ? (initialCalc.netProfitBeforeTaxes / totalRevenue) * 100 : 0;
+      initialCalc.netProfitAfterTaxes = initialCalc.netProfitBeforeTaxes - initialCalc.tax_totalCost;
+      initialCalc.netProfitAfterTaxesMargin = totalRevenue > 0 ? (initialCalc.netProfitAfterTaxes / totalRevenue) * 100 : 0;
+
+      setCalculation(initialCalc);
+      setSaveTitle(product.title || 'TikTok Product');
+      setSaveDescription(`TikTok Trends Product - ID: ${product.id} | Supplier: ${supplier.name} | Price: ${product.price}`);
+    }
+  }, [isOpen, product, supplier]);
+
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const updateCalculation = (field: keyof EnhancedProfitCalculation, value: number | string) => {
+    const newCalc = { ...calculation, [field]: typeof value === 'string' ? parseFloat(value) || 0 : value };
+
+    if (field === 'pi_sellingPrice' || field === 'pi_quantity') {
+      newCalc.pi_totalRevenue = newCalc.pi_sellingPrice * newCalc.pi_quantity;
+    }
+
+    if (['psc_manufacturingCost', 'psc_shippingCost', 'psc_productLogoCost', 'psc_miscCost'].includes(field as string)) {
+      const costPerUnit = newCalc.psc_manufacturingCost + newCalc.psc_shippingCost + newCalc.psc_productLogoCost + newCalc.psc_miscCost;
+      newCalc.psc_perUnitCost = costPerUnit;
+      newCalc.psc_totalCost = costPerUnit * newCalc.psc_orderQuantity;
+    }
+
+    if (field === 'psc_orderQuantity') {
+      newCalc.psc_totalCost = newCalc.psc_perUnitCost * newCalc.psc_orderQuantity;
+    }
+
+    if (['fm_referrfalFees', 'fm_fbaFulfillmentFees', 'fm_monthlyStorageFees', 'fm_longTermStorageFees', 'fm_inboundShippingCost', 'fm_shippingFees', 'fm_handlingCost', 'fm_storageCost', 'fm_miscCost'].includes(field as string)) {
+      let sum = 0;
+      if (newCalc.fm_model === "FBA") {
+        sum = newCalc.fm_referrfalFees + newCalc.fm_fbaFulfillmentFees + newCalc.fm_monthlyStorageFees + newCalc.fm_longTermStorageFees + newCalc.fm_inboundShippingCost;
+      } else {
+        sum = newCalc.fm_referrfalFees + newCalc.fm_shippingFees + newCalc.fm_handlingCost + newCalc.fm_storageCost + newCalc.fm_miscCost;
+      }
+      newCalc.fm_perUnitCost = sum;
+      newCalc.fm_totalCost = sum * newCalc.pi_quantity;
+    }
+
+    if (['marc_marketingCost', 'marc_attributionCost', 'marc_influencerCost', 'marc_miscCost', 'marc_marketingVATCost'].includes(field as string)) {
+      const sum = newCalc.marc_marketingCost + newCalc.marc_attributionCost + newCalc.marc_influencerCost + newCalc.marc_miscCost + newCalc.marc_marketingVATCost;
+      newCalc.marc_totalCost = sum;
+      newCalc.marc_perUnitCost = newCalc.pi_quantity > 0 ? sum / newCalc.pi_quantity : 0;
+    }
+
+    if (['tax_VAT', 'tax_GST', 'tax_salesTax', 'tax_miscCost'].includes(field as string)) {
+      const sum = newCalc.tax_VAT + newCalc.tax_GST + newCalc.tax_salesTax + newCalc.tax_miscCost;
+      newCalc.tax_totalCost = sum;
+      newCalc.tax_perUnitCost = newCalc.pi_quantity > 0 ? sum / newCalc.pi_quantity : 0;
+    }
+
+    if (['gc_imagingAndPhotographyCost', 'gc_videographyCost', 'gc_productPackingCost', 'gc_3dAnimationCost', 'gc_miscCost'].includes(field as string)) {
+      const sum = newCalc.gc_imagingAndPhotographyCost + newCalc.gc_videographyCost + newCalc.gc_productPackingCost + newCalc.gc_3dAnimationCost + newCalc.gc_miscCost;
+      newCalc.gc_totalCost = sum;
+      newCalc.gc_perUnitCost = newCalc.pi_quantity > 0 ? sum / newCalc.pi_quantity : 0;
+    }
+
+    if (['pfc_vineProgramCost', 'pfc_miscCost'].includes(field as string)) {
+      const sum = newCalc.pfc_vineProgramCost + newCalc.pfc_miscCost;
+      newCalc.pfc_totalCost = sum;
+      newCalc.pfc_perUnitCost = newCalc.pi_quantity > 0 ? sum / newCalc.pi_quantity : 0;
+    }
+
+    if (['oc_competitorProductSamples', 'oc_preLaunchSamples', 'oc_employeesCost', 'oc_anyOtherCost'].includes(field as string)) {
+      const sum = newCalc.oc_competitorProductSamples + newCalc.oc_preLaunchSamples + newCalc.oc_employeesCost + newCalc.oc_anyOtherCost;
+      newCalc.oc_totalCost = sum;
+      newCalc.oc_perUnitCost = newCalc.pi_quantity > 0 ? sum / newCalc.pi_quantity : 0;
+    }
+
+    const totalRevenue = newCalc.pi_totalRevenue;
+    const totalCostsBeforeTax = newCalc.psc_totalCost + newCalc.fm_totalCost + newCalc.marc_totalCost + newCalc.gc_totalCost + newCalc.pfc_totalCost + newCalc.oc_totalCost;
+
+    newCalc.grossProfit = totalRevenue - newCalc.psc_totalCost;
+    newCalc.grossProfitMargin = totalRevenue > 0 ? (newCalc.grossProfit / totalRevenue) * 100 : 0;
+    newCalc.netProfitBeforeTaxes = totalRevenue - totalCostsBeforeTax;
+    newCalc.netProfitBeforeTaxesMargin = totalRevenue > 0 ? (newCalc.netProfitBeforeTaxes / totalRevenue) * 100 : 0;
+    newCalc.netProfitAfterTaxes = newCalc.netProfitBeforeTaxes - newCalc.tax_totalCost;
+    newCalc.netProfitAfterTaxesMargin = totalRevenue > 0 ? (newCalc.netProfitAfterTaxes / totalRevenue) * 100 : 0;
+
+    setCalculation(newCalc);
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
               <Calculator className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">TikTok Profit Calculator</h2>
-              <p className="text-sm text-gray-600">Calculate profit margins for selected TikTok product and supplier</p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">TikTok Profit Calculator</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Complete profit analysis with all cost categories</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Save to Vault Button */}
-            <button
-              onClick={() => {
-                setShowSaveSection(true);
-                // Auto-scroll to save section after state update
-                setTimeout(() => {
-                  saveSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
-              }}
-              className="bg-gradient-to-r from-pink-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-pink-700 hover:to-purple-700 transition-colors flex items-center gap-2 font-medium shadow-md"
-            >
-              <Save className="w-4 h-4" />
-              Save to Vault
-            </button>
-
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+            <X className="w-6 h-6 dark:text-white" />
+          </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          {/* Product and Supplier Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Product Info */}
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-lg p-4">
-              <h3 className="font-semibold text-pink-900 mb-3 flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Selected TikTok Product
-              </h3>
-              <div className="flex gap-4">
-                <img
-                  src={product.image_url || '/api/placeholder/80/80'}
-                  alt={product.title}
-                  className="w-20 h-20 object-cover rounded-lg shadow-md"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/api/placeholder/80/80';
-                  }}
-                />
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900 mb-2 line-clamp-2">{product.title || 'Product'}</h4>
-                  <p className="text-lg font-bold text-pink-600 mb-2">
-                    {formatPrice(product.price || supplier?.estimated_price || 0)}
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                    <div>Views: {formatNumber((product as any)?.views_count)}</div>
-                    <div>Likes: {formatNumber((product as any)?.likes_count)}</div>
-                    <div>Shares: {formatNumber((product as any)?.shares_count)}</div>
-                    <div>Sales: {formatNumber((product as any)?.sales_count)}</div>
-                  </div>
-                </div>
-              </div>
+        <div className="p-6 space-y-6">
+          {/* Profit Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg border border-orange-200 dark:border-orange-700">
+              <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-1">Total Revenue</p>
+              <p className="text-lg font-bold text-orange-900 dark:text-orange-100">${calculation.pi_totalRevenue.toFixed(2)}</p>
             </div>
-
-            {/* Supplier Info */}
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Selected Supplier
-              </h3>
-              <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">{supplier.name}</h4>
-                    <p className="text-sm text-gray-600">{supplier.location}</p>
-                  </div>
-                  <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium">
-                    {supplier.ai_match_score || 0}% Match
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="text-gray-600">MOQ:</span> <span className="font-medium">{supplier.moq || 0}</span></div>
-                  <div><span className="text-gray-600">Lead Time:</span> <span className="font-medium">{supplier.lead_time}</span></div>
-                  <div><span className="text-gray-600">Est. Price:</span> <span className="font-medium text-green-600">{supplier.estimated_price}</span></div>
-                  <div><span className="text-gray-600">Verification:</span> <span className="font-medium text-blue-600">{supplier.verification_status}</span></div>
-                </div>
-              </div>
+            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
+              <p className="text-xs font-semibold text-green-600 dark:text-green-400 mb-1">Gross Profit</p>
+              <p className="text-lg font-bold text-green-900 dark:text-green-100">${calculation.grossProfit.toFixed(2)}</p>
+              <p className="text-xs text-green-700 dark:text-green-300">{calculation.grossProfitMargin.toFixed(1)}%</p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+              <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">Net Profit (Before Tax)</p>
+              <p className="text-lg font-bold text-blue-900 dark:text-blue-100">${calculation.netProfitBeforeTaxes.toFixed(2)}</p>
+              <p className="text-xs text-blue-700 dark:text-blue-300">{calculation.netProfitBeforeTaxesMargin.toFixed(1)}%</p>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+              <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">Net Profit (After Tax)</p>
+              <p className="text-lg font-bold text-purple-900 dark:text-purple-100">${calculation.netProfitAfterTaxes.toFixed(2)}</p>
+              <p className="text-xs text-purple-700 dark:text-purple-300">{calculation.netProfitAfterTaxesMargin.toFixed(1)}%</p>
             </div>
           </div>
 
-          {/* Calculator Section */}
-          <div className="space-y-6">
-            {/* Product Information Section */}
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4">
-              <h3 className="font-semibold text-green-900 mb-4 flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Product Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Product Revenue/Unit
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.pi_sellingPrice}
-                    onChange={(e) => updateCalculation('pi_sellingPrice', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Total Product Revenue
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.pi_totalRevenue}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Quantity
-                  </label>
-                  <input
-                    type="number"
-                    value={calculation.pi_quantity}
-                    onChange={(e) => updateCalculation('pi_quantity', parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="100"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Product Sourcing Cost Section */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Product Sourcing Cost
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Product Manufacturing
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.psc_manufacturingCost}
-                    onChange={(e) => updateCalculation('psc_manufacturingCost', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Shipping Cost
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.psc_shippingCost}
-                    onChange={(e) => updateCalculation('psc_shippingCost', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Other Sourcing Costs
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.psc_miscCost}
-                    onChange={(e) => updateCalculation('psc_miscCost', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Order Quantity
-                  </label>
-                  <input
-                    type="number"
-                    value={calculation.psc_orderQuantity}
-                    onChange={(e) => updateCalculation('psc_orderQuantity', parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="100"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Fulfillment Model Section */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-900 mb-4 flex items-center gap-2">
-                <Package className="w-5 h-5" />
-                Fulfillment Cost
-              </h3>
-
-              {/* Fulfillment Model Selection */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fulfillment Model*
-                </label>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-x-2">
-                    <label>FBA</label>
+          {/* Product Information Section */}
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection('productInfo')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <h3 className="font-semibold text-gray-900 dark:text-white">Product Information</h3>
+              {expandedSections.productInfo ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+            {expandedSections.productInfo && (
+              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Selling Price ($)</label>
                     <input
-                      type="radio"
-                      name="fm_model"
-                      value="FBA"
-                      checked={calculation.fm_model === "FBA"}
-                      onChange={(e) => updateCalculation('fm_model', e.target.value)}
-                      className="text-purple-600"
+                      type="number"
+                      value={calculation.pi_sellingPrice}
+                      onChange={(e) => updateCalculation('pi_sellingPrice', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
                   </div>
-                  <div className="flex items-center gap-x-2">
-                    <label>FBM</label>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity</label>
                     <input
-                      type="radio"
-                      name="fm_model"
-                      value="FBM"
-                      checked={calculation.fm_model === "FBM"}
-                      onChange={(e) => updateCalculation('fm_model', e.target.value)}
-                      className="text-purple-600"
+                      type="number"
+                      value={calculation.pi_quantity}
+                      onChange={(e) => updateCalculation('pi_quantity', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Revenue ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.pi_totalRevenue}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
                 </div>
               </div>
+            )}
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Product Sourcing Cost Section */}
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection('sourcing')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <h3 className="font-semibold text-gray-900 dark:text-white">Product Sourcing Cost</h3>
+              {expandedSections.sourcing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+            {expandedSections.sourcing && (
+              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manufacturing Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.psc_manufacturingCost}
+                      onChange={(e) => updateCalculation('psc_manufacturingCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Shipping Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.psc_shippingCost}
+                      onChange={(e) => updateCalculation('psc_shippingCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Logo Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.psc_productLogoCost}
+                      onChange={(e) => updateCalculation('psc_productLogoCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Misc Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.psc_miscCost}
+                      onChange={(e) => updateCalculation('psc_miscCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order Quantity</label>
+                    <input
+                      type="number"
+                      value={calculation.psc_orderQuantity}
+                      onChange={(e) => updateCalculation('psc_orderQuantity', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.psc_perUnitCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.psc_totalCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Fulfillment Model Section */}
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection('fulfillment')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <h3 className="font-semibold text-gray-900 dark:text-white">Fulfillment Model</h3>
+              {expandedSections.fulfillment ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+            {expandedSections.fulfillment && (
+              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Referral Fees ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.fm_referrfalFees}
+                      onChange={(e) => updateCalculation('fm_referrfalFees', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">FBA Fulfillment Fees ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.fm_fbaFulfillmentFees}
+                      onChange={(e) => updateCalculation('fm_fbaFulfillmentFees', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Storage Fees ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.fm_monthlyStorageFees}
+                      onChange={(e) => updateCalculation('fm_monthlyStorageFees', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Long Term Storage Fees ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.fm_longTermStorageFees}
+                      onChange={(e) => updateCalculation('fm_longTermStorageFees', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.fm_perUnitCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.fm_totalCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Marketing Section */}
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection('marketing')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <h3 className="font-semibold text-gray-900 dark:text-white">Marketing & Advertising</h3>
+              {expandedSections.marketing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+            {expandedSections.marketing && (
+              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Marketing Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.marc_marketingCost}
+                      onChange={(e) => updateCalculation('marc_marketingCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attribution Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.marc_attributionCost}
+                      onChange={(e) => updateCalculation('marc_attributionCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Influencer Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.marc_influencerCost}
+                      onChange={(e) => updateCalculation('marc_influencerCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Misc Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.marc_miscCost}
+                      onChange={(e) => updateCalculation('marc_miscCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.marc_perUnitCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.marc_totalCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Taxes Section */}
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection('taxes')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <h3 className="font-semibold text-gray-900 dark:text-white">Taxes</h3>
+              {expandedSections.taxes ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+            {expandedSections.taxes && (
+              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Region</label>
+                    <select
+                      value={calculation.tax_region}
+                      onChange={(e) => updateCalculation('tax_region', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                      {TAX_OPTIONS.map(opt => (
+                        <option key={opt.code} value={opt.code}>{opt.country}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">VAT (%)</label>
+                    <input
+                      type="number"
+                      value={calculation.tax_VAT}
+                      onChange={(e) => updateCalculation('tax_VAT', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GST (%)</label>
+                    <input
+                      type="number"
+                      value={calculation.tax_GST}
+                      onChange={(e) => updateCalculation('tax_GST', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sales Tax (%)</label>
+                    <input
+                      type="number"
+                      value={calculation.tax_salesTax}
+                      onChange={(e) => updateCalculation('tax_salesTax', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.tax_perUnitCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.tax_totalCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Graphics Section */}
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection('graphics')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <h3 className="font-semibold text-gray-900 dark:text-white">Graphics & Content</h3>
+              {expandedSections.graphics ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+            {expandedSections.graphics && (
+              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Imaging & Photography ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.gc_imagingAndPhotographyCost}
+                      onChange={(e) => updateCalculation('gc_imagingAndPhotographyCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Videography ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.gc_videographyCost}
+                      onChange={(e) => updateCalculation('gc_videographyCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Packing ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.gc_productPackingCost}
+                      onChange={(e) => updateCalculation('gc_productPackingCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">3D Animation ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.gc_3dAnimationCost}
+                      onChange={(e) => updateCalculation('gc_3dAnimationCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.gc_perUnitCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.gc_totalCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Product Feedback Section */}
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection('feedback')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <h3 className="font-semibold text-gray-900 dark:text-white">Product Feedback & Reviews</h3>
+              {expandedSections.feedback ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+            {expandedSections.feedback && (
+              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vine Program Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.pfc_vineProgramCost}
+                      onChange={(e) => updateCalculation('pfc_vineProgramCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.pfc_perUnitCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.pfc_totalCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Other Costs Section */}
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection('other')}
+              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            >
+              <h3 className="font-semibold text-gray-900 dark:text-white">Other Costs</h3>
+              {expandedSections.other ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+            {expandedSections.other && (
+              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Competitor Samples ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.oc_competitorProductSamples}
+                      onChange={(e) => updateCalculation('oc_competitorProductSamples', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pre-Launch Samples ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.oc_preLaunchSamples}
+                      onChange={(e) => updateCalculation('oc_preLaunchSamples', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Employees Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.oc_employeesCost}
+                      onChange={(e) => updateCalculation('oc_employeesCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Any Other Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.oc_anyOtherCost}
+                      onChange={(e) => updateCalculation('oc_anyOtherCost', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.oc_perUnitCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
+                    <input
+                      type="number"
+                      value={calculation.oc_totalCost}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Save Section */}
+          {showSaveSection && (
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mt-4 border border-gray-200 dark:border-gray-700">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Save className="w-5 h-5 text-blue-600" />
+                Save to Product Vault
+              </h3>
+
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    TikTok Shop Fees*
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Product Name
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.fm_referrfalFees}
-                    onChange={(e) => updateCalculation('fm_referrfalFees', parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="0.00"
+                    type="text"
+                    value={saveTitle}
+                    onChange={(e) => setSaveTitle(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Enter product name"
                   />
                 </div>
 
-                {/* FBA and FBM dependent fields */}
-                {calculation.fm_model === "FBA" ? (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Fulfillment Cost*
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_fbaFulfillmentFees}
-                        onChange={(e) => updateCalculation('fm_fbaFulfillmentFees', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Storage Cost*
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_monthlyStorageFees}
-                        onChange={(e) => updateCalculation('fm_monthlyStorageFees', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Inbounding Cost
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_longTermStorageFees}
-                        onChange={(e) => updateCalculation('fm_longTermStorageFees', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Other FBA Costs
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_inboundShippingCost}
-                        onChange={(e) => updateCalculation('fm_inboundShippingCost', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Shipping Delivery Charges
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_shippingFees}
-                        onChange={(e) => updateCalculation('fm_shippingFees', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Fulfillment Cost
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_handlingCost}
-                        onChange={(e) => updateCalculation('fm_handlingCost', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Storage Cost
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_storageCost}
-                        onChange={(e) => updateCalculation('fm_storageCost', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Other FBM Costs
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_miscCost}
-                        onChange={(e) => updateCalculation('fm_miscCost', parseFloat(e.target.value) || 0)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Returns Rate Slider */}
-              <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Returns/Refund Rate (Sellable)%*
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={calculation.fm_returnsRate}
-                  onChange={(e) => updateCalculation('fm_returnsRate', parseFloat(e.target.value) || 0)}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0%</span>
-                  <span className="font-medium">{calculation.fm_returnsRate.toFixed(1)}%</span>
-                  <span>100%</span>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={saveDescription}
+                    onChange={(e) => setSaveDescription(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="Enter product description"
+                    rows={3}
+                  />
                 </div>
-              </div>
-            </div>
 
-            {/* Profit Analysis Results */}
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Calculator className="w-5 h-5 text-green-600" />
-                Profit Analysis
-              </h3>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div className="bg-white rounded-lg p-3 text-center">
-                  <div className="text-sm text-gray-600">Profit per Unit</div>
-                  <div className={`text-lg font-bold ${(calculation.pi_sellingPrice - calculation.psc_perUnitCost - calculation.fm_perUnitCost) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    ${(calculation.pi_sellingPrice - calculation.psc_perUnitCost - calculation.fm_perUnitCost).toFixed(2)}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Category
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">Select a category</option>
+                      {categories.map((category: Category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => setShowNewCategoryForm(!showNewCategoryForm)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      New
+                    </button>
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-3 text-center">
-                  <div className="text-sm text-gray-600">Total Revenue</div>
-                  <div className="text-lg font-bold text-blue-600">
-                    ${calculation.pi_totalRevenue.toFixed(2)}
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg p-3 text-center">
-                  <div className="text-sm text-gray-600">Net Profit</div>
-                  <div className={`text-lg font-bold ${calculation.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    ${calculation.netProfit.toFixed(2)}
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg p-3 text-center">
-                  <div className="text-sm text-gray-600">Profit Margin</div>
-                  <div className={`text-lg font-bold ${calculation.netProfitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {calculation.netProfitMargin.toFixed(1)}%
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Cost Breakdown</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Product Sourcing Cost/Unit:</span>
-                    <span className="font-medium">${calculation.psc_perUnitCost.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Fulfillment Cost/Unit:</span>
-                    <span className="font-medium">${calculation.fm_perUnitCost.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-gray-600 font-medium">Total Cost per Unit:</span>
-                    <span className="font-bold">${(calculation.psc_perUnitCost + calculation.fm_perUnitCost).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 font-medium">Total Sourcing Costs:</span>
-                    <span className="font-bold text-blue-600">${calculation.psc_totalCost.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 font-medium">Total Fulfillment Costs:</span>
-                    <span className="font-bold text-purple-600">${calculation.fm_totalCost.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-gray-600 font-medium">Total Costs (All Units):</span>
-                    <span className="font-bold text-red-600">${(calculation.psc_totalCost + calculation.fm_totalCost).toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Save Section */}
-            {showSaveSection && (
-              <div ref={saveSectionRef} className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <Save className="w-5 h-5 text-green-600" />
-                      Save to Product Vault
-                    </h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Product Name
-                        </label>
-                        <input
-                          type="text"
-                          value={productName}
-                          onChange={(e) => setProductName(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                          placeholder="Enter product name"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Category
-                        </label>
-                        <div className="flex gap-2">
-                          <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                          >
-                            <option value="">Select a category</option>
-                            {categories.map((category: Category) => (
-                              <option key={category.id} value={category.id}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            onClick={() => setShowNewCategoryForm(!showNewCategoryForm)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            New
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {showNewCategoryForm && (
-                        <div className="bg-white rounded-lg p-3 border">
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={newCategoryName}
-                              onChange={(e) => setNewCategoryName(e.target.value)}
-                              placeholder="New category name"
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                            <button
-                              onClick={handleCreateCategory}
-                              disabled={createCategoryMutation.isPending}
-                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                            >
-                              {createCategoryMutation.isPending ? 'Creating...' : 'Create'}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Save Actions */}
-                    <div className="flex justify-end gap-3 mt-4">
+                {showNewCategoryForm && (
+                  <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-300 dark:border-gray-600">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        placeholder="New category name"
+                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      />
                       <button
-                        onClick={() => setShowSaveSection(false)}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                        onClick={handleCreateCategory}
+                        disabled={createCategoryMutation.isPending}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                       >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSaveProduct}
-                        disabled={isSaving || saveProductMutation.isPending}
-                        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                      >
-                        <Save className="w-4 h-4" />
-                        {isSaving || saveProductMutation.isPending ? 'Saving...' : 'Save to Vault'}
+                        {createCategoryMutation.isPending ? 'Creating...' : 'Create'}
                       </button>
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Save Actions */}
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  onClick={() => setShowSaveSection(false)}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveProduct}
+                  disabled={isSaving || saveProductMutation.isPending}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  {isSaving || saveProductMutation.isPending ? 'Saving...' : 'Save to Vault'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Save Button */}
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={() => setShowSaveSection(!showSaveSection)}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition"
+            >
+              <Save className="w-5 h-5" />
+              Save to Vault
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>

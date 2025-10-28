@@ -373,38 +373,42 @@ const ProfitCalculatorModal: React.FC<ProfitCalculatorModalProps> = ({
       category: selectedCategory,
 
       // Product Information (MarginMax Basic format)
-      pi_sellingPrice: calculation.pi_sellingPrice.toFixed(2),
-      pi_totalRevenue: calculation.pi_totalRevenue.toFixed(2),
-      pi_quantity: calculation.pi_quantity,
+      pi_sellingPrice: parseFloat(calculation.pi_sellingPrice.toFixed(2)),
+      pi_totalRevenue: parseFloat(calculation.pi_totalRevenue.toFixed(2)),
+      pi_quantity: parseInt(calculation.pi_quantity.toString(), 10),
 
       // Product Sourcing Cost (MarginMax Basic format)
-      psc_manufacturingCost: calculation.psc_manufacturingCost.toFixed(2),
-      psc_shippingCost: calculation.psc_shippingCost.toFixed(2),
-      psc_miscCost: calculation.psc_miscCost.toFixed(2),
-      psc_orderQuantity: calculation.psc_orderQuantity,
-      psc_perUnitCost: calculation.psc_perUnitCost.toFixed(2),
-      psc_totalCost: calculation.psc_totalCost.toFixed(2),
+      psc_manufacturingCost: parseFloat(calculation.psc_manufacturingCost.toFixed(2)),
+      psc_shippingCost: parseFloat(calculation.psc_shippingCost.toFixed(2)),
+      psc_miscCost: parseFloat(calculation.psc_miscCost.toFixed(2)),
+      psc_orderQuantity: parseInt(calculation.psc_orderQuantity.toString(), 10),
+      psc_perUnitCost: parseFloat(calculation.psc_perUnitCost.toFixed(2)),
+      psc_totalCost: parseFloat(calculation.psc_totalCost.toFixed(2)),
 
       // Fulfillment Model (MarginMax Basic format)
       fm_model: calculation.fm_model,
-      fm_referrfalFees: calculation.fm_referrfalFees.toFixed(2),
-      fm_fbaFulfillmentFees: calculation.fm_fbaFulfillmentFees.toFixed(2),
-      fm_monthlyStorageFees: calculation.fm_monthlyStorageFees.toFixed(2),
-      fm_longTermStorageFees: calculation.fm_longTermStorageFees.toFixed(2),
-      fm_inboundShippingCost: calculation.fm_inboundShippingCost.toFixed(2),
-      fm_returnsRate: calculation.fm_returnsRate,
-      fm_shippingFees: calculation.fm_shippingFees.toFixed(2),
-      fm_handlingCost: calculation.fm_handlingCost.toFixed(2),
-      fm_storageCost: calculation.fm_storageCost.toFixed(2),
-      fm_miscCost: calculation.fm_miscCost.toFixed(2),
-      fm_perUnitCost: calculation.fm_perUnitCost.toFixed(2),
-      fm_totalCost: calculation.fm_totalCost.toFixed(2),
+      fm_referrfalFees: parseFloat(calculation.fm_referrfalFees.toFixed(2)),
+      fm_fbaFulfillmentFees: parseFloat(calculation.fm_fbaFulfillmentFees.toFixed(2)),
+      fm_monthlyStorageFees: parseFloat(calculation.fm_monthlyStorageFees.toFixed(2)),
+      fm_longTermStorageFees: parseFloat(calculation.fm_longTermStorageFees.toFixed(2)),
+      fm_inboundShippingCost: parseFloat(calculation.fm_inboundShippingCost.toFixed(2)),
+      fm_returnsRate: parseFloat(calculation.fm_returnsRate.toFixed(2)),
+      fm_shippingFees: parseFloat(calculation.fm_shippingFees.toFixed(2)),
+      fm_handlingCost: parseFloat(calculation.fm_handlingCost.toFixed(2)),
+      fm_storageCost: parseFloat(calculation.fm_storageCost.toFixed(2)),
+      fm_miscCost: parseFloat(calculation.fm_miscCost.toFixed(2)),
+      fm_perUnitCost: parseFloat(calculation.fm_perUnitCost.toFixed(2)),
+      fm_totalCost: parseFloat(calculation.fm_totalCost.toFixed(2)),
 
       // Profit Information
-      gross_profit: calculation.grossProfit.toFixed(2),
-      gross_profit_margin: calculation.grossProfitMargin.toFixed(2),
-      net_profit: calculation.netProfit.toFixed(2),
-      net_profit_margin: calculation.netProfitMargin.toFixed(2),
+      // Note: ListingDetail expects gross_profit/net_profit to be percentages, not dollar amounts
+      selling_price: parseFloat(calculation.pi_sellingPrice.toFixed(2)),
+      quantity: parseInt(calculation.pi_quantity.toString(), 10),
+      total_revenue: parseFloat(calculation.pi_totalRevenue.toFixed(2)),
+      gross_profit: parseFloat(calculation.grossProfitMargin.toFixed(2)), // Percentage
+      net_profit: parseFloat(calculation.netProfitMargin.toFixed(2)), // Percentage
+      product_gross_profit: parseFloat(calculation.grossProfit.toFixed(2)), // Dollar amount
+      product_net_profit: parseFloat(calculation.netProfit.toFixed(2)), // Dollar amount
 
       // Amazon Trends specific data
       amazon_product: {

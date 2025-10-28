@@ -1269,7 +1269,7 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
               <AmazonLoader
                 size="lg"
                 text={`Loading ${viewMode === 'search' ? 'Amazon search results' :
-                  viewMode === 'best-sellers' ? 'Amazon best sellers' :
+                  viewMode === 'best-sellers' ? 'Amazon Trending Products' :
                     viewMode === 'category' ? 'Amazon category products' : 'Amazon products'}...`}
               />
             </div>

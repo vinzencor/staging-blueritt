@@ -320,7 +320,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         {trendingHashtags.length > 0 && !isHashtagsLoading && (
           <div className="space-y-3 max-h-[600px] overflow-y-auto">
             {/* Results Summary */}
-            <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/30 dark:to-rose-900/30 rounded-lg p-3 border border-pink-100 dark:border-pink-700 mb-4">
+            <div className="bg-gradient-to-r from-orange-50 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/30 rounded-lg p-3 border border-orange-200 dark:border-orange-500 mb-4">
               <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
                 {trendingHashtags.length} Hashtags
               </h3>
@@ -334,7 +334,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
             {trendingHashtags.map((hashtag, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg p-3 border border-pink-200 dark:border-pink-700 hover:shadow-md transition-all duration-200"
+                className="bg-gradient-to-br from-orange-50 to-orange-50 dark:from-orange-900/20 dark:to-orange-900/20 rounded-lg p-3 border border-orange-200 dark:border-orange-500 hover:shadow-md transition-all duration-200"
               >
                 <div className="mb-2">
                   <h4 className="font-semibold text-gray-900 dark:text-white text-sm">

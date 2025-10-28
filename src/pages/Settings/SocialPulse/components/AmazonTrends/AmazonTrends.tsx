@@ -105,6 +105,12 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const [showDiscoverProducts, setShowDiscoverProducts] = useState(false);
   const [showDiscoverSuppliers, setShowDiscoverSuppliers] = useState(false);
 
+  // Control when to fetch data (only on button click, not auto-load)
+  const [shouldFetchTrending, setShouldFetchTrending] = useState(false);
+  const [shouldFetchBestSellers, setShouldFetchBestSellers] = useState(false);
+  const [shouldFetchDeals, setShouldFetchDeals] = useState(false);
+  const [shouldFetchCategory, setShouldFetchCategory] = useState(false);
+
   // Country list with all supported countries
   const countries = [
     { code: 'US', name: 'United States' },
@@ -209,9 +215,8 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const {
     data: trendingData,
     isLoading: trendingLoading,
-    refetch: refetchTrending,
   } = useQuery({
-    queryKey: ['trending-products', selectedCountry],
+    queryKey: ['trending-products', selectedCountry, shouldFetchTrending],
     queryFn: async () => {
       const response = await getTrendingProducts({ country: selectedCountry, limit: 20 });
 
@@ -223,13 +228,20 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
 
       return response;
     },
-    enabled: activeTab === 'trending',
+    enabled: shouldFetchTrending, // Only fetch when button is clicked
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: 1,
     retryDelay: 2000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
+
+  // Reset shouldFetchTrending after data is fetched
+  React.useEffect(() => {
+    if (trendingData && !trendingLoading) {
+      setShouldFetchTrending(false);
+    }
+  }, [trendingData, trendingLoading]);
 
   // Search Results Query
   const {
@@ -274,9 +286,8 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
   const {
     data: bestSellersData,
     isLoading: bestSellersLoading,
-    refetch: refetchBestSellers,
   } = useQuery({
-    queryKey: ['amazon-best-sellers', selectedCountry, bestSellersCategory, bestSellersType, currentPage],
+    queryKey: ['amazon-best-sellers', selectedCountry, bestSellersCategory, bestSellersType, currentPage, shouldFetchBestSellers],
     queryFn: async () => {
       const response = await getAmazonBestSellers({
         category: bestSellersCategory,
@@ -293,13 +304,20 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
 
       return response;
     },
-    enabled: activeTab === 'bestsellers',
+    enabled: shouldFetchBestSellers, // Only fetch when button is clicked
     staleTime: 1000 * 60 * 30, // 30 minutes
     retry: 1,
     retryDelay: 2000,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
+
+  // Reset shouldFetchBestSellers after data is fetched
+  React.useEffect(() => {
+    if (bestSellersData && !bestSellersLoading) {
+      setShouldFetchBestSellers(false);
+    }
+  }, [bestSellersData, bestSellersLoading]);
 
   // Deals Query
   const {
@@ -446,11 +464,11 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     setCurrentPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Refetch data based on active tab
+    // Trigger refetch based on active tab
     if (activeTab === 'search') {
       refetchSearch();
     } else if (activeTab === 'bestsellers') {
-      refetchBestSellers();
+      setShouldFetchBestSellers(true);
     } else if (activeTab === 'category') {
       refetchCategory();
     }
@@ -460,7 +478,7 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     setBestSellersCategory(category);
     setCurrentPage(1); // Reset to first page
     if (activeTab === 'bestsellers') {
-      refetchBestSellers();
+      setShouldFetchBestSellers(true);
     } else if (activeTab === 'search' && searchQuery.trim()) {
       refetchSearch();
     }
@@ -1558,6 +1576,18 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Discover Trending Products Button */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setShouldFetchBestSellers(true)}
+                    disabled={bestSellersLoading}
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-purple-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+                  >
+                    <TrendingUp className="w-5 h-5" />
+                    {bestSellersLoading ? 'Discovering...' : 'Discover Trending Products'}
+                  </button>
                 </div>
               </div>
             )}

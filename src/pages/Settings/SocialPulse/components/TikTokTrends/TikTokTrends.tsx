@@ -163,11 +163,13 @@ interface TikTokTrendsProps {
 
 const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   // Backend quota management for TikTok search
-  const { quotaDetails: tiktokSearchQuotaDetails, updateQuota: updateTikTokSearchQuota } = useUserSubscriptionAndSearchQuota('tiktok_searches' as any);
+  const { quotaDetails: tiktokSearchQuotaDetails, updateQuota: updateTikTokSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokSearches);
 
-  // Subscription quota management
-  const { quotaDetails, updateQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokAnalysis);
+  // Subscription quota management for supplier discovery
   const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
+
+  // For displaying plan name (use tiktokSearchQuotaDetails as the main quota details)
+  const quotaDetails = tiktokSearchQuotaDetails;
 
   // State management
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -207,14 +209,13 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
   const [hashtagsError, setHashtagsError] = useState<string | null>(null);
 
-  // TikTok API Query
+  // TikTok API Query - Only fetch when shouldFetch is true
   const {
     data: tiktokData,
     isLoading: tiktokLoading,
     error: tiktokError,
-    refetch: refetchTikTok,
   } = useQuery({
-    queryKey: ['tiktok-trending', selectedCategory, selectedTimeRange, selectedSortBy, selectedSortOrder, searchKeyword, selectedCountry],
+    queryKey: ['tiktok-trending', selectedCategory, selectedTimeRange, selectedSortBy, selectedSortOrder, searchKeyword, selectedCountry, shouldFetch],
     queryFn: () => fetchTikTokTrendingProducts({
       category_id: selectedCategory || undefined,
       last: selectedTimeRange,
@@ -224,16 +225,18 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       country_code: selectedCountry,
       page: 1,
     }),
-    enabled: shouldFetch,
+    enabled: shouldFetch, // Only fetch when button is clicked
     staleTime: 1000 * 60 * 10, // 10 minutes
     retry: 1,
     retryDelay: 2000,
   });
 
-  // Update quota when API response comes back
+  // Update quota when API response comes back and reset shouldFetch
   useEffect(() => {
     if (tiktokData?.remaining_quota !== undefined && tiktokData?.remaining_quota !== null) {
       updateTikTokSearchQuota(tiktokData.remaining_quota);
+      // Reset shouldFetch after successful fetch
+      setShouldFetch(false);
     }
   }, [tiktokData?.remaining_quota, updateTikTokSearchQuota]);
 
@@ -258,9 +261,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       }
     }
 
+    // Set shouldFetch to true to trigger the query
     // Quota will be deducted by backend API
     setShouldFetch(true);
-    refetchTikTok();
   };
 
   // Fetch trending hashtags
@@ -387,8 +390,8 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
           product.url_title || product.title
         );
 
-        // Update quota after successful API call
-        updateQuota(quotaDetails.quotaValue - 1);
+        // Update quota after successful API call (shop analysis uses TikTok search quota)
+        updateTikTokSearchQuota(tiktokSearchQuotaDetails.quotaValue - 1);
 
         setShopAnalysisData(shopData);
         console.log('✅ Shop analysis data loaded:', shopData);
@@ -882,17 +885,17 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
               <div className="text-center py-12">
                 <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Ready to Fetch TikTok Trending Products
+                  Top TikTok Trending Products
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Select your filters above and click "Done" to get trending products from TikTok Creative Center API.
+                  Select your filters above and click "Done" to get trending products from TikTok.
                 </p>
-                <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                {/* <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
                   <p>Selected Category: {selectedCategory ? TIKTOK_CATEGORIES.find(c => c.id === selectedCategory)?.name : 'All Categories'}</p>
                   <p>Time Range: {TIME_RANGES.find(t => t.value === selectedTimeRange)?.label}</p>
                   <p>Sort: {SORT_OPTIONS.find(s => s.value === selectedSortBy)?.label} ({selectedSortOrder})</p>
                   {searchKeyword && <p>Keyword: {searchKeyword}</p>}
-                </div>
+                </div> */}
               </div>
             )}
 
@@ -1584,7 +1587,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
   return (
     <div className="space-y-6">
       {/* Analysis Summary */}
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg p-4 border border-purple-100 dark:border-purple-700">
+      <div className="bg-gradient-to-r from-orange-50 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/30 rounded-lg p-4 border border-orange-100 dark:border-purple-700">
         <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
           Supplier Analysis Complete
         </h3>
@@ -1611,7 +1614,22 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                     }`}>
                     {supplier.verification_status}
                   </span>
+                  {supplier.trade_assurance && (
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 whitespace-nowrap">
+                      Trade Assurance
+                    </span>
+                  )}
+                  {supplier.verification_badge === 'Gold' && (
+                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 whitespace-nowrap">
+                      Gold
+                    </span>
+                  )}
                 </div>
+                {supplier.years_in_business && (
+                  <p className="text-gray-600 dark:text-gray-300 text-xs mb-2">
+                    Store Age: {supplier.years_in_business} years
+                  </p>
+                )}
                 <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{supplier.location}</p>
                 <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                   {supplier.match_explanation}
@@ -1686,13 +1704,13 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex justify-end gap-2">
               {/* Calculate Button */}
               <button
                 onClick={() => onCalculateClick(supplier)}
-                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2 px-4 rounded-lg transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
               >
-                <DollarSign className="w-4 h-4" />
+                <DollarSign className="w-3.5 h-3.5" />
                 Calculate
               </button>
 
@@ -1702,9 +1720,9 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   href={supplier.contact_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-2 px-4 rounded-lg transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
+                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink className="w-3.5 h-3.5" />
                   Contact Supplier
                 </a>
               )}
