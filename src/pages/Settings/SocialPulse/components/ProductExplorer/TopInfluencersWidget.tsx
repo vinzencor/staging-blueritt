@@ -151,7 +151,7 @@ const MobileToggle: React.FC<MobileToggleProps> = ({ isOpen, onClick, productCou
   >
     <div className="flex items-center gap-2">
       <TrendingUp className="w-5 h-5" />
-      <span className="text-sm font-medium">Best Sellers ({productCount})</span>
+      <span className="text-sm font-medium">Trending Products({productCount})</span>
       {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
     </div>
   </button>
@@ -283,14 +283,14 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
               <TrendingUp className="w-5 h-5 text-[#ffa41c] dark:text-[#ffa41c]" />
               {/* Hover tooltip for mobile */}
               <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-gray-900 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50">
-                Best Sellers
+                Trending Products
               </div>
             </div>
 
             {/* Desktop: Full text */}
             <h2 className="hidden lg:flex text-lg font-bold text-gray-900 dark:text-white items-center">
               <TrendingUp className="w-5 h-5 mr-2 text-[#ffa41c] dark:text-[#ffa41c]" />
-              Best Sellers
+              Trending Products
               <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
                 ({products.length})
               </span>
@@ -355,7 +355,7 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
 
       {/* Tablet Widget (768px - 1023px) */}
       <div className={`
-        hidden lg:block xl:hidden fixed top-20 right-3 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
+        hidden lg:block xl:hidden fixed top-20 right-[2rem] w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
         transition-all duration-300 ease-in-out
         ${className}
       `}>
@@ -364,7 +364,7 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
 
       {/* Large Desktop Widget (1024px - 1279px) */}
       <div className={`
-        hidden xl:block 2xl:hidden fixed top-20 right-4 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
+        hidden xl:block 2xl:hidden fixed top-20 right-[3rem] w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
         transition-all duration-300 ease-in-out
         ${className}
       `}>

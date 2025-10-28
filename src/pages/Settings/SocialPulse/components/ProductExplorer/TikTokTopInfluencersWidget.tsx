@@ -75,23 +75,45 @@ const COUNTRY_OPTIONS = [
   { value: 'GB', label: 'United Kingdom' },
   { value: 'CA', label: 'Canada' },
   { value: 'AU', label: 'Australia' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'FR', label: 'France' },
+  { value: 'IT', label: 'Italy' },
+  { value: 'ES', label: 'Spain' },
+  { value: 'JP', label: 'Japan' },
+  { value: 'KR', label: 'South Korea' },
   { value: 'IN', label: 'India' },
   { value: 'BR', label: 'Brazil' },
   { value: 'MX', label: 'Mexico' },
-  { value: 'DE', label: 'Germany' },
-  { value: 'FR', label: 'France' },
-  { value: 'JP', label: 'Japan' },
+  { value: 'SG', label: 'Singapore' },
+  { value: 'MY', label: 'Malaysia' },
+  { value: 'TH', label: 'Thailand' },
+  { value: 'VN', label: 'Vietnam' },
+  { value: 'PH', label: 'Philippines' },
+  { value: 'ID', label: 'Indonesia' },
 ];
 
 const INDUSTRY_OPTIONS = [
-  { id: 'beauty', name: 'Beauty' },
-  { id: 'fashion', name: 'Fashion' },
-  { id: 'food', name: 'Food & Beverage' },
-  { id: 'fitness', name: 'Fitness' },
-  { id: 'tech', name: 'Technology' },
-  { id: 'gaming', name: 'Gaming' },
-  { id: 'music', name: 'Music' },
-  { id: 'travel', name: 'Travel' },
+  { id: '22000000000', name: 'Apparel & Accessories' },
+  { id: '16000000000', name: 'Appliances' },
+  { id: '20000000000', name: 'Apps' },
+  { id: '12000000000', name: 'Baby, Kids & Maternity' },
+  { id: '14000000000', name: 'Beauty & Personal Care' },
+  { id: '24000000000', name: 'Business Services' },
+  { id: '30000000000', name: 'E-Commerce (Non-app)' },
+  { id: '10000000000', name: 'Education' },
+  { id: '13000000000', name: 'Financial Services' },
+  { id: '27000000000', name: 'Food & Beverage' },
+  { id: '25000000000', name: 'Games' },
+  { id: '29000000000', name: 'Health' },
+  { id: '21000000000', name: 'Home Improvement' },
+  { id: '18000000000', name: 'Household Products' },
+  { id: '26000000000', name: 'Life Services' },
+  { id: '23000000000', name: 'News & Entertainment' },
+  { id: '19000000000', name: 'Pets' },
+  { id: '28000000000', name: 'Sports & Outdoor' },
+  { id: '15000000000', name: 'Tech & Electronics' },
+  { id: '17000000000', name: 'Travel' },
+  { id: '11000000000', name: 'Vehicle & Transportation' },
 ];
 
 // Main TikTokTrendingHashtagsWidget Component
@@ -232,7 +254,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
           {/* Industry Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Industry (Optional)
+              Category (Optional)
             </label>
             <select
               value={hashtagIndustry}
@@ -385,7 +407,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
 
       {/* Tablet Widget (768px - 1023px) */}
       <div className={`
-        hidden lg:block xl:hidden fixed top-20 right-3 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
+        hidden lg:block xl:hidden fixed top-20 right-[2rem] w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
         transition-all duration-300 ease-in-out
         ${className}
       `}>
@@ -394,7 +416,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
 
       {/* Large Desktop Widget (1024px - 1279px) */}
       <div className={`
-        hidden xl:block 2xl:hidden fixed top-20 right-4 w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
+        hidden xl:block 2xl:hidden fixed top-20 right-[3rem] w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
         transition-all duration-300 ease-in-out
         ${className}
       `}>

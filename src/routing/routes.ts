@@ -23,6 +23,9 @@ const SubscriptionPage = lazy(() => import("@/pages/Settings/Subscription"));
 const PaymentStatusPage = lazy(
   () => import("@/pages/Settings/Subscription/PaymentStatus")
 );
+const SubscriptionAddonsPage = lazy(
+  () => import("@/pages/Settings/Subscription")
+);
 const TrialSuccessPage = lazy(() => import("@/pages/Trial/Success"));
 const TrialCancelPage = lazy(() => import("@/pages/Trial/Cancel"));
 const SubscriptionSuccessPage = lazy(() => import("@/pages/Subscription/Success"));
@@ -209,6 +212,12 @@ const routes: RouteType[] = [
       {
         path: "subscription/payment-status",
         element: PaymentStatusPage,
+        layout: MainLayout,
+        isProtected: true,
+      },
+      {
+        path: "subscription-addons",
+        element: SubscriptionAddonsPage,
         layout: MainLayout,
         isProtected: true,
       },

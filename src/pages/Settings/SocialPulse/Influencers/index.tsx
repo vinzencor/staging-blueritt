@@ -948,7 +948,7 @@ const InfluencersPage: React.FC = () => {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center">
               <Users className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Influencers Link</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Influencer Link</h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
             Discover and analyze top influencers

@@ -63,6 +63,7 @@ const SocialPage = () => {
                   lg:max-w-[calc(100%-320px)] lg:mr-[320px]
                   xl:max-w-[calc(100%-340px)] xl:mr-[340px]
                   2xl:max-w-[calc(100%-384px)] 2xl:mr-[384px]">
+                    
     {/* Amazon Content */}
     <ProductExplorer />
   </div>

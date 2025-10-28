@@ -11,6 +11,7 @@ import { QuotaNames } from '../../../../../enum';
 import { discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse } from '../../../../../api/tiktokTrends';
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
+import AddOnsChoiceModal from '../AddOnsChoiceModal';
 
 // TikTok Categories with IDs
 const TIKTOK_CATEGORIES = [
@@ -179,6 +180,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showAddOnsModal, setShowAddOnsModal] = useState(false);
+  const [showAddOnsChoiceModal, setShowAddOnsChoiceModal] = useState(false);
 
   // Supplier discovery state
   const [suppliers, setSuppliers] = useState<SupplierInfo[]>([]);
@@ -485,6 +487,8 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Blueritt Socialpulse</h2>
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
@@ -524,7 +528,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
                     {/* Add-ons Button */}
                     <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-3 border border-green-200 dark:border-green-700 flex flex-col justify-center items-center cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => window.location.href = '/settings/subscription'}>
+                      onClick={() => setShowAddOnsChoiceModal(true)}>
                       <ShoppingCart className="w-5 h-5 text-green-600 dark:text-green-400 mb-1" />
                       <div className="text-xs text-green-700 dark:text-green-300 font-semibold text-center">Add-ons</div>
                     </div>
@@ -706,43 +710,43 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
               Top Tiktok Trending Products
             </h2>
 
-        {/* Loading State */}
-        {tiktokLoading && (
-          <div className="text-center py-12">
-            <Loader2 className="w-16 h-16 text-[#111c43] mx-auto mb-4 animate-spin" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Loading TikTok Trending Products...
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300">
-              Fetching data from TikTok Creative Center API
-            </p>
-          </div>
-        )}
+            {/* Loading State */}
+            {tiktokLoading && (
+              <div className="text-center py-12">
+                <Loader2 className="w-16 h-16 text-[#111c43] mx-auto mb-4 animate-spin" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  Loading TikTok Trending Products...
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Fetching data from TikTok Creative Center API
+                </p>
+              </div>
+            )}
 
-        {/* Error State */}
-        {tiktokError && !tiktokLoading && (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-red-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">
-              Error Loading Products
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              {tiktokError instanceof Error ? tiktokError.message : 'Failed to fetch TikTok trending products'}
-            </p>
-            <button
-              onClick={handleDoneClick}
-              className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
+            {/* Error State */}
+            {tiktokError && !tiktokLoading && (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">
+                  Error Loading Products
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  {tiktokError instanceof Error ? tiktokError.message : 'Failed to fetch TikTok trending products'}
+                </p>
+                <button
+                  onClick={handleDoneClick}
+                  className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
 
-        {/* Products Grid */}
-        {tiktokData?.data?.list && tiktokData.data.list.length > 0 && !tiktokLoading && (
-          <div className="space-y-6">
-            {/* Results Summary */}
-            {/* <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg p-4 border border-pink-100 dark:border-pink-700">
+            {/* Products Grid */}
+            {tiktokData?.data?.list && tiktokData.data.list.length > 0 && !tiktokLoading && (
+              <div className="space-y-6">
+                {/* Results Summary */}
+                {/* <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg p-4 border border-pink-100 dark:border-pink-700">
               <h3 className="font-semibold text-gray-900 dark:text-white">
                 Found {tiktokData.data.list.length} trending products
               </h3>
@@ -754,162 +758,162 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
               </div>
             </div> */}
 
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tiktokData.data.list.map((product: any, index: number) => (
-                <div
-                  key={index}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 group flex flex-col h-full"
-                >
-                  {/* Product Image */}
-                  <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700">
-                    {product.cover_url ? (
-                      <img
-                        src={product.cover_url}
-                        alt={product.url_title || 'TikTok Product'}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzBDOTQuNDc3MiA3MCA5MCA3NC40NzcyIDkwIDgwVjEyMEM5MCA5NC40NzcyIDk0LjQ3NzIgOTAgMTAwIDkwSDEwMEMxMDUuNTIzIDkwIDExMCA5NC40NzcyIDExMCAxMDBWMTIwQzExMCAxMjUuNTIzIDEwNS41MjMgMTMwIDEwMCAxMzBIOTBWMTQwSDEwMEMxMTEuMDQ2IDE0MCA5MCA5NC40NzcyIDkwIDgwVjEyMEM5MCA5NC40NzcyIDk0LjQ3NzIgOTAgMTAwIDkwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-16 h-16 text-gray-400" />
+                {/* Products Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {tiktokData.data.list.map((product: any, index: number) => (
+                    <div
+                      key={index}
+                      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 group flex flex-col h-full"
+                    >
+                      {/* Product Image */}
+                      <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        {product.cover_url ? (
+                          <img
+                            src={product.cover_url}
+                            alt={product.url_title || 'TikTok Product'}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzBDOTQuNDc3MiA3MCA5MCA3NC40NzcyIDkwIDgwVjEyMEM5MCA5NC40NzcyIDk0LjQ3NzIgOTAgMTAwIDkwSDEwMEMxMDUuNTIzIDkwIDExMCA5NC40NzcyIDExMCAxMDBWMTIwQzExMCAxMjUuNTIzIDEwNS41MjMgMTMwIDEwMCAxMzBIOTBWMTQwSDEwMEMxMTEuMDQ2IDE0MCA5MCA5NC40NzcyIDkwIDgwVjEyMEM5MCA5NC40NzcyIDk0LjQ3NzIgOTAgMTAwIDkwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="w-16 h-16 text-gray-400" />
+                          </div>
+                        )}
+
+                        {/* Overlay with View Details Button */}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                          <button
+                            onClick={() => handleViewDetails(product)}
+                            className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Details
+                          </button>
+                        </div>
                       </div>
-                    )}
 
-                    {/* Overlay with View Details Button */}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <button
-                        onClick={() => handleViewDetails(product)}
-                        className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors duration-200 flex items-center gap-2 shadow-lg"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View Details
-                      </button>
-                    </div>
-                  </div>
+                      {/* Product Info - Flex container to push button to bottom */}
+                      <div className="p-4 flex flex-col flex-grow">
+                        {/* Product Title */}
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight line-clamp-2 min-h-[2.5rem] mb-3">
+                          {product.url_title || 'Trending Product'}
+                        </h3>
 
-                  {/* Product Info - Flex container to push button to bottom */}
-                  <div className="p-4 flex flex-col flex-grow">
-                    {/* Product Title */}
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight line-clamp-2 min-h-[2.5rem] mb-3">
-                      {product.url_title || 'Trending Product'}
-                    </h3>
+                        {/* Category Tag */}
+                        {product.first_ecom_category && (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-2 py-1 rounded-full text-xs font-medium">
+                              {product.first_ecom_category.value}
+                            </span>
+                          </div>
+                        )}
 
-                    {/* Category Tag */}
-                    {product.first_ecom_category && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-2 py-1 rounded-full text-xs font-medium">
-                          {product.first_ecom_category.value}
-                        </span>
+                        {/* Key Performance Metrics - CPR, CVR, CPA, Cost */}
+                        <div className="grid grid-cols-2 gap-2 text-xs mb-8 flex-grow">
+                          {product.ctr !== undefined && product.ctr > 0 && (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center border border-blue-200 dark:border-blue-800">
+                              <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium">CTR</div>
+                              <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                                {(product.ctr * 100).toFixed(2)}
+                              </div>
+                            </div>
+                          )}
+                          {product.cvr !== undefined && product.cvr > 0 && (
+                            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center border border-purple-200 dark:border-purple-800">
+                              <div className="text-purple-600 dark:text-purple-400 mb-1 font-medium">CVR</div>
+                              <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                                {(product.cvr * 100).toFixed(2)}
+                              </div>
+                            </div>
+                          )}
+                          {product.cpa !== undefined && product.cpa > 0 && (
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center border border-green-200 dark:border-green-800">
+                              <div className="text-green-600 dark:text-green-400 mb-1 font-medium">CPA</div>
+                              <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                                {product.cpa.toFixed(2)}
+                              </div>
+                            </div>
+                          )}
+                          {product.cost !== undefined && product.impression > 0 && (
+                            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center border border-orange-200 dark:border-orange-800">
+                              <div className="text-orange-600 dark:text-orange-400 mb-1 font-medium">Impressions</div>
+                              <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                                {(product.impression).toLocaleString()}
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+
+
+
+                        {/* Action Buttons - Always at bottom */}
+                        <div className="mt-auto space-y-2">
+                          {/* Discover Suppliers Button */}
+                          <button
+                            onClick={() => handleDiscoverSuppliersFromCard(product)}
+                            className="w-full bg-[#213168] text-white py-2 px-3 rounded-lg hover:bg-[#0f1a35] transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                          >
+                            <Zap className="w-4 h-4" />
+                            Discover Suppliers
+                          </button>
+
+                          {/* View Details Button */}
+                          <button
+                            onClick={() => handleViewDetails(product)}
+                            className="w-full bg-gradient-to-r from-[#0072D6] to-[#111c43] text-white py-2 px-4 rounded-lg hover:from-[#111c43] hover:to-[#0072D6] transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Details
+                          </button>
+                        </div>
                       </div>
-                    )}
-
-                    {/* Key Performance Metrics - CPR, CVR, CPA, Cost */}
-                    <div className="grid grid-cols-2 gap-2 text-xs mb-8 flex-grow">
-                      {product.ctr !== undefined && product.ctr > 0 && (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center border border-blue-200 dark:border-blue-800">
-                          <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium">CTR</div>
-                          <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                            {(product.ctr * 100).toFixed(2)}
-                          </div>
-                        </div>
-                      )}
-                      {product.cvr !== undefined && product.cvr > 0 && (
-                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center border border-purple-200 dark:border-purple-800">
-                          <div className="text-purple-600 dark:text-purple-400 mb-1 font-medium">CVR</div>
-                          <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                            {(product.cvr * 100).toFixed(2)}
-                          </div>
-                        </div>
-                      )}
-                      {product.cpa !== undefined && product.cpa > 0 && (
-                        <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center border border-green-200 dark:border-green-800">
-                          <div className="text-green-600 dark:text-green-400 mb-1 font-medium">CPA</div>
-                          <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                            {product.cpa.toFixed(2)}
-                          </div>
-                        </div>
-                      )}
-                      {product.cost !== undefined && product.impression > 0 && (
-                        <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center border border-orange-200 dark:border-orange-800">
-                          <div className="text-orange-600 dark:text-orange-400 mb-1 font-medium">Impressions</div>
-                          <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                            {(product.impression).toLocaleString()}
-                          </div>
-                        </div>
-                      )}
-
                     </div>
-
-                    
-
-                    {/* Action Buttons - Always at bottom */}
-                    <div className="mt-auto space-y-2">
-                      {/* Discover Suppliers Button */}
-                      <button
-                        onClick={() => handleDiscoverSuppliersFromCard(product)}
-                        className="w-full bg-[#213168] text-white py-2 px-3 rounded-lg hover:bg-[#0f1a35] transition-all duration-200 text-sm flex items-center justify-center gap-2"
-                      >
-                        <Zap className="w-4 h-4" />
-                        Discover Suppliers
-                      </button>
-
-                      {/* View Details Button */}
-                      <button
-                        onClick={() => handleViewDetails(product)}
-                        className="w-full bg-gradient-to-r from-[#0072D6] to-[#111c43] text-white py-2 px-4 rounded-lg hover:from-[#111c43] hover:to-[#0072D6] transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View Details
-                      </button>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </div>
+            )}
 
-        {/* Initial State */}
-        {!shouldFetch && !tiktokLoading && (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              Ready to Fetch TikTok Trending Products
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Select your filters above and click "Done" to get trending products from TikTok Creative Center API.
-            </p>
-            <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-              <p>Selected Category: {selectedCategory ? TIKTOK_CATEGORIES.find(c => c.id === selectedCategory)?.name : 'All Categories'}</p>
-              <p>Time Range: {TIME_RANGES.find(t => t.value === selectedTimeRange)?.label}</p>
-              <p>Sort: {SORT_OPTIONS.find(s => s.value === selectedSortBy)?.label} ({selectedSortOrder})</p>
-              {searchKeyword && <p>Keyword: {searchKeyword}</p>}
-            </div>
-          </div>
-        )}
+            {/* Initial State */}
+            {!shouldFetch && !tiktokLoading && (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  Ready to Fetch TikTok Trending Products
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  Select your filters above and click "Done" to get trending products from TikTok Creative Center API.
+                </p>
+                <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                  <p>Selected Category: {selectedCategory ? TIKTOK_CATEGORIES.find(c => c.id === selectedCategory)?.name : 'All Categories'}</p>
+                  <p>Time Range: {TIME_RANGES.find(t => t.value === selectedTimeRange)?.label}</p>
+                  <p>Sort: {SORT_OPTIONS.find(s => s.value === selectedSortBy)?.label} ({selectedSortOrder})</p>
+                  {searchKeyword && <p>Keyword: {searchKeyword}</p>}
+                </div>
+              </div>
+            )}
 
-        {/* No Results */}
-        {shouldFetch && tiktokData && (!tiktokData.data?.list || tiktokData.data.list.length === 0) && !tiktokLoading && (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No Trending Products Found
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Try adjusting your filters or search for different keywords.
-            </p>
-            <button
-              onClick={handleDoneClick}
-              className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-            >
-              Search Again
-            </button>
-          </div>
-        )}
+            {/* No Results */}
+            {shouldFetch && tiktokData && (!tiktokData.data?.list || tiktokData.data.list.length === 0) && !tiktokLoading && (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  No Trending Products Found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  Try adjusting your filters or search for different keywords.
+                </p>
+                <button
+                  onClick={handleDoneClick}
+                  className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                >
+                  Search Again
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1523,6 +1527,12 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
           }}
         />
       )}
+
+      {/* Add-ons Choice Modal */}
+      <AddOnsChoiceModal
+        isOpen={showAddOnsChoiceModal}
+        onClose={() => setShowAddOnsChoiceModal(false)}
+      />
     </div>
   );
 };
