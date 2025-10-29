@@ -21,6 +21,8 @@ import {
 
 import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
 import AmazonProfitCalculatorModal from './AmazonProfitCalculatorModal';
+import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
+import { QuotaNames } from '../../../../../enum';
 
 
 
@@ -76,6 +78,9 @@ interface ProfitCalculation {
 type TabType = 'overview' | 'reviews' | 'offers' | 'suppliers';
 
 const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery = false }) => {
+  // Quota management for supplier discovery
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
+
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
   const [suppliers, setSuppliers] = useState<SupplierInfo[]>([]);
@@ -249,6 +254,12 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
       });
 
       console.log('🔍 Supplier Discovery Response:', response);
+
+      // Update quota if remaining_quota is provided in response
+      if (response?.remaining_quota !== undefined) {
+        console.log('🔄 Product Explorer Supplier Discovery - Updating quota:', response.remaining_quota);
+        updateSupplierQuota(response.remaining_quota);
+      }
 
       // Handle both response formats: response.suppliers or response.data.suppliers
       const suppliersData = response.suppliers || response.data?.suppliers || [];

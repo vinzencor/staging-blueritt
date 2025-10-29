@@ -458,7 +458,7 @@ export const getAmazonCategoryListDirect = async ({
   return data;
 };
 
-// Direct Amazon API call for products by category
+// Products by category - Uses backend API with quota deduction
 export const getAmazonProductsByCategoryDirect = async ({
   categoryId,
   country = 'US',
@@ -475,22 +475,8 @@ export const getAmazonProductsByCategoryDirect = async ({
   productCondition?: 'ALL' | 'NEW' | 'USED' | 'RENEWED' | 'COLLECTIBLE';
   isPrime?: boolean;
   dealsAndDiscounts?: 'NONE' | 'ALL_DISCOUNTS' | 'TODAYS_DEALS';
-}) => {
-  // Build the URL with all required parameters
-  const params = new URLSearchParams({
-    category_id: categoryId,
-    page: page.toString(),
-    country: country,
-    sort_by: sortBy,
-    product_condition: productCondition,
-    is_prime: isPrime.toString(),
-    deals_and_discounts: dealsAndDiscounts,
-  });
-
-  const url = `https://real-time-amazon-data.p.rapidapi.com/products-by-category?${params.toString()}`;
-
-  console.log('🔍 Amazon Products by Category API Call:', {
-    url,
+}): Promise<AmazonTrendingResponse> => {
+  console.log('🔍 Amazon Products by Category API Call (via backend):', {
     categoryId,
     country,
     page,
@@ -500,45 +486,29 @@ export const getAmazonProductsByCategoryDirect = async ({
     dealsAndDiscounts
   });
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
-      'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-    }
+  // Call backend API instead of RapidAPI directly - this will deduct quota
+  const response = await api.get('/products/amazon-trends/products-by-category/', {
+    params: {
+      category_id: categoryId,
+      country,
+      page,
+      sort_by: sortBy,
+      product_condition: productCondition,
+      is_prime: isPrime,
+      deals_and_discounts: dealsAndDiscounts,
+    },
   });
 
-  if (!response.ok) {
-    console.error('❌ Amazon Products by Category API Error:', {
-      status: response.status,
-      statusText: response.statusText,
-      url
-    });
-    throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
-  }
-
-  const data = await response.json();
-
-  console.log('✅ Amazon Products by Category API Response:', {
+  console.log('✅ Amazon Products by Category Response:', {
     categoryId,
     country,
     page,
-    totalProducts: data?.data?.products?.length || 0,
-    hasData: !!data?.data,
-    dataStructure: {
-      hasData: !!data?.data,
-      hasProducts: !!data?.data?.products,
-      productsIsArray: Array.isArray(data?.data?.products),
-      productsLength: data?.data?.products?.length || 0,
-      firstProduct: data?.data?.products?.[0] ? {
-        asin: data.data.products[0].asin,
-        title: data.data.products[0].product_title?.substring(0, 50) + '...',
-        hasImage: !!data.data.products[0].product_photo
-      } : null
-    }
+    totalProducts: response.data?.data?.products?.length || 0,
+    hasData: !!response.data?.data,
+    remaining_quota: response.data?.remaining_quota
   });
 
-  return data;
+  return response.data;
 };
 
 // Utility functions for parsing Amazon data

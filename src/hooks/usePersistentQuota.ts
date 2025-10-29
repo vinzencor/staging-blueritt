@@ -9,9 +9,9 @@ export interface QuotaConfig {
 }
 
 const DEFAULT_QUOTAS: QuotaConfig = {
-  tiktok_search: 44,
+  tiktok_search: 250,
   tiktok_supplier_discovery: 600,
-  amazon_search: 44,
+  amazon_search: 250,
   amazon_supplier_discovery: 600,
   profit_calculation: 200,
 };

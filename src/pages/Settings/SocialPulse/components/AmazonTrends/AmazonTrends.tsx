@@ -223,8 +223,14 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
 
       // Update quota if remaining_quota is provided in response
       if (response?.remaining_quota !== undefined) {
-        console.log('🔄 Amazon Trending Products - Updating quota:', response.remaining_quota);
+        console.log('🔄 Amazon Trending Products - API Response:', {
+          remaining_quota: response.remaining_quota,
+          current_quota: quotaDetails.quotaValue,
+          will_update: true
+        });
         updateQuota(response.remaining_quota);
+      } else {
+        console.warn('⚠️ Amazon Trending Products - No remaining_quota in response:', response);
       }
 
       return response;
@@ -269,8 +275,14 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
 
       // Update quota if remaining_quota is provided in response
       if (response?.remaining_quota !== undefined) {
-        console.log('🔄 Amazon Search - Updating quota:', response.remaining_quota);
+        console.log('🔄 Amazon Search - API Response:', {
+          remaining_quota: response.remaining_quota,
+          current_quota: quotaDetails.quotaValue,
+          will_update: true
+        });
         updateQuota(response.remaining_quota);
+      } else {
+        console.warn('⚠️ Amazon Search - No remaining_quota in response:', response);
       }
 
       return response;
@@ -299,8 +311,14 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
 
       // Update quota if remaining_quota is provided in response
       if (response?.remaining_quota !== undefined) {
-        console.log('🔄 Amazon Best Sellers - Updating quota:', response.remaining_quota);
+        console.log('🔄 Amazon Best Sellers - API Response:', {
+          remaining_quota: response.remaining_quota,
+          current_quota: quotaDetails.quotaValue,
+          will_update: true
+        });
         updateQuota(response.remaining_quota);
+      } else {
+        console.warn('⚠️ Amazon Best Sellers - No remaining_quota in response:', response);
       }
 
       return response;

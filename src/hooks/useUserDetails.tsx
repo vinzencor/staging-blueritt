@@ -167,7 +167,10 @@ export const useUserSubscriptionAndSearchQuota = (quotaName: QuotaName = "amazon
   const isButtonDisabled = isSearchesZero;
 
   const updateQuota = (newValue: number) => {
-    if (!data) return;
+    if (!data) {
+      console.log('❌ updateQuota: No data available');
+      return;
+    }
     // Only update if newValue is a valid number
     if(newValue === undefined || newValue === null){
       console.log('❌ updateQuota: Invalid newValue', newValue);
@@ -178,7 +181,8 @@ export const useUserSubscriptionAndSearchQuota = (quotaName: QuotaName = "amazon
       quotaName,
       currentQuotaValue: quotaValue,
       newValue,
-      willUpdate: true
+      willUpdate: true,
+      dataExists: !!data
     });
 
     const updatedData = {
@@ -194,7 +198,15 @@ export const useUserSubscriptionAndSearchQuota = (quotaName: QuotaName = "amazon
       updatedData
     );
 
-    console.log('✅ updateQuota: Cache updated to', newValue);
+    console.log('✅ updateQuota: Cache updated successfully', {
+      quotaName,
+      oldValue: quotaValue,
+      newValue,
+      cacheKey: ["user", "subscription", "search_quota"]
+    });
+
+    // Force a re-render by invalidating the query
+    queryClient.invalidateQueries({ queryKey: ["user", "subscription", "search_quota"] });
   };
   const checkAccess =  (accessType: string) => {
     if (!data) return;
