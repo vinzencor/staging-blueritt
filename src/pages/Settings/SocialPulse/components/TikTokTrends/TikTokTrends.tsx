@@ -8,7 +8,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
-import { discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse } from '../../../../../api/tiktokTrends';
+import { getTikTokTrendingProducts, discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse } from '../../../../../api/tiktokTrends';
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
 import AddOnsChoiceModal from '../AddOnsChoiceModal';
@@ -122,7 +122,7 @@ const INDUSTRY_OPTIONS = [
   { id: '11000000000', name: 'Vehicle & Transportation' },
 ];
 
-// TikTok API function
+// TikTok API function - Dual fetch: Database + Direct API with quota management
 const fetchTikTokTrendingProducts = async (params: {
   category_id?: string;
   last?: string;
@@ -132,29 +132,87 @@ const fetchTikTokTrendingProducts = async (params: {
   country_code?: string;
   page?: number;
 }) => {
-  const queryParams = new URLSearchParams();
+  console.log('🔍 Fetching TikTok trending products with params:', params);
+  console.log('🚀 DUAL FETCH: Database + Direct API');
 
-  if (params.category_id) queryParams.append('category_id', params.category_id);
-  if (params.last) queryParams.append('last', params.last);
-  if (params.order_by) queryParams.append('order_by', params.order_by);
-  if (params.order_type) queryParams.append('order_type', params.order_type);
-  if (params.keyword) queryParams.append('keyword', params.keyword);
-  if (params.country_code) queryParams.append('country_code', params.country_code);
-  if (params.page) queryParams.append('page', params.page.toString());
+  try {
+    // 1. FIRST: Fetch from database (fast response) with quota reduction
+    console.log('📊 Step 1: Fetching from database with quota reduction...');
+    const databaseResponse = await getTikTokTrendingProducts({
+      country: params.country_code || 'US',
+      limit: 200, // Fetch more products from database
+      page: params.page || 1,
+      category: params.category_id || '',
+      last: params.last || '7',
+      order_by: params.order_by || 'post',
+      order_type: params.order_type || 'desc',
+      keyword: params.keyword || '',
+    });
 
-  const response = await fetch(`https://tiktok-creative-center-api.p.rapidapi.com/api/trending/top-products?${queryParams}`, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
-      'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+    console.log('✅ Database Response:', databaseResponse);
+    console.log('📊 Database Products:', databaseResponse.data?.products?.length || 0);
+    console.log('📊 Remaining Quota:', databaseResponse.remaining_quota);
+
+    // 2. PARALLEL: Fetch from Direct API (fresh data) - NO quota reduction
+    console.log('📊 Step 2: Parallel fetch from Direct TikTok API...');
+    const queryParams = new URLSearchParams();
+    if (params.category_id) queryParams.append('category_id', params.category_id);
+    if (params.last) queryParams.append('last', params.last);
+    if (params.order_by) queryParams.append('order_by', params.order_by);
+    if (params.order_type) queryParams.append('order_type', params.order_type);
+    if (params.keyword) queryParams.append('keyword', params.keyword);
+    if (params.country_code) queryParams.append('country_code', params.country_code);
+    if (params.page) queryParams.append('page', params.page.toString());
+
+    const directApiPromise = fetch(`https://tiktok-creative-center-api.p.rapidapi.com/api/trending/top-products?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
+        'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+      }
+    });
+
+    // Wait for direct API response
+    const directResponse = await directApiPromise;
+    if (directResponse.ok) {
+      const directData = await directResponse.json();
+      console.log('✅ Direct API Response:', directData);
+      console.log('📦 Direct API Products:', directData.data?.list?.length || 0);
+
+      // 3. MERGE: Combine database and direct API data
+      const mergedData = {
+        ...databaseResponse,
+        data: {
+          products: databaseResponse.data?.products || [],
+          list: directData.data?.list || [], // Keep direct API structure
+          total: Math.max(
+            databaseResponse.data?.products?.length || 0,
+            directData.data?.list?.length || 0
+          ),
+          message: `Database: ${databaseResponse.data?.products?.length || 0} products, Direct API: ${directData.data?.list?.length || 0} products`
+        }
+      };
+
+      console.log('🔄 MERGED DATA:', mergedData);
+      return mergedData;
+    } else {
+      console.warn('⚠️ Direct API failed, using database data only');
+      // Convert database structure to match expected format
+      return {
+        ...databaseResponse,
+        data: {
+          products: databaseResponse.data?.products || [],
+          list: databaseResponse.data?.products || [], // Use database data as fallback
+          total: databaseResponse.data?.products?.length || 0,
+          message: `Database only: ${databaseResponse.data?.products?.length || 0} products (Direct API failed)`
+        }
+      };
     }
-  });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+  } catch (error) {
+    console.error('❌ Dual fetch error:', error);
+    throw error;
   }
-
-  return response.json();
 };
 
 interface TikTokTrendsProps {
@@ -209,13 +267,16 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
   const [hashtagsError, setHashtagsError] = useState<string | null>(null);
 
+  // Add a fetch counter to create unique query keys only when button is clicked
+  const [fetchCounter, setFetchCounter] = useState(0);
+
   // TikTok API Query - Only fetch when shouldFetch is true
   const {
     data: tiktokData,
     isLoading: tiktokLoading,
     error: tiktokError,
   } = useQuery({
-    queryKey: ['tiktok-trending', selectedCategory, selectedTimeRange, selectedSortBy, selectedSortOrder, searchKeyword, selectedCountry, shouldFetch],
+    queryKey: ['tiktok-trending', fetchCounter], // Only change when button is clicked
     queryFn: () => fetchTikTokTrendingProducts({
       category_id: selectedCategory || undefined,
       last: selectedTimeRange,
@@ -240,7 +301,29 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     }
   }, [tiktokData?.remaining_quota, updateTikTokSearchQuota]);
 
+  // Debug logging for data structure
+  useEffect(() => {
+    if (tiktokData) {
+      console.log('🔍 TIKTOK DATA RECEIVED:', tiktokData);
+      console.log('📊 Data structure check:');
+      console.log('  - tiktokData.data?.list:', tiktokData.data?.list?.length || 0);
+      console.log('  - tiktokData.data?.products:', tiktokData.data?.products?.length || 0);
+      console.log('  - shouldFetch:', shouldFetch);
+      console.log('  - tiktokLoading:', tiktokLoading);
+    }
+  }, [tiktokData, shouldFetch, tiktokLoading]);
+
   const handleDoneClick = () => {
+    console.log('🔘 BUTTON CLICKED - Discover Trending Products');
+    console.log('🔘 Current filters:', {
+      category: selectedCategory,
+      timeRange: selectedTimeRange,
+      sortBy: selectedSortBy,
+      sortOrder: selectedSortOrder,
+      keyword: searchKeyword,
+      country: selectedCountry
+    });
+
     // Check if quota is available from backend
     if (tiktokSearchQuotaDetails.quotaValue <= 0) {
       alert('No TikTok searches remaining. Please purchase add-ons to continue.');
@@ -261,9 +344,14 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       }
     }
 
-    // Set shouldFetch to true to trigger the query
-    // Quota will be deducted by backend API
+    // Set shouldFetch to true and increment counter to trigger new query
+    console.log('🚀 Triggering API call with button click');
     setShouldFetch(true);
+    setFetchCounter(prev => {
+      const newCounter = prev + 1;
+      console.log('🔢 Fetch counter incremented:', prev, '→', newCounter);
+      return newCounter;
+    });
   };
 
   // Fetch trending hashtags
@@ -746,7 +834,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             )}
 
             {/* Products Grid */}
-            {tiktokData?.data?.list && tiktokData.data.list.length > 0 && !tiktokLoading && (
+            {tiktokData && ((tiktokData.data?.list && tiktokData.data.list.length > 0) || (tiktokData.data?.products && tiktokData.data.products.length > 0)) && !tiktokLoading && (
               <div className="space-y-6">
                 {/* Results Summary */}
                 {/* <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg p-4 border border-pink-100 dark:border-pink-700">
@@ -763,7 +851,8 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
                 {/* Products Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {tiktokData.data.list.map((product: any, index: number) => (
+                  {/* Display Direct API products first (fresh data), then database products */}
+                  {(tiktokData.data?.list || tiktokData.data?.products || []).map((product: any, index: number) => (
                     <div
                       key={index}
                       className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 group flex flex-col h-full"
@@ -881,7 +970,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             )}
 
             {/* Initial State */}
-            {!shouldFetch && !tiktokLoading && (
+            {!shouldFetch && !tiktokLoading && !tiktokData && (
               <div className="text-center py-12">
                 <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -900,7 +989,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             )}
 
             {/* No Results */}
-            {shouldFetch && tiktokData && (!tiktokData.data?.list || tiktokData.data.list.length === 0) && !tiktokLoading && (
+            {tiktokData && (!tiktokData.data?.list || tiktokData.data.list.length === 0) && (!tiktokData.data?.products || tiktokData.data.products.length === 0) && !tiktokLoading && (
               <div className="text-center py-12">
                 <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
