@@ -473,8 +473,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       // Calculate all profit metrics
       const totalRevenue = initialCalc.pi_totalRevenue;
       const totalCostsBeforeTax = initialCalc.psc_totalCost + initialCalc.fm_totalCost +
-                                   initialCalc.marc_totalCost + initialCalc.gc_totalCost +
-                                   initialCalc.pfc_totalCost + initialCalc.oc_totalCost;
+        initialCalc.marc_totalCost + initialCalc.gc_totalCost +
+        initialCalc.pfc_totalCost + initialCalc.oc_totalCost;
 
       initialCalc.grossProfit = totalRevenue - initialCalc.psc_totalCost;
       initialCalc.grossProfitMargin = totalRevenue > 0 ? (initialCalc.grossProfit / totalRevenue) * 100 : 0;
@@ -808,147 +808,123 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
           </div>
 
           {/* Marketing Section */}
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4">
             <button
               onClick={() => toggleSection('marketing')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="w-full flex items-center justify-between font-semibold text-yellow-900 hover:text-yellow-700"
             >
-              <h3 className="font-semibold text-gray-900 dark:text-white">Marketing & Advertising</h3>
-              {expandedSections.marketing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              <span className="flex items-center gap-2">
+                {expandedSections.marketing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                Marketing & Advertising
+              </span>
             </button>
             {expandedSections.marketing && (
-              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Marketing Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.marc_marketingCost}
-                      onChange={(e) => updateCalculation('marc_marketingCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attribution Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.marc_attributionCost}
-                      onChange={(e) => updateCalculation('marc_attributionCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Influencer Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.marc_influencerCost}
-                      onChange={(e) => updateCalculation('marc_influencerCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Misc Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.marc_miscCost}
-                      onChange={(e) => updateCalculation('marc_miscCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Marketing Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.marc_marketingCost}
+                    onChange={(e) => updateCalculation('marc_marketingCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.marc_perUnitCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.marc_totalCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Attribution Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.marc_attributionCost}
+                    onChange={(e) => updateCalculation('marc_attributionCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Influencer Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.marc_influencerCost}
+                    onChange={(e) => updateCalculation('marc_influencerCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Other Marketing Costs</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.marc_miscCost}
+                    onChange={(e) => updateCalculation('marc_miscCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
                 </div>
               </div>
             )}
           </div>
 
           {/* Taxes Section */}
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-4">
             <button
               onClick={() => toggleSection('taxes')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="w-full flex items-center justify-between font-semibold text-red-900 hover:text-red-700"
             >
-              <h3 className="font-semibold text-gray-900 dark:text-white">Taxes</h3>
-              {expandedSections.taxes ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              <span className="flex items-center gap-2">
+                {expandedSections.taxes ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                Taxes
+              </span>
             </button>
             {expandedSections.taxes && (
-              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Region</label>
-                    <select
-                      value={calculation.tax_region}
-                      onChange={(e) => updateCalculation('tax_region', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    >
-                      {TAX_OPTIONS.map(opt => (
-                        <option key={opt.code} value={opt.code}>{opt.country}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">VAT (%)</label>
-                    <input
-                      type="number"
-                      value={calculation.tax_VAT}
-                      onChange={(e) => updateCalculation('tax_VAT', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GST (%)</label>
-                    <input
-                      type="number"
-                      value={calculation.tax_GST}
-                      onChange={(e) => updateCalculation('tax_GST', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sales Tax (%)</label>
-                    <input
-                      type="number"
-                      value={calculation.tax_salesTax}
-                      onChange={(e) => updateCalculation('tax_salesTax', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tax Region</label>
+                  <select
+                    value={calculation.tax_region}
+                    onChange={(e) => updateCalculation('tax_region', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    {TAX_OPTIONS.map(tax => (
+                      <option key={tax.code} value={tax.code}>{tax.country}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">VAT (%)</label>
                     <input
                       type="number"
-                      value={calculation.tax_perUnitCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                      step="0.01"
+                      value={calculation.tax_VAT}
+                      onChange={(e) => updateCalculation('tax_VAT', parseFloat(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="0.00"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">GST (%)</label>
                     <input
                       type="number"
-                      value={calculation.tax_totalCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                      step="0.01"
+                      value={calculation.tax_GST}
+                      onChange={(e) => updateCalculation('tax_GST', parseFloat(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Sales Tax (%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.tax_salesTax}
+                      onChange={(e) => updateCalculation('tax_salesTax', parseFloat(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="0.00"
                     />
                   </div>
                 </div>
@@ -956,316 +932,305 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
             )}
           </div>
 
+
           {/* Graphics Section */}
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-4">
             <button
               onClick={() => toggleSection('graphics')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="w-full flex items-center justify-between font-semibold text-cyan-900 hover:text-cyan-700"
             >
-              <h3 className="font-semibold text-gray-900 dark:text-white">Graphics & Content</h3>
-              {expandedSections.graphics ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              <span className="flex items-center gap-2">
+                {expandedSections.graphics ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                Graphics & Content
+              </span>
             </button>
             {expandedSections.graphics && (
-              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Imaging & Photography ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.gc_imagingAndPhotographyCost}
-                      onChange={(e) => updateCalculation('gc_imagingAndPhotographyCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Videography ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.gc_videographyCost}
-                      onChange={(e) => updateCalculation('gc_videographyCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Packing ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.gc_productPackingCost}
-                      onChange={(e) => updateCalculation('gc_productPackingCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">3D Animation ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.gc_3dAnimationCost}
-                      onChange={(e) => updateCalculation('gc_3dAnimationCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Photography Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.gc_imagingAndPhotographyCost}
+                    onChange={(e) => updateCalculation('gc_imagingAndPhotographyCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.gc_perUnitCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.gc_totalCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Videography Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.gc_videographyCost}
+                    onChange={(e) => updateCalculation('gc_videographyCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Packing Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.gc_productPackingCost}
+                    onChange={(e) => updateCalculation('gc_productPackingCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">3D Animation Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.gc_3dAnimationCost}
+                    onChange={(e) => updateCalculation('gc_3dAnimationCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
                 </div>
               </div>
             )}
           </div>
 
           {/* Product Feedback Section */}
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-teal-50 to-green-50 rounded-lg p-4">
             <button
               onClick={() => toggleSection('feedback')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="w-full flex items-center justify-between font-semibold text-teal-900 hover:text-teal-700"
             >
-              <h3 className="font-semibold text-gray-900 dark:text-white">Product Feedback & Reviews</h3>
-              {expandedSections.feedback ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              <span className="flex items-center gap-2">
+                {expandedSections.feedback ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                Product Feedback
+              </span>
             </button>
             {expandedSections.feedback && (
-              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vine Program Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.pfc_vineProgramCost}
-                      onChange={(e) => updateCalculation('pfc_vineProgramCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.pfc_perUnitCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.pfc_totalCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Vine Program Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.pfc_vineProgramCost}
+                    onChange={(e) => updateCalculation('pfc_vineProgramCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Other Feedback Costs</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.pfc_miscCost}
+                    onChange={(e) => updateCalculation('pfc_miscCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
                 </div>
               </div>
             )}
           </div>
 
           {/* Other Costs Section */}
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4">
             <button
               onClick={() => toggleSection('other')}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="w-full flex items-center justify-between font-semibold text-indigo-900 hover:text-indigo-700"
             >
-              <h3 className="font-semibold text-gray-900 dark:text-white">Other Costs</h3>
-              {expandedSections.other ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              <span className="flex items-center gap-2">
+                {expandedSections.other ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                Other Costs
+              </span>
             </button>
             {expandedSections.other && (
-              <div className="p-4 space-y-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Competitor Samples ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.oc_competitorProductSamples}
-                      onChange={(e) => updateCalculation('oc_competitorProductSamples', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pre-Launch Samples ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.oc_preLaunchSamples}
-                      onChange={(e) => updateCalculation('oc_preLaunchSamples', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Employees Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.oc_employeesCost}
-                      onChange={(e) => updateCalculation('oc_employeesCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Any Other Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.oc_anyOtherCost}
-                      onChange={(e) => updateCalculation('oc_anyOtherCost', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Competitor Samples</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.oc_competitorProductSamples}
+                    onChange={(e) => updateCalculation('oc_competitorProductSamples', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.oc_perUnitCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
-                    <input
-                      type="number"
-                      value={calculation.oc_totalCost}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Pre-Launch Samples</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.oc_preLaunchSamples}
+                    onChange={(e) => updateCalculation('oc_preLaunchSamples', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Employees Cost</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.oc_employeesCost}
+                    onChange={(e) => updateCalculation('oc_employeesCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Other Costs</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calculation.oc_anyOtherCost}
+                    onChange={(e) => updateCalculation('oc_anyOtherCost', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="0.00"
+                  />
                 </div>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Save Section */}
-          {showSaveSection && (
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mt-4 border border-gray-200 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Save className="w-5 h-5 text-blue-600" />
-                Save to Product Vault
-              </h3>
+        {/* Footer */}
+        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 sticky bottom-0 bg-white">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Close
+          </button>
+          <button
+            onClick={() => setShowSaveSection(!showSaveSection)}
+            className="px-4 py-2 text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center gap-2"
+          >
+            <Save className="w-4 h-4" />
+            Save to Vault
+          </button>
+        </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Product Name
-                  </label>
-                  <input
-                    type="text"
-                    value={saveTitle}
-                    onChange={(e) => setSaveTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="Enter product name"
-                  />
+        {/* Save Section */}
+        {showSaveSection && (
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mt-4 border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Save className="w-5 h-5 text-blue-600" />
+              Save to Product Vault
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Product Name
+                </label>
+                <input
+                  type="text"
+                  value={saveTitle}
+                  onChange={(e) => setSaveTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Enter product name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={saveDescription}
+                  onChange={(e) => setSaveDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Enter product description"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Category
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map((category: Category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => setShowNewCategoryForm(!showNewCategoryForm)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    New
+                  </button>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={saveDescription}
-                    onChange={(e) => setSaveDescription(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="Enter product description"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Category
-                  </label>
+              {showNewCategoryForm && (
+                <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-300 dark:border-gray-600">
                   <div className="flex gap-2">
-                    <select
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="New category name"
                       className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    >
-                      <option value="">Select a category</option>
-                      {categories.map((category: Category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
+                    />
                     <button
-                      onClick={() => setShowNewCategoryForm(!showNewCategoryForm)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      onClick={handleCreateCategory}
+                      disabled={createCategoryMutation.isPending}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                     >
-                      New
+                      {createCategoryMutation.isPending ? 'Creating...' : 'Create'}
                     </button>
                   </div>
                 </div>
-
-                {showNewCategoryForm && (
-                  <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-300 dark:border-gray-600">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        placeholder="New category name"
-                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      />
-                      <button
-                        onClick={handleCreateCategory}
-                        disabled={createCategoryMutation.isPending}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                      >
-                        {createCategoryMutation.isPending ? 'Creating...' : 'Create'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Save Actions */}
-              <div className="flex justify-end gap-3 mt-4">
-                <button
-                  onClick={() => setShowSaveSection(false)}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveProduct}
-                  disabled={isSaving || saveProductMutation.isPending}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  {isSaving || saveProductMutation.isPending ? 'Saving...' : 'Save to Vault'}
-                </button>
-              </div>
+              )}
             </div>
-          )}
 
-          {/* Save Button */}
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => setShowSaveSection(!showSaveSection)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition"
-            >
-              <Save className="w-5 h-5" />
-              Save to Vault
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition"
-            >
-              Close
-            </button>
+            {/* Save Actions */}
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={() => setShowSaveSection(false)}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveProduct}
+                disabled={isSaving || saveProductMutation.isPending}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {isSaving || saveProductMutation.isPending ? 'Saving...' : 'Save to Vault'}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Save Button */}
+        {/* <div className="flex gap-3 pt-4">
+          <button
+            onClick={() => setShowSaveSection(!showSaveSection)}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-lg transition"
+          >
+            <Save className="w-5 h-5" />
+            Save to Vault
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-lg transition"
+          >
+            Close
+          </button>
+        </div> */}
       </div>
     </div>
   );

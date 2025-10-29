@@ -502,14 +502,14 @@ const ProductScannerPage = () => {
               setPage={setPage} // <-- add this
               selectedSearchOption={searchType}
             />
-            { searchType !== Options.ASIN && <div className="px-6 box rounded-md">
+            {searchType !== Options.ASIN && <div className="px-6 box rounded-md">
               <CardsCarousel
                 insights={amazonSearchInsights?.data}
                 isDataLoading={isSearchLoading}
                 isEmptyState={emptyState || hasError}
                 handleVolumeCardClick={handleVolumeCardClick}
               />
-            </div> }
+            </div>}
 
             {isSearchLoading ? (
               <div className="p-5">

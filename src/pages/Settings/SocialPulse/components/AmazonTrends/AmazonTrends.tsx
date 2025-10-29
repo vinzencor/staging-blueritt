@@ -45,6 +45,7 @@ import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserD
 import { QuotaNames } from '../../../../../enum';
 import AddOnsChoiceModal from '../AddOnsChoiceModal';
 import AddOnsChoiceModalAmazon from './AddOnChoiceModalAmazon';
+import SearchesAlert from '@/@spk/uielements/SearchesAlert';
 
 
 interface AmazonTrendsProps {
@@ -852,6 +853,23 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
         <p className="text-gray-600 dark:text-gray-300">
           Discover trending products, search by keywords, or browse by category
         </p>
+
+        {/* Quota Alerts */}
+        <div className="mt-4 space-y-3">
+          {/* Product Searches Alert */}
+          <SearchesAlert
+            quotaDetails={quotaDetails}
+            searchType="Product Searches"
+            addOnName="Product Search Add-ons"
+          />
+
+          {/* Supplier Discoveries Alert */}
+          <SearchesAlert
+            quotaDetails={supplierQuotaDetails}
+            searchType="Supplier Discoveries"
+            addOnName="Supplier Discovery Add-ons"
+          />
+        </div>
 
         {/* Subscription Quota Alert */}
         <div className="mt-4">

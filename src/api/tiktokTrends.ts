@@ -353,6 +353,8 @@ export const getTikTokTrendingProducts = async ({
   if (keyword) searchParams.append('keyword', keyword);
 
   const response = await api.get(`/products/tiktok-trends/trending/?${searchParams.toString()}`);
+  console.log('🔍 getTikTokTrendingProducts - Raw axios response:', response);
+  console.log('🔍 getTikTokTrendingProducts - response.data:', response.data);
   return response.data;
 };
 

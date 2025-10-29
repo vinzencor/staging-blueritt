@@ -867,7 +867,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
               <span className="flex items-center gap-2">
                 {expandedSections.marketing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 Marketing & Advertising
-              </span>
+              </span> 
             </button>
             {expandedSections.marketing && (
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

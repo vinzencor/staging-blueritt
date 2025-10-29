@@ -847,6 +847,12 @@ const ProProfitPro = () => {
   };
 
   const getDataForMutation = () => {
+    // Helper function to safely convert to fixed decimal
+    const toFixed = (value: any, decimals: number = 2) => {
+      const num = typeof value === 'string' ? parseFloat(value) : value;
+      return isNaN(num) ? '0.00' : num.toFixed(decimals);
+    };
+
     const data: any = {
       name: saveTitle,
       description: saveDescription,
@@ -856,58 +862,58 @@ const ProProfitPro = () => {
       saveNewCategory: newCategory,
 
       // Product Information -> pi
-      selling_price: formik.values.pi_sellingPrice?.toFixed(2),
+      selling_price: toFixed(formik.values.pi_sellingPrice),
       quantity: formik.values.pi_quantity,
-      total_revenue: formik.values.pi_totalRevenue?.toFixed(2),
+      total_revenue: toFixed(formik.values.pi_totalRevenue),
 
       // Product Sourcing Cost -> psc
       sourcing_cost: {
-        manufacturing_cost: formik.values.psc_manufacturingCost?.toFixed(2),
-        shipping_cost: formik.values.psc_shippingCost?.toFixed(2),
-        logo_box_cost: formik.values.psc_productLogoCost?.toFixed(2),
+        manufacturing_cost: toFixed(formik.values.psc_manufacturingCost),
+        shipping_cost: toFixed(formik.values.psc_shippingCost),
+        logo_box_cost: toFixed(formik.values.psc_productLogoCost),
         order_quantity: formik.values.psc_orderQuantity,
-        miscellaneous_cost: formik.values.psc_miscCost?.toFixed(2),
-        cost_per_unit: formik.values.psc_perUnitCost?.toFixed(2),
-        total_cost_qty: formik.values.psc_totalCost?.toFixed(2), // redundant after pre-launch samples was moved to Other Costs from Product Sourcing Cost
-        total: formik.values.psc_totalCost?.toFixed(2),
+        miscellaneous_cost: toFixed(formik.values.psc_miscCost),
+        cost_per_unit: toFixed(formik.values.psc_perUnitCost),
+        total_cost_qty: toFixed(formik.values.psc_totalCost), // redundant after pre-launch samples was moved to Other Costs from Product Sourcing Cost
+        total: toFixed(formik.values.psc_totalCost),
       },
 
       // Fulfillment model -> fm
       fulfillment: {
         fulfillment_type: formik.values.fm_model,
-        referral_fees: formik.values.fm_referrfalFees?.toFixed(2),
-        fba_fulfillment_fees: formik.values.fm_fbaFulfillmentFees?.toFixed(2),
-        monthly_storage_fees: formik.values.fm_monthlyStorageFees?.toFixed(2),
+        referral_fees: toFixed(formik.values.fm_referrfalFees),
+        fba_fulfillment_fees: toFixed(formik.values.fm_fbaFulfillmentFees),
+        monthly_storage_fees: toFixed(formik.values.fm_monthlyStorageFees),
         long_term_storage_fees:
-          formik.values.fm_longTermStorageFees?.toFixed(2),
-        inbound_shipping_cost: formik.values.fm_inboundShippingCost?.toFixed(2),
+          toFixed(formik.values.fm_longTermStorageFees),
+        inbound_shipping_cost: toFixed(formik.values.fm_inboundShippingCost),
         returns_refunds_rate: formik.values.fm_returnsRate,
-        shipping_fee: formik.values.fm_shippingFees?.toFixed(2),
-        handling_cost: formik.values.fm_handlingCost?.toFixed(2),
-        miscellaneous_cost: formik.values.fm_miscCost?.toFixed(2),
-        cost_per_unit: formik.values.fm_perUnitCost?.toFixed(2),
-        total: formik.values.fm_totalCost?.toFixed(2),
+        shipping_fee: toFixed(formik.values.fm_shippingFees),
+        handling_cost: toFixed(formik.values.fm_handlingCost),
+        miscellaneous_cost: toFixed(formik.values.fm_miscCost),
+        cost_per_unit: toFixed(formik.values.fm_perUnitCost),
+        total: toFixed(formik.values.fm_totalCost),
       },
 
       // Marketing, Advertisement and Ranking Cost -> marc
       marketing: {
-        ppc_costs: formik.values.marc_marketingCost?.toFixed(2),
-        attribution_costs: formik.values.marc_attributionCost?.toFixed(2),
+        ppc_costs: toFixed(formik.values.marc_marketingCost),
+        attribution_costs: toFixed(formik.values.marc_attributionCost),
         influencer_promotion_costs:
-          formik.values.marc_influencerCost?.toFixed(2),
-        ppc_vat_costs: formik.values.marc_marketingVATCost?.toFixed(2),
-        miscellaneous_cost: formik.values.marc_miscCost?.toFixed(2),
-        cost_per_unit: formik.values.marc_perUnitCost?.toFixed(2),
-        total: formik.values.marc_totalCost?.toFixed(2),
+          toFixed(formik.values.marc_influencerCost),
+        ppc_vat_costs: toFixed(formik.values.marc_marketingVATCost),
+        miscellaneous_cost: toFixed(formik.values.marc_miscCost),
+        cost_per_unit: toFixed(formik.values.marc_perUnitCost),
+        total: toFixed(formik.values.marc_totalCost),
       },
 
       // Taxes
       taxes: {
         region: formik.values.tax_region,
-        vat: formik.values.tax_VAT?.toFixed(2),
-        gst: formik.values.tax_GST?.toFixed(2),
-        sales_tax: formik.values.tax_salesTax?.toFixed(2),
-        miscellaneous_cost: formik.values.tax_miscCost?.toFixed(2),
+        vat: toFixed(formik.values.tax_VAT),
+        gst: toFixed(formik.values.tax_GST),
+        sales_tax: toFixed(formik.values.tax_salesTax),
+        miscellaneous_cost: toFixed(formik.values.tax_miscCost),
         total_taxes_unit: formik.values.tax_perUnitCost,
         total_taxes_qty: formik.values.tax_totalCost,
       },
@@ -915,77 +921,77 @@ const ProProfitPro = () => {
       // Graphics Cost -> gc
       graphics: {
         imaging_photography:
-          formik.values.gc_imagingAndPhotographyCost?.toFixed(2),
-        videography_cost: formik.values.gc_videographyCost?.toFixed(2),
-        product_packaging_cost: formik.values.gc_productPackingCost?.toFixed(2),
-        animation_cost: formik.values.gc_3dAnimationCost?.toFixed(2),
-        miscellaneous_cost: formik.values.gc_miscCost?.toFixed(2),
-        cost_per_unit: formik.values.gc_perUnitCost?.toFixed(2),
-        total: formik.values.gc_totalCost?.toFixed(2),
+          toFixed(formik.values.gc_imagingAndPhotographyCost),
+        videography_cost: toFixed(formik.values.gc_videographyCost),
+        product_packaging_cost: toFixed(formik.values.gc_productPackingCost),
+        animation_cost: toFixed(formik.values.gc_3dAnimationCost),
+        miscellaneous_cost: toFixed(formik.values.gc_miscCost),
+        cost_per_unit: toFixed(formik.values.gc_perUnitCost),
+        total: toFixed(formik.values.gc_totalCost),
       },
 
       // Product Feedback Cost -> pfc
       vine_misc: {
-        vine_program: formik.values.pfc_vineProgramCost?.toFixed(2),
-        miscellaneous_cost: formik.values.pfc_miscCost?.toFixed(2),
-        cost_per_unit: formik.values.pfc_perUnitCost?.toFixed(2),
-        total: formik.values.pfc_totalCost?.toFixed(2),
+        vine_program: toFixed(formik.values.pfc_vineProgramCost),
+        miscellaneous_cost: toFixed(formik.values.pfc_miscCost),
+        cost_per_unit: toFixed(formik.values.pfc_perUnitCost),
+        total: toFixed(formik.values.pfc_totalCost),
       },
 
       // Other costs -> oc
       other_costs: {
-        pre_launch_samples: formik.values.oc_preLaunchSamples?.toFixed(2),
+        pre_launch_samples: toFixed(formik.values.oc_preLaunchSamples),
         competitor_samples:
-          formik.values.oc_competitorProductSamples?.toFixed(2),
-        employee_cost: formik.values.oc_employeesCost?.toFixed(2),
-        other_cost: formik.values.oc_anyOtherCost?.toFixed(2),
-        cost_per_unit: formik.values.oc_perUnitCost?.toFixed(2),
-        total: formik.values.oc_totalCost?.toFixed(2),
+          toFixed(formik.values.oc_competitorProductSamples),
+        employee_cost: toFixed(formik.values.oc_employeesCost),
+        other_cost: toFixed(formik.values.oc_anyOtherCost),
+        cost_per_unit: toFixed(formik.values.oc_perUnitCost),
+        total: toFixed(formik.values.oc_totalCost),
       },
 
       profit_calculation: {
         data: {
-          revenue_per_unit: profitAndRev.revPerUnt?.toFixed(2),
-          total_revenue: profitAndRev.totalRev?.toFixed(2),
+          revenue_per_unit: toFixed(profitAndRev.revPerUnt),
+          total_revenue: toFixed(profitAndRev.totalRev),
 
           productSourcing_cost_per_unit:
-            formik.values.psc_perUnitCost?.toFixed(2),
-          productSourcing_cost_for_qty: formik.values.psc_totalCost?.toFixed(2),
-          productSourcing_cost_total: formik.values.psc_totalCost?.toFixed(2),
+            toFixed(formik.values.psc_perUnitCost),
+          productSourcing_cost_for_qty: toFixed(formik.values.psc_totalCost),
+          productSourcing_cost_total: toFixed(formik.values.psc_totalCost),
 
-          fullfilment_cost_per_unit: formik.values.fm_perUnitCost?.toFixed(2),
-          fullfilment_cost_total: formik.values.fm_totalCost?.toFixed(2),
+          fullfilment_cost_per_unit: toFixed(formik.values.fm_perUnitCost),
+          fullfilment_cost_total: toFixed(formik.values.fm_totalCost),
 
-          gross_profit_per_unit: profitAndRev.grossProfitPerUnit?.toFixed(2),
-          gross_profit_for_qty: profitAndRev.grossProfitForQty?.toFixed(2),
+          gross_profit_per_unit: toFixed(profitAndRev.grossProfitPerUnit),
+          gross_profit_for_qty: toFixed(profitAndRev.grossProfitForQty),
 
-          marketing_cost_per_unit: formik.values.marc_perUnitCost?.toFixed(2),
-          marketing_cost_total: formik.values.marc_totalCost?.toFixed(2),
+          marketing_cost_per_unit: toFixed(formik.values.marc_perUnitCost),
+          marketing_cost_total: toFixed(formik.values.marc_totalCost),
 
-          graphics_cost_per_unit: formik.values.gc_perUnitCost?.toFixed(2),
-          graphics_cost_total: formik.values.gc_totalCost?.toFixed(2),
+          graphics_cost_per_unit: toFixed(formik.values.gc_perUnitCost),
+          graphics_cost_total: toFixed(formik.values.gc_totalCost),
 
           product_feedback_cost_per_unit:
-            formik.values.pfc_perUnitCost?.toFixed(2),
-          product_feedback_cost_total: formik.values.pfc_totalCost?.toFixed(2),
+            toFixed(formik.values.pfc_perUnitCost),
+          product_feedback_cost_total: toFixed(formik.values.pfc_totalCost),
 
-          other_costs_per_unit: formik.values.oc_perUnitCost?.toFixed(2),
-          other_costs_total: formik.values.oc_totalCost?.toFixed(2),
+          other_costs_per_unit: toFixed(formik.values.oc_perUnitCost),
+          other_costs_total: toFixed(formik.values.oc_totalCost),
 
           net_profit_before_taxes_per_unit:
-            profitAndRev.netProfitBeforeTaxesPerUnit?.toFixed(2),
+            toFixed(profitAndRev.netProfitBeforeTaxesPerUnit),
           net_profit_before_taxes_for_qty:
-            profitAndRev.netProfitBeforeTaxesForQty?.toFixed(2),
+            toFixed(profitAndRev.netProfitBeforeTaxesForQty),
 
           tax_amount_for_qty: formik.values.tax_totalCost,
 
           net_profit_after_taxes_per_unit:
-            profitAndRev.netProfitAfterTaxesPerUnit?.toFixed(2),
+            toFixed(profitAndRev.netProfitAfterTaxesPerUnit),
           net_profit_after_taxes_for_qty:
-            profitAndRev.netProfitAfterTaxesForQty?.toFixed(2),
+            toFixed(profitAndRev.netProfitAfterTaxesForQty),
 
           total_net_profit_after_taxes:
-            profitAndRev.totalNetProfitAfterTaxes?.toFixed(2),
+            toFixed(profitAndRev.totalNetProfitAfterTaxes),
         },
       },
     };
