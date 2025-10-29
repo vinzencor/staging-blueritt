@@ -857,7 +857,15 @@ const AmazonTrends: React.FC<AmazonTrendsProps> = ({ onProductSelect }) => {
     }
   };
 
-  const products = sortProductsByTrending(getCurrentData());
+  // Narrow union to AmazonTrendingProduct[] before sorting to satisfy type requirements
+  const isAmazonTrendingProduct = (p: any): p is AmazonTrendingProduct => {
+    // Basic heuristic: trending items include trending_score and product_title (adjust if needed)
+    return p && (typeof p.trending_score !== 'undefined' || typeof p.product_title !== 'undefined');
+  };
+
+  const currentData = getCurrentData() || [];
+  const trendingItems = Array.isArray(currentData) ? currentData.filter(isAmazonTrendingProduct) : [];
+  const products = sortProductsByTrending(trendingItems);
   const isLoading = getCurrentLoading();
 
   return (
