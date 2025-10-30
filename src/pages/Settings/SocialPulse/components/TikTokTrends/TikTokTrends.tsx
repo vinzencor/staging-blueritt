@@ -912,7 +912,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center border border-blue-200 dark:border-blue-800">
                               <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium">CTR</div>
                               <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                                {(product.ctr * 100).toFixed(2)}
+                                {product.ctr.toFixed(2)}
                               </div>
                             </div>
                           )}
@@ -920,7 +920,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                             <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center border border-purple-200 dark:border-purple-800">
                               <div className="text-purple-600 dark:text-purple-400 mb-1 font-medium">CVR</div>
                               <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                                {(product.cvr * 100).toFixed(2)}
+                                {product.cvr.toFixed(2)}
                               </div>
                             </div>
                           )}

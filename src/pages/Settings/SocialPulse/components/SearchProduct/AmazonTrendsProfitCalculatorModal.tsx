@@ -3,10 +3,10 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { X, Calculator, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
-import { type TikTokTrendingProduct, type SupplierInfo } from '@/api/tiktokTrends';
+import { type AmazonTrendingProduct, type SupplierInfo } from '@/api/amazonTrends';
 
-interface TikTokProfitCalculatorModalProps {
-  product: TikTokTrendingProduct;
+interface AmazonTrendsProfitCalculatorModalProps {
+  product: AmazonTrendingProduct;
   supplier: SupplierInfo;
   isOpen: boolean;
   onClose: () => void;
@@ -104,7 +104,7 @@ const TAX_OPTIONS = [
   { country: "Australia", code: "AU", vat: 0, gst: 10, salesTax: 0 },
 ];
 
-const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = ({
+const AmazonTrendsProfitCalculatorModal: React.FC<AmazonTrendsProfitCalculatorModalProps> = ({
   product,
   supplier,
   isOpen,
@@ -237,20 +237,18 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
     };
 
     // Debug logging
-    console.log('🔍 TikTok Product Save Debug:', {
-      productId: product.id,
-      productTitle: product.title,
-      productPrice: product.price,
-      productPriceType: typeof product.price,
-      extractedPrice: extractPrice(product.price),
+    console.log('🔍 Amazon Trends Product Save Debug:', {
+      productAsin: product.asin,
+      productTitle: product.product_title,
+      productPrice: product.product_price,
+      productPriceType: typeof product.product_price,
+      extractedPrice: extractPrice(product.product_price),
       saveTitle: saveTitle.trim(),
-      sellerName: product.seller_name,
       supplierName: supplier.name,
-      imageUrl: product.image_url,
-      coverUrl: product.cover_url,
-      rating: product.rating,
-      reviewCount: product.review_count,
-      salesCount: product.sales_count,
+      imageUrl: product.product_photo,
+      rating: product.product_star_rating,
+      reviewCount: product.product_num_ratings,
+      brand: product.brand,
     });
 
     // Prepare product data with MarginMax Basic field structure
@@ -273,48 +271,49 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       product_net_profit: parseFloat(calculation.netProfitAfterTaxes.toFixed(2)), // Dollar amount
 
       // Amazon product field (database schema requires this field name)
-      // Convert TikTok product format to Amazon product format for compatibility
       amazon_product: {
         data: {
-          asin: product.id || 'tiktok_' + Date.now(),
-          product_title: product.title || 'TikTok Product',
-          product_price: extractPrice(product.price),
-          product_original_price: extractPrice(product.price),
+          asin: product.asin,
+          product_title: product.product_title,
+          product_price: extractPrice(product.product_price),
+          product_original_price: extractPrice(product.product_price),
           currency: 'USD',
-          country: product.country || 'US',
+          country: 'US',
           product_byline: supplier.name || 'Unknown Supplier',
           product_byline_link: supplier.contact_url || '',
-          product_star_rating: (product.rating || 0).toString(),
-          product_num_ratings: product.review_count || 0,
-          product_url: product.video_url || '',
-          product_photo: product.image_url || product.cover_url || '',
+          product_star_rating: product.product_star_rating || '0',
+          product_num_ratings: product.product_num_ratings || 0,
+          product_url: product.product_url || '',
+          product_photo: product.product_photo || '',
           product_num_offers: 1,
           product_availability: 'In Stock',
-          is_best_seller: false,
-          is_amazon_choice: false,
-          is_prime: false,
-          climate_pledge_friendly: false,
-          sales_volume: (product.sales_count || 0).toString(),
-          about_product: product.description ? [product.description] : [],
-          product_description: product.description || '',
+          is_best_seller: product.is_best_seller || false,
+          is_amazon_choice: product.is_amazon_choice || false,
+          is_prime: product.is_prime || false,
+          climate_pledge_friendly: product.climate_pledge_friendly || false,
+          sales_volume: '0',
+          about_product: [],
+          product_description: '',
           product_information: {},
-          product_videos: product.video_url ? [product.video_url] : [],
-          product_photos: product.image_url ? [product.image_url] : [],
-          has_video: !!product.video_url,
+          product_videos: [],
+          product_photos: product.product_photo ? [product.product_photo] : [],
+          has_video: false,
           product_details: {},
+          brand: product.brand || '',
+          category: product.category || '',
           primary_delivery_time: supplier.lead_time || '7-14 days',
           seller_country: supplier.location || 'China',
         },
         parameters: {
           searchCountry: 'US',
-          country: product.country || 'US',
+          country: 'US',
         },
-        source: 'tiktok_trends',
+        source: 'amazon_trends',
         saved_at: new Date().toISOString(),
         // IMPORTANT: offer object must be at same level as data, not inside data
         offer: {
-          product_price: extractPrice(product.price),
-          product_original_price: extractPrice(product.price),
+          product_price: extractPrice(product.product_price),
+          product_original_price: extractPrice(product.product_price),
           product_condition: 'New',
           seller: supplier.name || 'Unknown Supplier',
           seller_id: supplier.id || '',
@@ -322,7 +321,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
           seller_star_rating: (supplier.rating || 0).toString(),
           seller_star_rating_info: (supplier.total_transactions || 0).toString(),
           currency: 'USD',
-          delivery_price: product.free_shipping ? 'Free Shipping' : 'Standard Shipping',
+          delivery_price: 'Free Shipping',
           ships_from: supplier.location || 'China',
         },
       },
@@ -422,35 +421,35 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
 
     console.log('🔥 CATEGORY:', selectedCategory);
     console.log('🔥 PRODUCT DATA:', productData);
-    console.log('🔥 AMAZON PRODUCT DATA:', {
-      asin: productData.amazon_product.data.asin,
-      product_title: productData.amazon_product.data.product_title,
-      product_price: productData.amazon_product.data.product_price,
-      product_photo: productData.amazon_product.data.product_photo,
-      product_star_rating: productData.amazon_product.data.product_star_rating,
-      product_num_ratings: productData.amazon_product.data.product_num_ratings,
-      sales_volume: productData.amazon_product.data.sales_volume,
+    console.log('🔥 CALCULATION FIELDS:', {
+      simple_profit_pro: productData.simple_profit_pro,
+      pi_totalRevenue: productData.pi_totalRevenue,
+      psc_totalCost: productData.psc_totalCost,
+      fm_totalCost: productData.fm_totalCost,
+      grossProfit: productData.grossProfit,
+      netProfitAfterTaxes: productData.netProfitAfterTaxes,
+      selling_price: productData.selling_price,
+      total_revenue: productData.total_revenue,
+      gross_profit: productData.gross_profit,
+      net_profit: productData.net_profit,
     });
+    console.log('🔥 SUPPLIER INFO:', productData.supplier_info);
     saveProductMutation.mutate(productData);
   };
 
   useEffect(() => {
     if (isOpen && product && supplier) {
-      const isTikTokShop = (supplier as any)?.isTikTokShopProduct === true;
-      const shopPrice = (supplier as any)?.tiktokShopPrice || product.price || 0;
-      let supplierPrice = isTikTokShop ? shopPrice : parseFloat(supplier.estimated_price?.replace(/[^0-9.]/g, '') || '0');
-      const suggestedPrice = isTikTokShop ? shopPrice : supplierPrice * 2.5;
-      let costPrice = supplierPrice;
-      let estimatedShipping = supplier.moq > 500 ? 2.50 : 5.00;
+      // Extract Amazon product price
+      const amazonPrice = parseFloat(product.product_price?.replace(/[^0-9.]/g, '') || '0');
+      const supplierPrice = parseFloat(supplier.estimated_price?.replace(/[^0-9.]/g, '') || '0');
+      const suggestedPrice = amazonPrice > 0 ? amazonPrice : supplierPrice * 2.5;
+      const costPrice = supplierPrice;
+      const estimatedShipping = supplier.moq > 500 ? 2.50 : 5.00;
 
-      if (isTikTokShop) {
-        costPrice = suggestedPrice * 0.45;
-        estimatedShipping = 0;
-      }
-
-      const estimatedTikTokFees = suggestedPrice * 0.06;
-      const fulfillmentFees = isTikTokShop ? 1.50 : 3.00;
-      const storageFees = isTikTokShop ? 0.20 : 0.40;
+      // Amazon FBA fees (estimated)
+      const estimatedReferralFees = suggestedPrice * 0.15; // 15% referral fee
+      const fulfillmentFees = 3.50; // Estimated FBA fulfillment fee
+      const storageFees = 0.75; // Monthly storage fee
       const processingFees = 0.15;
 
       const initialCalc: EnhancedProfitCalculation = {
@@ -458,11 +457,11 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
         psc_manufacturingCost: costPrice, psc_shippingCost: estimatedShipping, psc_productLogoCost: 0,
         psc_miscCost: 0, psc_orderQuantity: 100, psc_perUnitCost: costPrice + estimatedShipping,
         psc_totalCost: (costPrice + estimatedShipping) * 100,
-        fm_model: "FBA", fm_referrfalFees: estimatedTikTokFees, fm_fbaFulfillmentFees: fulfillmentFees,
+        fm_model: "FBA", fm_referrfalFees: estimatedReferralFees, fm_fbaFulfillmentFees: fulfillmentFees,
         fm_monthlyStorageFees: storageFees, fm_longTermStorageFees: 0, fm_inboundShippingCost: 0,
         fm_returnsRate: 0, fm_shippingFees: 0, fm_handlingCost: 0, fm_storageCost: 0, fm_miscCost: processingFees,
-        fm_perUnitCost: estimatedTikTokFees + fulfillmentFees + storageFees + processingFees,
-        fm_totalCost: (estimatedTikTokFees + fulfillmentFees + storageFees + processingFees) * 100,
+        fm_perUnitCost: estimatedReferralFees + fulfillmentFees + storageFees + processingFees,
+        fm_totalCost: (estimatedReferralFees + fulfillmentFees + storageFees + processingFees) * 100,
         marc_marketingCost: 0, marc_attributionCost: 0, marc_influencerCost: 0, marc_miscCost: 0,
         marc_marketingVATCost: 0, marc_totalCost: 0, marc_perUnitCost: 0,
         tax_region: "US", tax_VAT: 0, tax_GST: 10, tax_salesTax: 0, tax_miscCost: 0, tax_perUnitCost: 0, tax_totalCost: 0,
@@ -489,8 +488,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       initialCalc.netProfitAfterTaxesMargin = totalRevenue > 0 ? (initialCalc.netProfitAfterTaxes / totalRevenue) * 100 : 0;
 
       setCalculation(initialCalc);
-      setSaveTitle(product.title || 'TikTok Product');
-      setSaveDescription(`TikTok Trends Product - ID: ${product.id} | Supplier: ${supplier.name} | Price: ${product.price}`);
+      setSaveTitle(product.product_title || 'Amazon Product');
+      setSaveDescription(`Amazon Trends Product - ASIN: ${product.asin} | Supplier: ${supplier.name} | Price: ${product.product_price}`);
     }
   }, [isOpen, product, supplier]);
 
@@ -1241,4 +1240,4 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
   );
 };
 
-export default TikTokProfitCalculatorModal;
+export default AmazonTrendsProfitCalculatorModal;

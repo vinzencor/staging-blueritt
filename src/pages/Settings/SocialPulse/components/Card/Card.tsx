@@ -23,6 +23,8 @@ import {
   type TSearchFilters,
 } from "../..";
 import { getAmazonCategories } from "@/api/product";
+import AmazonTrendsProductDetailsModal from "../SearchProduct/AmazonTrendsProductDetailsModal";
+import { type AmazonTrendingProduct } from "@/api/amazonTrends";
 
 type TUpdatedSearchFilters = {
   starRatingMin: number;
@@ -192,6 +194,10 @@ const Card: React.FC<TDataTableProps> = ({
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [useEnhancedView, setUseEnhancedView] = useState(true); // Toggle for enhanced view
 
+  // Amazon Trends Product Details Modal state
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<AmazonTrendingProduct | null>(null);
+
   const { data: categoriesData } = useQuery({
     queryKey: ["getAmazonCategories"],
     queryFn: getAmazonCategories,
@@ -274,11 +280,34 @@ const Card: React.FC<TDataTableProps> = ({
 
   // Handler functions for enhanced card actions
   const handleViewDetails = (asin: string) => {
-    toast.info(`Opening details for ASIN: ${asin}`, {
-      position: "top-right",
-      autoClose: 2000,
-    });
-    // Add your detail view logic here
+    // Find the product by ASIN
+    const product = products.find(p => p.asin === asin);
+    if (!product) {
+      toast.error('Product not found');
+      return;
+    }
+
+    // Convert TProductEntryInDataTable to AmazonTrendingProduct format
+    const amazonProduct: AmazonTrendingProduct = {
+      asin: product.asin,
+      product_title: product.productTitle,
+      product_price: product.price ? `$${product.price}` : undefined,
+      product_star_rating: product.starRating?.toString(),
+      product_num_ratings: product.ratingCount,
+      product_url: product.productUrl || '',
+      product_photo: product.productImage,
+      is_prime: product.isPrime || false,
+      is_amazon_choice: product.isAmazonChoice || false,
+      is_best_seller: product.isBestSeller || false,
+      trending_score: 0,
+      search_count: 0,
+      brand: product.brand,
+      category: product.category,
+      source: 'api' as const,
+    };
+
+    setSelectedProduct(amazonProduct);
+    setShowProductModal(true);
   };
 
   const handleAddToWatchlist = (product: TProductEntryInDataTable) => {
@@ -647,6 +676,18 @@ const Card: React.FC<TDataTableProps> = ({
             </div>
           ))}
         </div>
+      )}
+
+      {/* Amazon Trends Product Details Modal */}
+      {selectedProduct && (
+        <AmazonTrendsProductDetailsModal
+          product={selectedProduct}
+          isOpen={showProductModal}
+          onClose={() => {
+            setShowProductModal(false);
+            setSelectedProduct(null);
+          }}
+        />
       )}
     </>
   );

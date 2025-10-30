@@ -239,7 +239,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
               </span>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+              <div className="text-xl font-bold text-pink-600 dark:text-pink-400">
                 {hashtagQuotaDetails.quotaValue === -1 ? '∞' : hashtagQuotaDetails.quotaValue}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400">

@@ -130,6 +130,20 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
     // Transform TikTok product data to match backend expectations (same structure as Amazon)
     // Price is already a string from the API
     const formattedPrice = product.price || '$0.00';
+    const numericPrice = parseFloat(product.price?.replace(/[^0-9.]/g, '') || '0');
+
+    console.log('🔥 TikTok Save Product Debug:', {
+      productId: product.id,
+      productTitle: product.title,
+      rawPrice: product.price,
+      formattedPrice,
+      numericPrice,
+      imageUrl: product.image_url || product.cover_url,
+      sellerName: product.seller_name,
+      rating: product.rating,
+      reviewCount: product.review_count,
+      salesCount: product.sales_count
+    });
 
     const productData = {
       name: productName.trim(),
@@ -140,10 +154,11 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
           asin: product.id || 'tiktok_product',
           product_title: product.title,
           product_price: formattedPrice,
-          product_star_rating: product.rating || 0,
+          product_original_price: formattedPrice,
+          product_star_rating: product.rating ? product.rating.toString() : '0',
           product_num_ratings: product.review_count || 0,
           product_url: product.video_url || '',
-          product_photo: product.image_url,
+          product_photo: product.image_url || product.cover_url || '',
           brand: 'TikTok Shop',
           category_path: 'TikTok > Trending Products',
           is_prime: false,
@@ -151,26 +166,27 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
           is_best_seller: false,
           climate_pledge_friendly: false,
           country: product.country || 'US',
+          currency: 'USD',
           // TikTok specific fields
-          likes_count: product.likes_count,
-          shares_count: product.shares_count,
-          views_count: product.views_count,
-          sales_count: product.sales_count,
-          trending_score: product.trending_score,
-          seller_name: product.seller_name || 'TikTok Official Store',
+          likes_count: product.likes_count || 0,
+          shares_count: product.shares_count || 0,
+          views_count: product.views_count || 0,
+          sales_count: product.sales_count || 0,
+          trending_score: product.trending_score || 0,
+          seller_name: product.seller_name || 'TikTok Shop',
           seller_country: product.country || 'US',
-          seller_rating: product.rating || 4.2,
-          seller_reviews: product.review_count || 500,
+          seller_rating: product.rating || 0,
+          seller_reviews: product.review_count || 0,
         },
         parameters: {
           country: product.country || 'US',
           searchCountry: product.country || 'US'
         },
         offer: {
-          seller: product.seller_name || 'TikTok Official Store',
+          seller: product.seller_name || 'TikTok Shop',
           seller_id: product.id || 'tiktok_seller',
-          seller_star_rating: product.rating ? product.rating.toString() : '4.2',
-          seller_star_rating_info: product.review_count ? product.review_count.toString() : '500',
+          seller_star_rating: product.rating ? product.rating.toString() : '0',
+          seller_star_rating_info: product.review_count ? product.review_count.toString() : '0',
           ships_from: product.country || 'US',
           seller_link: product.video_url || 'https://tiktok.com',
           delivery_price: product.free_shipping ? 'Free Shipping' : 'Standard Shipping',
@@ -184,9 +200,9 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
         saved_at: new Date().toISOString(),
       },
       // Default values for required fields
-      selling_price: parseFloat(product.price?.replace(/[^0-9.]/g, '') || '0'),
+      selling_price: numericPrice,
       quantity: 1,
-      total_revenue: parseFloat(product.price?.replace(/[^0-9.]/g, '') || '0'),
+      total_revenue: numericPrice,
       simple_profit_pro: false,
     };
 

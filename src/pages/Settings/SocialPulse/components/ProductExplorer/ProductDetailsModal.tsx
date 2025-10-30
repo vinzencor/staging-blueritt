@@ -496,9 +496,27 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
         },
         source: 'amazon_explorer',
         saved_at: new Date().toISOString(),
+        // Add offer object with seller information for Product Vault display
+        offer: {
+          product_price: product.product_price || '0',
+          product_original_price: product.product_original_price || '',
+          product_condition: 'New',
+          // If supplier is selected, use supplier name; otherwise use product seller name
+          seller: selectedSupplier?.name || (product as any).seller_name || 'Amazon Seller',
+          seller_id: product.asin || '',
+          seller_link: selectedSupplier?.contact_url || product.product_url || '',
+          seller_star_rating: selectedSupplier?.rating?.toString() || product.product_star_rating || '0',
+          seller_star_rating_info: selectedSupplier?.total_transactions?.toString() || product.product_num_ratings?.toString() || '0',
+          currency: product.currency || 'USD',
+          delivery_price: product.delivery || ((product as any).free_shipping ? 'Free Shipping' : 'Standard Shipping'),
+          delivery_time: selectedSupplier?.lead_time || (product as any).primary_delivery_time || '7-14 days',
+          // If supplier is selected, use supplier location; otherwise use product country
+          ships_from: selectedSupplier?.location || (product as any).seller_country || (product as any).country || 'US',
+        },
       },
 
-      // Supplier Information
+      // Supplier Information (saved in both fields for compatibility)
+      // supplier_info: Simple format for display in Product Vault
       supplier_info: {
         name: selectedSupplier.name,
         location: selectedSupplier.location,
@@ -507,6 +525,32 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
         minimum_order: selectedSupplier.moq,
         contact_url: selectedSupplier.contact_url,
         ai_match_score: selectedSupplier.ai_match_score,
+        rating: selectedSupplier.rating || 0,
+        total_transactions: selectedSupplier.total_transactions || 0,
+        lead_time: selectedSupplier.lead_time || '7-14 days',
+        response_rate: selectedSupplier.response_rate || '95%',
+        verification_status: selectedSupplier.verification_status || 'Verified',
+      },
+
+      // alibaba_product: Backend expects this field (JSONField in Product model)
+      alibaba_product: {
+        supplier: {
+          name: selectedSupplier.name,
+          location: selectedSupplier.location,
+          price_per_unit: selectedSupplier.estimated_price,
+          estimated_price: selectedSupplier.estimated_price,
+          minimum_order: selectedSupplier.moq,
+          moq: selectedSupplier.moq,
+          contact_url: selectedSupplier.contact_url,
+          ai_match_score: selectedSupplier.ai_match_score,
+          rating: selectedSupplier.rating || 0,
+          total_transactions: selectedSupplier.total_transactions || 0,
+          lead_time: selectedSupplier.lead_time || '7-14 days',
+          response_rate: selectedSupplier.response_rate || '95%',
+          verification_status: selectedSupplier.verification_status || 'Verified',
+        },
+        source: 'amazon_explorer',
+        saved_at: new Date().toISOString(),
       },
     };
 
