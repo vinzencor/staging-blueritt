@@ -6,6 +6,7 @@ import SearchesAlert from '../../../../../@spk/uielements/SearchesAlert';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { usePersistentQuota } from '../../../../../hooks/usePersistentQuota';
 import AmazonLoader from '../../../../../components/AmazonLoader';
+import { QuotaNames } from '../../../../../enum';
 
 
 
@@ -44,7 +45,7 @@ import {
 } from '@/utils/amazonCategories';
 
 import ProductDetailsModal from './ProductDetailsModal';
-import AddOnsChoiceModalAmazon from '../AmazonTrends/AddOnChoiceModalAmazon';
+import AddOnsChoiceModalAmazon from './AddOnChoiceModalAmazon';
 
 interface ProductExplorerProps { }
 
@@ -53,7 +54,15 @@ type ViewMode = 'best-sellers' | 'search' | 'category';
 // Dynamic categories are now fetched from the API
 
 const ProductExplorer: React.FC<ProductExplorerProps> = () => {
-  const { quotaDetails, updateQuota } = useUserSubscriptionAndSearchQuota('amazon_explorer_search');
+  // Backend quota management for Amazon search
+  const { quotaDetails: amazonSearchQuotaDetails, updateQuota: updateAmazonSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonSearch);
+
+  // Backend quota management for supplier discovery
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
+
+  // For displaying plan name (use amazonSearchQuotaDetails as the main quota details)
+  const quotaDetails = amazonSearchQuotaDetails;
+
   const { quotas, reduceQuota, hasQuota } = usePersistentQuota();
 
   const [viewMode, setViewMode] = useState<ViewMode>('best-sellers');
@@ -132,55 +141,34 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
       console.log('=== FRONTEND BESTSELLERS DEBUG ===');
       console.log('Fetching best sellers with params:', { country, page, type: selectedType });
 
-      // Fetch multiple pages to get all products (up to 6 pages = ~120 products)
-      const allProducts: any[] = [];
-      const maxPages = 6; // Fetch 6 pages to get more products
-
       try {
-        for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
-          const result = await getAmazonExplorerBestSellers({
-            country,
-            page: currentPage,
-            type: selectedType
-          });
+        // Fetch only 1 page to avoid multiple quota deductions
+        const result = await getAmazonExplorerBestSellers({
+          country,
+          page: 1,
+          type: selectedType
+        });
 
-          if (result?.data?.products && Array.isArray(result.data.products)) {
-            allProducts.push(...result.data.products);
+        console.log('✅ Best sellers response:', result);
 
-            // Update quota if remaining_quota is provided in response
-            if (result?.remaining_quota !== undefined) {
-              updateQuota(result.remaining_quota);
-            }
-
-            // If we get fewer than 20 products, we've reached the end
-            if (result.data.products.length < 20) {
-              break;
-            }
-          } else {
-            break;
-          }
+        // Update quota if remaining_quota is provided in response
+        if (result?.remaining_quota !== undefined) {
+          console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
+          updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        console.log('Best sellers all products fetched:', allProducts.length);
+        console.log('Best sellers products fetched:', result?.data?.products?.length || 0);
         console.log('=== END FRONTEND BESTSELLERS DEBUG ===');
 
-        // Return in the expected format
-        return {
-          data: {
-            products: allProducts,
-            total: allProducts.length,
-            page: 1,
-            country: country
-          },
-          status: 'OK'
-        };
+        // Return the result as-is
+        return result;
       } catch (error) {
-        console.error('❌ Error fetching all best sellers:', error);
+        console.error('❌ Error fetching best sellers:', error);
         throw error;
       }
     },
     enabled: false, // Disable automatic fetching - only fetch when button is clicked
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60 * 10, // 10 minutes - cache for 10 minutes
     retry: 1, // Only retry once to prevent broken pipe errors
     retryDelay: 2000, // Fixed 2 second delay
     refetchOnWindowFocus: false, // Don't refetch on window focus
@@ -196,49 +184,28 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
   } = useQuery({
     queryKey: ['amazon-explorer-search', searchQuery, country, page],
     queryFn: async () => {
-      // Fetch multiple pages to get all search results (up to 6 pages = ~120 products)
-      const allProducts: any[] = [];
-      const maxPages = 6; // Fetch 6 pages to get more products
-
       try {
-        for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
-          const result = await searchAmazonExplorerProducts({
-            query: searchQuery,
-            country,
-            page: currentPage
-          });
+        // Fetch only 1 page to avoid multiple quota deductions
+        const result = await searchAmazonExplorerProducts({
+          query: searchQuery,
+          country,
+          page: 1
+        });
 
-          if (result?.data?.products && Array.isArray(result.data.products)) {
-            allProducts.push(...result.data.products);
+        console.log('✅ Search response:', result);
 
-            // Update quota if remaining_quota is provided in response
-            if (result?.remaining_quota !== undefined) {
-              updateQuota(result.remaining_quota);
-            }
-
-            // If we get fewer than 20 products, we've reached the end
-            if (result.data.products.length < 20) {
-              break;
-            }
-          } else {
-            break;
-          }
+        // Update quota if remaining_quota is provided in response
+        if (result?.remaining_quota !== undefined) {
+          console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
+          updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        console.log('Search all products fetched:', allProducts.length);
+        console.log('Search products fetched:', result?.data?.products?.length || 0);
 
-        // Return in the expected format
-        return {
-          data: {
-            products: allProducts,
-            total: allProducts.length,
-            page: 1,
-            country: country
-          },
-          status: 'OK'
-        };
+        // Return the result as-is
+        return result;
       } catch (error) {
-        console.error('❌ Error fetching all search results:', error);
+        console.error('❌ Error fetching search results:', error);
         throw error;
       }
     },
@@ -259,49 +226,28 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
   } = useQuery({
     queryKey: ['amazon-explorer-category', selectedCategory, country, page],
     queryFn: async () => {
-      // Fetch multiple pages to get all category products (up to 6 pages = ~120 products)
-      const allProducts: any[] = [];
-      const maxPages = 6; // Fetch 6 pages to get more products
-
       try {
-        for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
-          const result = await getAmazonExplorerProductsByCategory({
-            category_id: selectedCategory,
-            country,
-            page: currentPage
-          });
+        // Fetch only 1 page to avoid multiple quota deductions
+        const result = await getAmazonExplorerProductsByCategory({
+          category_id: selectedCategory,
+          country,
+          page: 1
+        });
 
-          if (result?.data?.products && Array.isArray(result.data.products)) {
-            allProducts.push(...result.data.products);
+        console.log('✅ Category response:', result);
 
-            // Update quota if remaining_quota is provided in response
-            if (result?.remaining_quota !== undefined) {
-              updateQuota(result.remaining_quota);
-            }
-
-            // If we get fewer than 20 products, we've reached the end
-            if (result.data.products.length < 20) {
-              break;
-            }
-          } else {
-            break;
-          }
+        // Update quota if remaining_quota is provided in response
+        if (result?.remaining_quota !== undefined) {
+          console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
+          updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        console.log('Category all products fetched:', allProducts.length);
+        console.log('Category products fetched:', result?.data?.products?.length || 0);
 
-        // Return in the expected format
-        return {
-          data: {
-            products: allProducts,
-            total: allProducts.length,
-            page: 1,
-            country: country
-          },
-          status: 'OK'
-        };
+        // Return the result as-is
+        return result;
       } catch (error) {
-        console.error('❌ Error fetching all category products:', error);
+        console.error('❌ Error fetching category products:', error);
         throw error;
       }
     },
@@ -340,53 +286,36 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
         extracted: actualCategoryId
       });
 
-      // Fetch multiple pages to get all products (up to 6 pages = ~120 products)
-      const allProducts: any[] = [];
-      const maxPages = 6; // Fetch 6 pages to get more products
-
       try {
-        for (let currentPage = 1; currentPage <= maxPages; currentPage++) {
-          const result = await getAmazonProductsByCategoryDirect({
-            categoryId: actualCategoryId,
-            country: country,
-            page: currentPage,
-            sortBy: 'RELEVANCE',
-            productCondition: 'ALL',
-            isPrime: false,
-            dealsAndDiscounts: 'NONE',
-          });
-
-          if (result?.data?.products && Array.isArray(result.data.products)) {
-            allProducts.push(...result.data.products);
-
-            // If we get fewer than 20 products, we've reached the end
-            if (result.data.products.length < 20) {
-              break;
-            }
-          } else {
-            break;
-          }
-        }
-
-        console.log('🎯 All Products Fetched:', {
-          categoryId: selectedCategoryId,
-          extractedId: actualCategoryId,
-          totalProducts: allProducts.length,
-          pagesProcessed: Math.min(maxPages, Math.ceil(allProducts.length / 20))
+        // Fetch only 1 page to avoid multiple quota deductions
+        const result = await getAmazonProductsByCategoryDirect({
+          categoryId: actualCategoryId,
+          country: country,
+          page: 1,
+          sortBy: 'RELEVANCE',
+          productCondition: 'ALL',
+          isPrime: false,
+          dealsAndDiscounts: 'NONE',
         });
 
-        // Return in the expected format
-        return {
-          data: {
-            products: allProducts,
-            total: allProducts.length,
-            page: 1,
-            country: country
-          },
-          status: 'OK'
-        };
+        console.log('✅ Category products response:', result);
+
+        // Update quota if remaining_quota is provided in response
+        if (result?.remaining_quota !== undefined) {
+          console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
+          updateAmazonSearchQuota(result.remaining_quota);
+        }
+
+        console.log('🎯 Products Fetched:', {
+          categoryId: selectedCategoryId,
+          extractedId: actualCategoryId,
+          totalProducts: result?.data?.products?.length || 0
+        });
+
+        // Return the result as-is
+        return result;
       } catch (error) {
-        console.error('❌ Error fetching all products:', error);
+        console.error('❌ Error fetching products:', error);
         throw error;
       }
     },
@@ -779,7 +708,7 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
                       <div className="bg-white  dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
                         <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Amazon Searches</div>
                         <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
-                          {quotas.amazon_search}
+                          {amazonSearchQuotaDetails.quotaValue === -1 ? '∞' : amazonSearchQuotaDetails.quotaValue}
                         </div>
                       </div>
 
@@ -787,7 +716,7 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
                       <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-purple-100 dark:border-purple-700">
                         <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Discover Suppliers</div>
                         <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-1">
-                          {quotas.amazon_supplier_discovery}
+                          {supplierQuotaDetails.quotaValue === -1 ? '∞' : supplierQuotaDetails.quotaValue}
                         </div>
                       </div>
 
