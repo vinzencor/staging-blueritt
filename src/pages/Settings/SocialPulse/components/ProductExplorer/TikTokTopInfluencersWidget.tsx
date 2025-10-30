@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, ChevronDown, ChevronUp, Loader, Hash, Loader2, X } from 'lucide-react';
+import { Flame, ChevronDown, ChevronUp, Loader, Hash, Loader2, X, Zap } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
+import { QuotaNames } from '../../../../../enum';
 
 // TikTok Hashtag interface
 export interface TikTokHashtag {
@@ -121,6 +123,9 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+  // Hashtag quota management - 100 hashtags quota
+  const { quotaDetails: hashtagQuotaDetails, updateQuota: updateHashtagQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokSearches);
+
   // New state for hashtag filters
   const [trendingHashtags, setTrendingHashtags] = useState<any[]>([]);
   const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
@@ -147,8 +152,14 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileOpen]);
 
-  // Handle fetching trending hashtags with filters
+  // Handle fetching trending hashtags with filters and quota deduction
   const handleFetchTrendingHashtags = async () => {
+    // Check quota before making API call
+    if (hashtagQuotaDetails.quotaValue <= 0) {
+      setHashtagsError('No hashtag searches remaining. Please purchase add-ons to continue.');
+      return;
+    }
+
     setIsHashtagsLoading(true);
     setHashtagsError(null);
     try {
@@ -175,6 +186,11 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         const data = await response.json();
         if (data.data && data.data.list && Array.isArray(data.data.list)) {
           setTrendingHashtags(data.data.list);
+
+          // Deduct quota after successful fetch
+          const newQuota = hashtagQuotaDetails.quotaValue - 1;
+          updateHashtagQuota(newQuota);
+          console.log('🔄 Hashtag Discovery - Quota reduced:', hashtagQuotaDetails.quotaValue, '→', newQuota);
         } else {
           setHashtagsError('No hashtags found');
         }
@@ -211,6 +227,41 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
           >
             <X className="w-6 h-6" />
           </button>
+        </div>
+
+        {/* Hashtag Quota Counter */}
+        <div className="mb-6 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-lg p-4 border border-pink-200 dark:border-pink-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Hashtag Searches
+              </span>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+                {hashtagQuotaDetails.quotaValue === -1 ? '∞' : hashtagQuotaDetails.quotaValue}
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                remaining
+              </div>
+            </div>
+          </div>
+
+          {/* Quota Warning */}
+          {hashtagQuotaDetails.quotaValue <= 10 && hashtagQuotaDetails.quotaValue > 0 && (
+            <div className="mt-3 text-xs text-orange-600 dark:text-orange-400 flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              <span>Low quota! Consider purchasing add-ons.</span>
+            </div>
+          )}
+
+          {hashtagQuotaDetails.quotaValue === 0 && (
+            <div className="mt-3 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+              <Zap className="w-3 h-3" />
+              <span>Quota exhausted! Purchase add-ons to continue.</span>
+            </div>
+          )}
         </div>
 
         {/* Filters */}

@@ -10,6 +10,7 @@ import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserD
 import { QuotaNames } from '../../../../../enum';
 import { getTikTokTrendingProducts, discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse } from '../../../../../api/tiktokTrends';
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
+import { fetchPexelsFallbackImage, extractCategoryName } from '../../../../../utils/pexelsImageFallback';
 import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
 import AddOnsChoiceModal from '../AddOnsChoiceModal';
 
@@ -354,8 +355,14 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     });
   };
 
-  // Fetch trending hashtags
+  // Fetch trending hashtags with quota deduction
   const handleFetchTrendingHashtags = async () => {
+    // Check backend quota before making API call
+    if (tiktokSearchQuotaDetails.quotaValue <= 0) {
+      setHashtagsError('No TikTok searches remaining. Please purchase add-ons to continue.');
+      return;
+    }
+
     setIsHashtagsLoading(true);
     setHashtagsError(null);
     try {
@@ -391,8 +398,18 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       // Handle the API response structure: data.data.list
       if (data.data && data.data.list && Array.isArray(data.data.list)) {
         setTrendingHashtags(data.data.list);
+
+        // Deduct quota after successful fetch
+        const newQuota = tiktokSearchQuotaDetails.quotaValue - 1;
+        updateTikTokSearchQuota(newQuota);
+        console.log('🔄 Hashtag Discovery - Quota reduced:', tiktokSearchQuotaDetails.quotaValue, '→', newQuota);
       } else if (Array.isArray(data)) {
         setTrendingHashtags(data);
+
+        // Deduct quota after successful fetch
+        const newQuota = tiktokSearchQuotaDetails.quotaValue - 1;
+        updateTikTokSearchQuota(newQuota);
+        console.log('🔄 Hashtag Discovery - Quota reduced:', tiktokSearchQuotaDetails.quotaValue, '→', newQuota);
       } else {
         setTrendingHashtags([]);
         setHashtagsError('No hashtags found in response');
@@ -857,23 +874,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       key={index}
                       className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 group flex flex-col h-full"
                     >
-                      {/* Product Image */}
-                      <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700">
-                        {product.cover_url ? (
-                          <img
-                            src={product.cover_url}
-                            alt={product.url_title || 'TikTok Product'}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgNzBDOTQuNDc3MiA3MCA5MCA3NC40NzcyIDkwIDgwVjEyMEM5MCA5NC40NzcyIDk0LjQ3NzIgOTAgMTAwIDkwSDEwMEMxMDUuNTIzIDkwIDExMCA5NC40NzcyIDExMCAxMDBWMTIwQzExMCAxMjUuNTIzIDEwNS41MjMgMTMwIDEwMCAxMzBIOTBWMTQwSDEwMEMxMTEuMDQ2IDE0MCA5MCA5NC40NzcyIDkwIDgwVjEyMEM5MCA5NC40NzcyIDk0LjQ3NzIgOTAgMTAwIDkwWiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-16 h-16 text-gray-400" />
-                          </div>
-                        )}
+                      {/* Product Image with Pexels Fallback */}
+                      <div className="relative">
+                        <ProductImageWithFallback product={product} />
 
                         {/* Overlay with View Details Button */}
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -1098,21 +1101,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
               {activeModalTab === 'overview' && (
                 <div className="p-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Product Image */}
+                    {/* Product Image with Pexels Fallback */}
                     <div className="space-y-4">
-                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700">
-                        {selectedProduct.cover_url ? (
-                          <img
-                            src={selectedProduct.cover_url}
-                            alt={selectedProduct.url_title || 'TikTok Product'}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="w-24 h-24 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
+                      <ProductImageWithFallback product={selectedProduct} className="rounded-xl" />
 
                       {/* Category */}
                       {selectedProduct.first_ecom_category && (
@@ -1999,6 +1990,68 @@ const ShopAnalysisTab: React.FC<ShopAnalysisTabProps> = ({
           </div>
         ))}
       </div>
+    </div>
+  );
+};
+
+// Product Image Component with Pexels Fallback
+interface ProductImageWithFallbackProps {
+  product: any;
+  className?: string;
+}
+
+const ProductImageWithFallback: React.FC<ProductImageWithFallbackProps> = ({ product, className = '' }) => {
+  const [imageSrc, setImageSrc] = useState<string>(product.cover_url || '');
+  const [isLoadingFallback, setIsLoadingFallback] = useState(false);
+  const [fallbackAttempted, setFallbackAttempted] = useState(false);
+
+  useEffect(() => {
+    // Reset state when product changes
+    setImageSrc(product.cover_url || '');
+    setFallbackAttempted(false);
+  }, [product.cover_url]);
+
+  const handleImageError = async () => {
+    // Only attempt fallback once
+    if (fallbackAttempted) return;
+
+    setFallbackAttempted(true);
+    setIsLoadingFallback(true);
+
+    try {
+      const categoryName = extractCategoryName(product);
+      console.log('🖼️ Fetching Pexels fallback for category:', categoryName);
+
+      const fallbackImage = await fetchPexelsFallbackImage(categoryName);
+
+      if (fallbackImage) {
+        setImageSrc(fallbackImage);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching Pexels fallback:', error);
+    } finally {
+      setIsLoadingFallback(false);
+    }
+  };
+
+  return (
+    <div className={`relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700 ${className}`}>
+      {imageSrc ? (
+        <img
+          src={imageSrc}
+          alt={product.url_title || 'TikTok Product'}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onError={handleImageError}
+        />
+      ) : isLoadingFallback ? (
+        <div className="w-full h-full flex items-center justify-center">
+          <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+        </div>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <Package className="w-16 h-16 text-gray-400" />
+        </div>
+      )}
     </div>
   );
 };
