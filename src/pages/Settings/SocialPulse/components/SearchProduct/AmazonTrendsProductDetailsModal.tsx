@@ -330,6 +330,12 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onSelectSupplier }) => {
+  // Filter to show only verified suppliers (exclude "Unverified" status)
+  const verifiedSuppliers = suppliers?.filter(supplier =>
+    supplier.verification_status &&
+    supplier.verification_status.toLowerCase() !== 'unverified'
+  ) || [];
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -340,13 +346,21 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     );
   }
 
-  if (!suppliers || suppliers.length === 0) {
+  if (!verifiedSuppliers || verifiedSuppliers.length === 0) {
     return (
       <div className="text-center py-12">
         <Truck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">No suppliers discovered yet</p>
+        <p className="text-gray-600 dark:text-gray-400">
+          {suppliers && suppliers.length > 0
+            ? 'No verified suppliers found. All suppliers are unverified.'
+            : 'No suppliers discovered yet'
+          }
+        </p>
         <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-          Click "Discover Suppliers" to find potential suppliers
+          {suppliers && suppliers.length > 0
+            ? 'Only verified suppliers are displayed.'
+            : 'Click "Discover Suppliers" to find potential suppliers'
+          }
         </p>
       </div>
     );
@@ -358,14 +372,14 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       {analysisTime > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
           <p className="text-sm text-blue-800 dark:text-blue-300">
-            ✓ Found {suppliers.length} suppliers in {analysisTime.toFixed(2)}s
+            ✓ Found {verifiedSuppliers.length} verified suppliers in {analysisTime.toFixed(2)}s
           </p>
         </div>
       )}
 
       {/* Suppliers List */}
       <div className="space-y-4">
-        {suppliers.map((supplier, index) => (
+        {verifiedSuppliers.map((supplier, index) => (
           <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
               <div>

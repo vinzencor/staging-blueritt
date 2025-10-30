@@ -990,6 +990,12 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onSelectSupplier }) => {
+  // Filter to show only verified suppliers (exclude "Unverified" status)
+  const verifiedSuppliers = suppliers?.filter(supplier =>
+    supplier.verification_status &&
+    supplier.verification_status.toLowerCase() !== 'unverified'
+  ) || [];
+
   if (isLoading) {
     return (
       <div className="text-center py-12">
@@ -1013,11 +1019,19 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     );
   }
 
-  if (!suppliers || suppliers.length === 0) {
+  if (!verifiedSuppliers || verifiedSuppliers.length === 0) {
     return (
       <div className="text-center py-8">
         <Truck className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <p className="text-gray-600">No suppliers found. Click "Discover Suppliers" to start analysis.</p>
+        <p className="text-gray-600">
+          {suppliers && suppliers.length > 0
+            ? 'No verified suppliers found. All suppliers are unverified.'
+            : 'No suppliers found. Click "Discover Suppliers" to start analysis.'
+          }
+        </p>
+        {suppliers && suppliers.length > 0 && (
+          <p className="text-sm text-gray-500 mt-2">Only verified suppliers are displayed.</p>
+        )}
       </div>
     );
   }
@@ -1033,19 +1047,19 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               Supplier Analysis Complete
             </h3>
             <p className="text-gray-600 text-sm">
-              Found {suppliers?.length || 0} verified suppliers in {analysisTime.toFixed(1)}s
+              Found {verifiedSuppliers.length} verified suppliers in {analysisTime.toFixed(1)}s
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-purple-600">{suppliers?.length || 0}</div>
-            <div className="text-xs text-gray-500">Suppliers</div>
+            <div className="text-2xl font-bold text-purple-600">{verifiedSuppliers.length}</div>
+            <div className="text-xs text-gray-500">Verified Suppliers</div>
           </div>
         </div>
       </div>
 
       {/* Suppliers List */}
       <div className="space-y-4">
-        {suppliers && suppliers.map((supplier, index) => (
+        {verifiedSuppliers.map((supplier, index) => (
           <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
               <div>

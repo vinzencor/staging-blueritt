@@ -770,6 +770,12 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onSelectSupplier }) => {
+  // Filter to show only verified suppliers (exclude "Unverified" status)
+  const verifiedSuppliers = suppliers.filter(supplier =>
+    supplier.verification_status &&
+    supplier.verification_status.toLowerCase() !== 'unverified'
+  );
+
   if (isLoading) {
     return (
       <div className="text-center py-12">
@@ -782,7 +788,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
         </p>
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-md mx-auto">
           <p className="text-sm text-purple-800">
-            Our AI is analyzing TikTok product specifications, supplier capabilities, 
+            Our AI is analyzing TikTok product specifications, supplier capabilities,
             and market data to find the best matches for you.
           </p>
         </div>
@@ -790,11 +796,16 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     );
   }
 
-  if (suppliers.length === 0) {
+  if (verifiedSuppliers.length === 0) {
     return (
       <div className="text-center py-8">
         <Truck className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <p className="text-gray-600">Click "Discover Suppliers" to find verified suppliers for this TikTok product</p>
+        <p className="text-gray-600">
+          {suppliers.length > 0
+            ? 'No verified suppliers found. All suppliers are unverified.'
+            : 'Click "Discover Suppliers" to find verified suppliers for this TikTok product'
+          }
+        </p>
       </div>
     );
   }
@@ -805,13 +816,13 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex-shrink-0">
         <h4 className="font-semibold text-purple-900 mb-2">Analysis Complete</h4>
         <p className="text-sm text-purple-800">
-          Found {suppliers.length} verified suppliers in {analysisTime.toFixed(1)} seconds using AI matching
+          Found {verifiedSuppliers.length} verified suppliers in {analysisTime.toFixed(1)} seconds using AI matching
         </p>
       </div>
 
       {/* Suppliers List - Scrollable */}
       <div className="flex-1 overflow-y-auto space-y-4 pr-2" style={{ maxHeight: 'calc(100vh - 400px)' }}>
-        {suppliers.map((supplier, index) => (
+        {verifiedSuppliers.map((supplier, index) => (
           <div key={supplier.id} className="bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-purple-300 hover:shadow-lg transition-all duration-200">
             {/* Header with Name, Verification, and AI Score */}
             <div className="flex items-start justify-between mb-4">

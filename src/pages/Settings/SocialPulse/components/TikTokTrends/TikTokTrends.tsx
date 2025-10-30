@@ -1646,11 +1646,18 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onCalculateClick }) => {
+  // Filter to show only verified suppliers (exclude "Unverified" status)
+  const verifiedSuppliers = suppliers?.filter(supplier =>
+    supplier.verification_status &&
+    supplier.verification_status.toLowerCase() !== 'unverified'
+  ) || [];
+
   console.log('🏭 SuppliersTab render:', {
-    suppliersCount: suppliers?.length || 0,
+    totalSuppliersCount: suppliers?.length || 0,
+    verifiedSuppliersCount: verifiedSuppliers.length,
     isLoading,
     analysisTime,
-    suppliers: suppliers?.slice(0, 2) // Log first 2 suppliers for debugging
+    verifiedSuppliers: verifiedSuppliers.slice(0, 2) // Log first 2 verified suppliers for debugging
   });
 
   if (isLoading) {
@@ -1667,15 +1674,18 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     );
   }
 
-  if (!suppliers || suppliers.length === 0) {
+  if (!verifiedSuppliers || verifiedSuppliers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Truck className="w-16 h-16 text-gray-400 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          No Suppliers Found
+          No Verified Suppliers Found
         </h3>
         <p className="text-gray-600 dark:text-gray-300 text-center max-w-md">
-          We couldn't find any suppliers for this product. Try clicking "Discover Suppliers" to search again.
+          {suppliers && suppliers.length > 0
+            ? 'All suppliers are unverified. Only verified suppliers are displayed.'
+            : 'We couldn\'t find any suppliers for this product. Try clicking "Discover Suppliers" to search again.'
+          }
         </p>
       </div>
     );
@@ -1689,14 +1699,14 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
           Supplier Analysis Complete
         </h3>
         <div className="text-sm text-gray-600 dark:text-gray-300">
-          <p>Found {suppliers.length} potential suppliers in {analysisTime}s</p>
+          <p>Found {verifiedSuppliers.length} verified suppliers in {analysisTime}s</p>
           <p>Suppliers are ranked by AI match score and verification status</p>
         </div>
       </div>
 
       {/* Suppliers List */}
       <div className="space-y-4">
-        {suppliers.map((supplier) => (
+        {verifiedSuppliers.map((supplier) => (
           <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
             {/* Header with Name, Verification, and AI Score */}
             <div className="flex items-start justify-between mb-4">
