@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   TrendingUp, Package, Filter, Search, CheckCircle, Loader2, ExternalLink, Heart, MessageCircle, Share2, Play, Zap, Truck, X, AlertCircle, ShoppingCart, Eye,
   MousePointer, Users, Hash,
@@ -271,6 +271,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   // Add a fetch counter to create unique query keys only when button is clicked
   const [fetchCounter, setFetchCounter] = useState(0);
 
+  // Track last quota update to prevent duplicate updates
+  const lastQuotaUpdateRef = useRef<number | null>(null);
+
   // TikTok API Query - Only fetch when shouldFetch is true
   const {
     data: tiktokData,
@@ -289,6 +292,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     }),
     enabled: shouldFetch, // Only fetch when button is clicked
     staleTime: 1000 * 60 * 10, // 10 minutes
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
+    refetchOnMount: false, // Prevent refetch on component mount
+    refetchOnReconnect: false, // Prevent refetch on reconnect
     retry: 1,
     retryDelay: 2000,
   });
@@ -296,9 +302,14 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   // Update quota when API response comes back and reset shouldFetch
   useEffect(() => {
     if (tiktokData?.remaining_quota !== undefined && tiktokData?.remaining_quota !== null) {
-      updateTikTokSearchQuota(tiktokData.remaining_quota);
-      // Reset shouldFetch after successful fetch
-      setShouldFetch(false);
+      // Only update if quota has changed
+      if (lastQuotaUpdateRef.current !== tiktokData.remaining_quota) {
+        console.log('📊 Updating quota:', lastQuotaUpdateRef.current, '→', tiktokData.remaining_quota);
+        lastQuotaUpdateRef.current = tiktokData.remaining_quota;
+        updateTikTokSearchQuota(tiktokData.remaining_quota);
+        // Reset shouldFetch after successful fetch
+        setShouldFetch(false);
+      }
     }
   }, [tiktokData?.remaining_quota, updateTikTokSearchQuota]);
 
@@ -315,6 +326,12 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   }, [tiktokData, shouldFetch, tiktokLoading]);
 
   const handleDoneClick = () => {
+    // Prevent multiple clicks while loading
+    if (tiktokLoading || shouldFetch) {
+      console.log('🔥 Discovery already in progress, ignoring duplicate click');
+      return;
+    }
+
     console.log('🔘 BUTTON CLICKED - Discover Trending Products');
     console.log('🔘 Current filters:', {
       category: selectedCategory,
@@ -525,34 +542,29 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
   // Handle discover suppliers from product card - opens modal and starts discovery
   const handleDiscoverSuppliersFromCard = async (product: any) => {
-    console.log('🚀 Starting discover suppliers from card for:', product.url_title);
+    console.log('🚀 Starting discover suppliers from card for:', product.url_title || product.title);
 
     // First open the modal with the product
     handleViewDetails(product);
 
-    // Longer delay to ensure modal is fully open and state is properly set
+    // Wait for modal to open and then trigger supplier discovery with the product
     setTimeout(async () => {
       console.log('⚡ Triggering automatic supplier discovery...');
-      console.log('🔍 Selected product check:', selectedProduct?.url_title);
-      console.log('📊 Supplier quota check:', supplierQuotaDetails.quotaValue);
-      console.log('🔄 Loading state check:', isSupplierDiscoveryLoading);
-
-      // Double-check that we have the product set
-      if (!selectedProduct) {
-        console.log('❌ No selected product, retrying in 200ms...');
-        setTimeout(async () => {
-          await handleDiscoverSuppliers();
-        }, 200);
-      } else {
-        // Then trigger supplier discovery
-        await handleDiscoverSuppliers();
-      }
+      await handleDiscoverSuppliersWithProduct(product);
     }, 500);
   };
 
-  const handleDiscoverSuppliers = async () => {
+  // Helper function to discover suppliers with a specific product
+  const handleDiscoverSuppliersWithProduct = async (product: any) => {
     if (isSupplierDiscoveryLoading) {
       console.log('Supplier discovery already in progress, ignoring click');
+      return;
+    }
+
+    // Check if product is provided
+    if (!product) {
+      console.error('❌ No product provided for supplier discovery');
+      alert('Please select a product first');
       return;
     }
 
@@ -563,16 +575,16 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       return;
     }
 
-    console.log('🔍 Starting supplier discovery for:', selectedProduct?.url_title);
+    console.log('🔍 Starting supplier discovery for:', product.url_title || product.title);
     setIsSupplierDiscoveryLoading(true);
     setActiveModalTab('suppliers');
 
     try {
       const response = await discoverSuppliers({
-        title: selectedProduct.url_title || 'TikTok Product',
-        id: selectedProduct.id || 'tiktok-product',
-        price: selectedProduct.price || 'N/A',
-        category: selectedProduct.first_ecom_category?.value || 'TikTok Product'
+        title: product.url_title || product.title || 'TikTok Product',
+        id: product.id || 'tiktok-product',
+        price: product.price || 'N/A',
+        category: product.first_ecom_category?.value || product.third_ecom_category?.value || 'TikTok Product'
       });
 
       console.log('✅ Supplier discovery response:', response);
@@ -591,6 +603,11 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     } finally {
       setIsSupplierDiscoveryLoading(false);
     }
+  };
+
+  const handleDiscoverSuppliers = async () => {
+    // Use selectedProduct state for manual discovery from modal
+    await handleDiscoverSuppliersWithProduct(selectedProduct);
   };
 
   return (

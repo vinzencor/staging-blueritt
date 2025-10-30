@@ -147,6 +147,10 @@ const AmazonTrendsProfitCalculatorModal: React.FC<AmazonTrendsProfitCalculatorMo
   const { data: categoriesData } = useQuery({
     queryKey: ["getCategories"],
     queryFn: getCategory,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   useEffect(() => {
@@ -198,6 +202,12 @@ const AmazonTrendsProfitCalculatorModal: React.FC<AmazonTrendsProfitCalculatorMo
 
   // Handle product save
   const handleSaveProduct = () => {
+    // Prevent multiple saves
+    if (isSaving || saveProductMutation.isPending) {
+      console.log('🔥 Save already in progress, ignoring duplicate request');
+      return;
+    }
+
     if (!saveTitle.trim()) {
       toast.error('Please enter a product name');
       return;

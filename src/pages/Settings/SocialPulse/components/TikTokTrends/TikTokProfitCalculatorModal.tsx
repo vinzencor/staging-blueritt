@@ -147,6 +147,10 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
   const { data: categoriesData } = useQuery({
     queryKey: ["getCategories"],
     queryFn: getCategory,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   useEffect(() => {
@@ -198,6 +202,12 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
 
   // Handle product save
   const handleSaveProduct = () => {
+    // Prevent multiple saves
+    if (isSaving || saveProductMutation.isPending) {
+      console.log('🔥 Save already in progress, ignoring duplicate request');
+      return;
+    }
+
     if (!saveTitle.trim()) {
       toast.error('Please enter a product name');
       return;
@@ -236,21 +246,44 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       return '$0';
     };
 
-    // Debug logging
+    // Debug logging - Check all possible title and rating fields
+    const productAny = product as any; // Type assertion to access dynamic fields
     console.log('🔍 TikTok Product Save Debug:', {
       productId: product.id,
       productTitle: product.title,
+      productUrlTitle: productAny.url_title,
       productPrice: product.price,
       productPriceType: typeof product.price,
       extractedPrice: extractPrice(product.price),
+      supplierEstimatedPrice: supplier.estimated_price,
+      calculationSellingPrice: calculation.pi_sellingPrice,
       saveTitle: saveTitle.trim(),
-      sellerName: product.seller_name,
+      sellerName: productAny.seller_name,
       supplierName: supplier.name,
       imageUrl: product.image_url,
-      coverUrl: product.cover_url,
+      coverUrl: productAny.cover_url,
       rating: product.rating,
-      reviewCount: product.review_count,
-      salesCount: product.sales_count,
+      productRating: productAny.product_rating,
+      reviewCount: productAny.review_count,
+      salesCount: productAny.sales_count,
+      fullProduct: product, // Log full product to see all available fields
+    });
+
+    // Determine the best title to use (prioritize url_title, then title)
+    const bestTitle = productAny.url_title || product.title || 'TikTok Product';
+
+    // Determine the best rating to use (check multiple possible fields)
+    const bestRating = productAny.product_rating || product.rating || 0;
+
+    // Determine the best price to use (prioritize calculation selling price, then supplier price, then product price)
+    const bestPrice = calculation.pi_sellingPrice ||
+                     parseFloat(supplier.estimated_price?.replace(/[^0-9.]/g, '') || '0') ||
+                     parseFloat(String(product.price || '0').replace(/[^0-9.]/g, '') || '0');
+
+    console.log('🔍 Best Values Determined:', {
+      bestTitle,
+      bestRating,
+      bestPrice
     });
 
     // Prepare product data with MarginMax Basic field structure
@@ -277,30 +310,30 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       amazon_product: {
         data: {
           asin: product.id || 'tiktok_' + Date.now(),
-          product_title: product.title || 'TikTok Product',
-          product_price: extractPrice(product.price),
-          product_original_price: extractPrice(product.price),
+          product_title: bestTitle,
+          product_price: `$${bestPrice.toFixed(2)}`,
+          product_original_price: `$${bestPrice.toFixed(2)}`,
           currency: 'USD',
-          country: product.country || 'US',
+          country: productAny.country || 'US',
           product_byline: supplier.name || 'Unknown Supplier',
           product_byline_link: supplier.contact_url || '',
-          product_star_rating: (product.rating || 0).toString(),
-          product_num_ratings: product.review_count || 0,
-          product_url: product.video_url || '',
-          product_photo: product.image_url || product.cover_url || '',
+          product_star_rating: bestRating.toString(),
+          product_num_ratings: productAny.review_count || 0,
+          product_url: productAny.video_url || productAny.url || '',
+          product_photo: product.image_url || productAny.cover_url || '',
           product_num_offers: 1,
           product_availability: 'In Stock',
           is_best_seller: false,
           is_amazon_choice: false,
           is_prime: false,
           climate_pledge_friendly: false,
-          sales_volume: (product.sales_count || 0).toString(),
-          about_product: product.description ? [product.description] : [],
-          product_description: product.description || '',
+          sales_volume: (productAny.sales_count || 0).toString(),
+          about_product: productAny.description ? [productAny.description] : [],
+          product_description: productAny.description || '',
           product_information: {},
-          product_videos: product.video_url ? [product.video_url] : [],
+          product_videos: productAny.video_url ? [productAny.video_url] : [],
           product_photos: product.image_url ? [product.image_url] : [],
-          has_video: !!product.video_url,
+          has_video: !!productAny.video_url,
           product_details: {},
           primary_delivery_time: supplier.lead_time || '7-14 days',
           seller_country: supplier.location || 'China',
@@ -313,8 +346,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
         saved_at: new Date().toISOString(),
         // IMPORTANT: offer object must be at same level as data, not inside data
         offer: {
-          product_price: extractPrice(product.price),
-          product_original_price: extractPrice(product.price),
+          product_price: `$${bestPrice.toFixed(2)}`,
+          product_original_price: `$${bestPrice.toFixed(2)}`,
           product_condition: 'New',
           seller: supplier.name || 'Unknown Supplier',
           seller_id: supplier.id || '',
@@ -422,15 +455,19 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
 
     console.log('🔥 CATEGORY:', selectedCategory);
     console.log('🔥 PRODUCT DATA:', productData);
-    console.log('🔥 AMAZON PRODUCT DATA:', {
-      asin: productData.amazon_product.data.asin,
-      product_title: productData.amazon_product.data.product_title,
-      product_price: productData.amazon_product.data.product_price,
-      product_photo: productData.amazon_product.data.product_photo,
-      product_star_rating: productData.amazon_product.data.product_star_rating,
-      product_num_ratings: productData.amazon_product.data.product_num_ratings,
-      sales_volume: productData.amazon_product.data.sales_volume,
+    console.log('🔥 CALCULATION FIELDS:', {
+      simple_profit_pro: productData.simple_profit_pro,
+      pi_totalRevenue: productData.pi_totalRevenue,
+      psc_totalCost: productData.psc_totalCost,
+      fm_totalCost: productData.fm_totalCost,
+      grossProfit: productData.grossProfit,
+      netProfitAfterTaxes: productData.netProfitAfterTaxes,
+      selling_price: productData.selling_price,
+      total_revenue: productData.total_revenue,
+      gross_profit: productData.gross_profit,
+      net_profit: productData.net_profit,
     });
+    console.log('🔥 SUPPLIER INFO:', productData.supplier_info);
     saveProductMutation.mutate(productData);
   };
 

@@ -16,6 +16,7 @@ type TProduct = {
   gross_profit?: number | string;
   net_profit?: number | string;
   total_revenue?: number | string;
+  quantity?: number;
   percentage_gross_profit?: number;
   percentage_net_profit?: number;
   created_at?: string;
@@ -23,7 +24,8 @@ type TProduct = {
   amazon_product?: any;
   alibaba_product?: TAlibabaProduct;
   supplier_info?: any;
-  simple_profit_pro?: any; // Stores calculation data for TikTok/Amazon Trends products
+  simple_profit_pro?: boolean; // Flag indicating if product uses SimpleProfitPro calculator
+  simple_profit_pro_data?: any; // Stores all calculation fields for SimpleProfitPro products
 };
 
 type TCategoryDetail = {
@@ -314,14 +316,18 @@ const ProductList: React.FC<ProductListProps> = ({
           const amazonData = getAmazonData(product);
           const hasAmazonData = !!amazonData;
 
-          // Debug logging for TikTok products
-          if (product.amazon_product?.source === 'tiktok_trends') {
-            console.log('🔍 TikTok Product Debug:', {
+          // Debug logging for SimpleProfitPro products
+          if (product.simple_profit_pro) {
+            console.log('🔍 SimpleProfitPro Product Debug:', {
               productId: product.id,
               productName: product.name,
-              amazonProductData: product.amazon_product,
-              imageUrl: amazonData?.image,
-              hasAmazonData
+              simple_profit_pro: product.simple_profit_pro,
+              simple_profit_pro_data: product.simple_profit_pro_data,
+              total_revenue: product.total_revenue,
+              gross_profit: product.gross_profit,
+              net_profit: product.net_profit,
+              quantity: product.quantity,
+              supplier_info: product.supplier_info
             });
           }
 
@@ -395,17 +401,17 @@ const ProductList: React.FC<ProductListProps> = ({
                 {(() => {
                   // Check for profit data from multiple sources
                   const calcData = product.amazon_product?.calculation_data;
-                  const simpleProfitData = product.simple_profit_pro;
+                  const simpleProfitData = product.simple_profit_pro_data;
 
-                  // Try to get data from simple_profit_pro first (TikTok/Amazon Trends), then fallback to other sources
+                  // Try to get data from simple_profit_pro_data first (TikTok/Amazon Trends), then fallback to other sources
                   const totalRevenue = product.total_revenue ||
-                                      (typeof simpleProfitData === 'object' ? simpleProfitData?.total_revenue : null) ||
+                                      (typeof simpleProfitData === 'object' ? simpleProfitData?.pi_totalRevenue : null) ||
                                       calcData?.pi_totalRevenue;
                   const grossProfit = product.gross_profit ||
-                                     (typeof simpleProfitData === 'object' ? simpleProfitData?.gross_profit : null) ||
+                                     (typeof simpleProfitData === 'object' ? simpleProfitData?.grossProfitMargin : null) ||
                                      calcData?.grossProfit;
                   const netProfit = product.net_profit ||
-                                   (typeof simpleProfitData === 'object' ? simpleProfitData?.net_profit : null) ||
+                                   (typeof simpleProfitData === 'object' ? simpleProfitData?.netProfitAfterTaxesMargin : null) ||
                                    calcData?.netProfit;
 
                   return (totalRevenue || grossProfit || netProfit) ? (
