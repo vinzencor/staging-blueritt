@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tantml:react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { X, ExternalLink, Star, Package, Truck, Calculator, Save } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import {
   getAmazonTrendsProductDetails,
-  discoverSuppliers,
   type AmazonTrendingProduct,
-  type SupplierInfo
 } from '@/api/amazonTrends';
+
+// Import from tiktokTrends since discoverSuppliers is shared
+import { discoverSuppliers, type SupplierInfo } from '@/api/tiktokTrends';
 
 import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
 import AmazonTrendsProfitCalculatorModal from './AmazonTrendsProfitCalculatorModal';

@@ -3,7 +3,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { X, Calculator, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
-import { type AmazonTrendingProduct, type SupplierInfo } from '@/api/amazonTrends';
+import { type AmazonTrendingProduct } from '@/api/amazonTrends';
+import { type SupplierInfo } from '@/api/tiktokTrends';
 
 interface AmazonTrendsProfitCalculatorModalProps {
   product: AmazonTrendingProduct;

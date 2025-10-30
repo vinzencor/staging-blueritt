@@ -294,15 +294,15 @@ const Card: React.FC<TDataTableProps> = ({
       product_price: product.price ? `$${product.price}` : undefined,
       product_star_rating: product.starRating?.toString(),
       product_num_ratings: product.ratingCount,
-      product_url: product.productUrl || '',
-      product_photo: product.productImage,
+      product_url: '', // Not available in TProductEntryInDataTable
+      product_photo: product.imageUrl,
       is_prime: product.isPrime || false,
       is_amazon_choice: product.isAmazonChoice || false,
       is_best_seller: product.isBestSeller || false,
       trending_score: 0,
       search_count: 0,
-      brand: product.brand,
-      category: product.category,
+      brand: '', // Not available in TProductEntryInDataTable
+      category: '', // Not available in TProductEntryInDataTable
       source: 'api' as const,
     };
 
