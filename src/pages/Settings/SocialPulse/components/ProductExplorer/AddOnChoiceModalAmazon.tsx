@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, ShoppingCart, CreditCard } from 'lucide-react';
 
 interface AddOnsChoiceModalAmazonProps {
@@ -7,14 +8,18 @@ interface AddOnsChoiceModalAmazonProps {
 }
 
 const AddOnsChoiceModalAmazon: React.FC<AddOnsChoiceModalAmazonProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
+
   if (!isOpen) return null;
 
   const handlePurchaseAddOns = () => {
-    window.location.href = '/settings/subscription-addons';
+    // Navigate to Subscription page with "Purchase Add-ons" tab active
+    navigate('/settings/subscription', { state: { activeTab: 'Purchase Add-ons' } });
   };
 
   const handleUpdateSubscription = () => {
-    window.location.href = '/settings/subscription';
+    // Navigate to Subscription page with "Plans" tab active
+    navigate('/settings/subscription', { state: { activeTab: 'Plans' } });
   };
 
   return (

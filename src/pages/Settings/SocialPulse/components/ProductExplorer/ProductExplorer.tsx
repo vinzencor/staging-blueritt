@@ -712,9 +712,9 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
                         </div>
                       </div>
 
-                      {/* Discover Suppliers */}
+                      {/* Supplier Discoveries */}
                       <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-purple-100 dark:border-purple-700">
-                        <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Discover Suppliers</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Supplier Discoveries</div>
                         <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-1">
                           {supplierQuotaDetails.quotaValue === -1 ? '∞' : supplierQuotaDetails.quotaValue}
                         </div>

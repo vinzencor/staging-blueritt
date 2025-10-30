@@ -141,18 +141,11 @@ export const useUserSubscriptionAndSearchQuota = (quotaName: QuotaName = "amazon
     queryKey: ["user", "subscription", "search_quota"],
     queryFn: () => api.get("/auth/me/").then((res) => res.data),
     enabled: !!accessToken, // Only run query if user is authenticated
-    staleTime: 1 * 60 * 1000, // 1 minute - data considered fresh for 1 minute (reduced from 5 minutes)
-    gcTime: 5 * 60 * 1000, // 5 minutes - keep data in cache for 5 minutes (reduced from 10 minutes)
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus (reverted to prevent suspension)
-    refetchOnMount: true, // Refetch on component mount
+    staleTime: 0, // Always consider data stale - refetch on every mount
+    gcTime: 5 * 60 * 1000, // 5 minutes - keep data in cache for 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    refetchOnMount: 'always', // Always refetch on component mount
     retry: 2, // Retry failed requests twice
-    initialData: () => {
-      const previousData = queryClient.getQueryData(["user", "subscription", "search_quota"]);
-      if (previousData) {
-        return previousData;
-      }
-      return undefined;
-    }
   });
 
   const packageName = data?.subscription_status?.package?.name || "Unknown";

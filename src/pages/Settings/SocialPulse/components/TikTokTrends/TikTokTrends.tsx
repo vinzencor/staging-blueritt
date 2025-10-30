@@ -123,7 +123,7 @@ const INDUSTRY_OPTIONS = [
   { id: '11000000000', name: 'Vehicle & Transportation' },
 ];
 
-// TikTok API function - Dual fetch: Database + Direct API with quota management
+// TikTok API function - Fetch 3 pages in parallel from Direct API (~60 products)
 const fetchTikTokTrendingProducts = async (params: {
   category_id?: string;
   last?: string;
@@ -134,7 +134,7 @@ const fetchTikTokTrendingProducts = async (params: {
   page?: number;
 }) => {
   console.log('🔍 Fetching TikTok trending products with params:', params);
-  console.log('🚀 DUAL FETCH: Database + Direct API');
+  console.log('🚀 FETCHING 3 PAGES SEQUENTIALLY FROM TIKTOK API (~60 products)');
 
   try {
     // 1. FIRST: Fetch from database (fast response) with quota reduction
@@ -154,64 +154,84 @@ const fetchTikTokTrendingProducts = async (params: {
     console.log('📊 Database Products:', databaseResponse.data?.products?.length || 0);
     console.log('📊 Remaining Quota:', databaseResponse.remaining_quota);
 
-    // 2. PARALLEL: Fetch from Direct API (fresh data) - NO quota reduction
-    console.log('📊 Step 2: Parallel fetch from Direct TikTok API...');
-    const queryParams = new URLSearchParams();
-    if (params.category_id) queryParams.append('category_id', params.category_id);
-    if (params.last) queryParams.append('last', params.last);
-    if (params.order_by) queryParams.append('order_by', params.order_by);
-    if (params.order_type) queryParams.append('order_type', params.order_type);
-    if (params.keyword) queryParams.append('keyword', params.keyword);
-    if (params.country_code) queryParams.append('country_code', params.country_code);
-    if (params.page) queryParams.append('page', params.page.toString());
+    // 2. SEQUENTIAL: Fetch 3 pages from Direct TikTok API one by one (fresh data) - NO quota reduction
+    console.log('📊 Step 2: Fetching 3 pages sequentially from Direct TikTok API (with 1s delay between requests)...');
 
-    const directApiPromise = fetch(`https://tiktok-creative-center-api.p.rapidapi.com/api/trending/top-products?${queryParams}`, {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
-        'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+    const fetchPage = async (pageNum: number) => {
+      const queryParams = new URLSearchParams();
+      if (params.category_id) queryParams.append('category_id', params.category_id);
+      if (params.last) queryParams.append('last', params.last);
+      if (params.order_by) queryParams.append('order_by', params.order_by);
+      if (params.order_type) queryParams.append('order_type', params.order_type);
+      if (params.keyword) queryParams.append('keyword', params.keyword);
+      if (params.country_code) queryParams.append('country_code', params.country_code);
+      queryParams.append('page', pageNum.toString());
+
+      const response = await fetch(`https://tiktok-creative-center-api.p.rapidapi.com/api/trending/top-products?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
+          'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const products = data.data?.list || [];
+        console.log(`✅ Direct API Page ${pageNum}:`, products.length, 'products');
+        console.log(`📦 Page ${pageNum} products:`, products);
+        return products;
+      } else {
+        console.warn(`⚠️ Direct API Page ${pageNum} failed with status:`, response.status);
+        return [];
       }
-    });
+    };
 
-    // Wait for direct API response
-    const directResponse = await directApiPromise;
-    if (directResponse.ok) {
-      const directData = await directResponse.json();
-      console.log('✅ Direct API Response:', directData);
-      console.log('📦 Direct API Products:', directData.data?.list?.length || 0);
+    // Fetch pages 1, 2, 3 SEQUENTIALLY (not parallel) to avoid rate limiting
+    console.log('⏳ Fetching Page 1...');
+    const page1Products = await fetchPage(1);
+    console.log('📊 Page 1 products count:', page1Products.length);
 
-      // 3. MERGE: Combine database and direct API data
-      const mergedData = {
-        ...databaseResponse,
-        data: {
-          products: databaseResponse.data?.products || [],
-          list: directData.data?.list || [], // Keep direct API structure
-          total: Math.max(
-            databaseResponse.data?.products?.length || 0,
-            directData.data?.list?.length || 0
-          ),
-          message: `Database: ${databaseResponse.data?.products?.length || 0} products, Direct API: ${directData.data?.list?.length || 0} products`
-        }
-      };
+    // Add delay between requests to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
 
-      console.log('🔄 MERGED DATA:', mergedData);
-      return mergedData;
-    } else {
-      console.warn('⚠️ Direct API failed, using database data only');
-      // Convert database structure to match expected format
-      return {
-        ...databaseResponse,
-        data: {
-          products: databaseResponse.data?.products || [],
-          list: databaseResponse.data?.products || [], // Use database data as fallback
-          total: databaseResponse.data?.products?.length || 0,
-          message: `Database only: ${databaseResponse.data?.products?.length || 0} products (Direct API failed)`
-        }
-      };
-    }
+    console.log('⏳ Fetching Page 2...');
+    const page2Products = await fetchPage(2);
+    console.log('📊 Page 2 products count:', page2Products.length);
+
+    // Add delay between requests to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+
+    console.log('⏳ Fetching Page 3...');
+    const page3Products = await fetchPage(3);
+    console.log('📊 Page 3 products count:', page3Products.length);
+
+    // Combine all products from 3 pages
+    const allDirectApiProducts = [...page1Products, ...page2Products, ...page3Products];
+    console.log('✅ Total Direct API Products from 3 pages:', allDirectApiProducts.length);
+    console.log('📦 All Direct API Products:', allDirectApiProducts);
+
+    // 3. MERGE: Combine database and direct API data
+    const mergedData = {
+      ...databaseResponse,
+      data: {
+        products: databaseResponse.data?.products || [],
+        list: allDirectApiProducts, // All products from 3 pages
+        total: Math.max(
+          databaseResponse.data?.products?.length || 0,
+          allDirectApiProducts.length
+        ),
+        message: `Database: ${databaseResponse.data?.products?.length || 0} products, Direct API (3 pages): ${allDirectApiProducts.length} products`
+      }
+    };
+
+    console.log('🔄 MERGED DATA:', mergedData);
+    console.log('📊 Total products in list:', mergedData.data.list.length);
+    console.log('📦 Products to render:', mergedData.data.list);
+    return mergedData;
 
   } catch (error) {
-    console.error('❌ Dual fetch error:', error);
+    console.error('❌ Fetch error:', error);
     throw error;
   }
 };
@@ -281,17 +301,21 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     error: tiktokError,
   } = useQuery({
     queryKey: ['tiktok-trending', fetchCounter], // Only change when button is clicked
-    queryFn: () => fetchTikTokTrendingProducts({
-      category_id: selectedCategory || undefined,
-      last: selectedTimeRange,
-      order_by: selectedSortBy,
-      order_type: selectedSortOrder,
-      keyword: searchKeyword || undefined,
-      country_code: selectedCountry,
-      page: 1,
-    }),
+    queryFn: () => {
+      console.log('🔥 QUERY FUNCTION EXECUTING - fetchCounter:', fetchCounter);
+      return fetchTikTokTrendingProducts({
+        category_id: selectedCategory || undefined,
+        last: selectedTimeRange,
+        order_by: selectedSortBy,
+        order_type: selectedSortOrder,
+        keyword: searchKeyword || undefined,
+        country_code: selectedCountry,
+        page: 1,
+      });
+    },
     enabled: shouldFetch, // Only fetch when button is clicked
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 0, // Don't cache - always fetch fresh data
+    gcTime: 0, // Don't keep in cache
     refetchOnWindowFocus: false, // Prevent refetch on window focus
     refetchOnMount: false, // Prevent refetch on component mount
     refetchOnReconnect: false, // Prevent refetch on reconnect
@@ -302,16 +326,27 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   // Update quota when API response comes back and reset shouldFetch
   useEffect(() => {
     if (tiktokData?.remaining_quota !== undefined && tiktokData?.remaining_quota !== null) {
-      // Only update if quota has changed
+      console.log('📊 Quota update check:', {
+        current: lastQuotaUpdateRef.current,
+        new: tiktokData.remaining_quota,
+        shouldFetch: shouldFetch,
+        tiktokLoading: tiktokLoading
+      });
+
+      // Update quota if it has changed
       if (lastQuotaUpdateRef.current !== tiktokData.remaining_quota) {
         console.log('📊 Updating quota:', lastQuotaUpdateRef.current, '→', tiktokData.remaining_quota);
         lastQuotaUpdateRef.current = tiktokData.remaining_quota;
         updateTikTokSearchQuota(tiktokData.remaining_quota);
-        // Reset shouldFetch after successful fetch
-        setShouldFetch(false);
       }
     }
-  }, [tiktokData?.remaining_quota, updateTikTokSearchQuota]);
+
+    // Always reset shouldFetch after data is received (whether quota changed or not)
+    if (tiktokData && !tiktokLoading && shouldFetch) {
+      console.log('✅ Data received, resetting shouldFetch to false');
+      setShouldFetch(false);
+    }
+  }, [tiktokData, tiktokLoading, shouldFetch, updateTikTokSearchQuota]);
 
   // Debug logging for data structure
   useEffect(() => {
@@ -326,13 +361,23 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   }, [tiktokData, shouldFetch, tiktokLoading]);
 
   const handleDoneClick = () => {
+    console.log('🔘 BUTTON CLICKED - Discover Trending Products');
+    console.log('🔘 Current state:', {
+      tiktokLoading,
+      shouldFetch,
+      fetchCounter,
+      quotaValue: tiktokSearchQuotaDetails.quotaValue
+    });
+
     // Prevent multiple clicks while loading
     if (tiktokLoading || shouldFetch) {
-      console.log('🔥 Discovery already in progress, ignoring duplicate click');
+      console.log('🔥 Discovery already in progress, ignoring duplicate click', {
+        tiktokLoading,
+        shouldFetch
+      });
       return;
     }
 
-    console.log('🔘 BUTTON CLICKED - Discover Trending Products');
     console.log('🔘 Current filters:', {
       category: selectedCategory,
       timeRange: selectedTimeRange,
@@ -364,6 +409,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
     // Set shouldFetch to true and increment counter to trigger new query
     console.log('🚀 Triggering API call with button click');
+    console.log('🚀 Setting shouldFetch to TRUE');
     setShouldFetch(true);
     setFetchCounter(prev => {
       const newCounter = prev + 1;
@@ -590,9 +636,11 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       console.log('✅ Supplier discovery response:', response);
       console.log('📦 Found suppliers:', response.suppliers?.length || 0);
 
-      // Update backend quota after successful API call
-      updateSupplierQuota(supplierQuotaDetails.quotaValue - 1);
-      console.log('📊 Supplier discovery quota reduced');
+      // Update quota if remaining_quota is provided in response
+      if (response?.remaining_quota !== undefined) {
+        console.log('🔄 TikTok Trends Supplier Discovery - Updating quota:', response.remaining_quota);
+        updateSupplierQuota(response.remaining_quota);
+      }
 
       setSuppliers(response.suppliers || []);
       setSupplierAnalysisTime(response.analysis_time || 0);
@@ -886,7 +934,12 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                 {/* Products Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Display Direct API products first (fresh data), then database products */}
-                  {(tiktokData.data?.list || tiktokData.data?.products || []).map((product: any, index: number) => (
+                  {(() => {
+                    const productsToRender = tiktokData.data?.list || tiktokData.data?.products || [];
+                    console.log('🎨 RENDERING PRODUCTS:', productsToRender.length, 'products');
+                    console.log('🎨 Products array:', productsToRender);
+                    return productsToRender;
+                  })().map((product: any, index: number) => (
                     <div
                       key={index}
                       className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-gray-700 group flex flex-col h-full"
@@ -1152,18 +1205,19 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                             const firstProduct = shopAnalysisData.products[0];
                             return (
                               <div className="bg-white dark:bg-gray-700 rounded-lg p-6 border border-green-100 dark:border-green-600">
-                                {firstProduct.image_url && (
-                                  <div className="mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 h-40 flex items-center justify-center">
-                                    <img
-                                      src={firstProduct.image_url}
-                                      alt={firstProduct.title}
-                                      className="w-full h-full object-cover"
-                                      onError={(e) => {
-                                        e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e5e7eb" width="100" height="100"/%3E%3C/svg%3E';
-                                      }}
-                                    />
-                                  </div>
-                                )}
+                                <div className="mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 h-40 flex items-center justify-center">
+                                  <img
+                                    src={firstProduct.image_url || `https://picsum.photos/400/400?random=${Date.now()}`}
+                                    alt={firstProduct.title}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      if (!target.src.includes('picsum')) {
+                                        target.src = `https://picsum.photos/400/400?random=${Date.now()}`;
+                                      }
+                                    }}
+                                  />
+                                </div>
                                 <div className="text-center">
                                   {/* Clickable Price - Opens Calculator */}
                                   <button
@@ -1941,17 +1995,17 @@ const ShopAnalysisTab: React.FC<ShopAnalysisTabProps> = ({
             <div className="flex items-start gap-4 mb-4">
               {/* Product Image */}
               <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 flex-shrink-0">
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="w-8 h-8 text-gray-400" />
-                  </div>
-                )}
+                <img
+                  src={product.image_url || `https://picsum.photos/400/400?random=${Date.now()}`}
+                  alt={product.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.src.includes('picsum')) {
+                      target.src = `https://picsum.photos/400/400?random=${Date.now()}`;
+                    }
+                  }}
+                />
               </div>
 
               {/* Product Info */}
@@ -2028,15 +2082,9 @@ interface ProductImageWithFallbackProps {
 }
 
 const ProductImageWithFallback: React.FC<ProductImageWithFallbackProps> = ({ product, className = '' }) => {
-  const [imageSrc, setImageSrc] = useState<string>(product.cover_url || '');
+  const [imageSrc, setImageSrc] = useState<string>('');
   const [isLoadingFallback, setIsLoadingFallback] = useState(false);
   const [fallbackAttempted, setFallbackAttempted] = useState(false);
-
-  useEffect(() => {
-    // Reset state when product changes
-    setImageSrc(product.cover_url || '');
-    setFallbackAttempted(false);
-  }, [product.cover_url]);
 
   const handleImageError = async () => {
     // Only attempt fallback once
@@ -2047,19 +2095,36 @@ const ProductImageWithFallback: React.FC<ProductImageWithFallbackProps> = ({ pro
 
     try {
       const categoryName = extractCategoryName(product);
-      console.log('🖼️ Fetching Pexels fallback for category:', categoryName);
+      console.log('🖼️ Fetching Picsum fallback for category:', categoryName);
 
       const fallbackImage = await fetchPexelsFallbackImage(categoryName);
 
       if (fallbackImage) {
+        console.log('✅ Picsum fallback loaded:', fallbackImage);
         setImageSrc(fallbackImage);
       }
     } catch (error) {
-      console.error('❌ Error fetching Pexels fallback:', error);
+      console.error('❌ Error fetching Picsum fallback:', error);
     } finally {
       setIsLoadingFallback(false);
     }
   };
+
+  useEffect(() => {
+    // Reset state when product changes
+    setFallbackAttempted(false);
+    setIsLoadingFallback(false);
+
+    // Check if product has cover_url
+    if (product.cover_url) {
+      console.log('✅ Product has cover_url:', product.cover_url);
+      setImageSrc(product.cover_url);
+    } else {
+      // No image from the start, fetch fallback immediately
+      console.log('⚠️ Product missing cover_url, fetching fallback...');
+      handleImageError();
+    }
+  }, [product.cover_url, product.id]);
 
   return (
     <div className={`relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700 ${className}`}>

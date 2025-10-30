@@ -1,106 +1,103 @@
 /**
- * Pexels Image Fallback Utility
- * Fetches category-based fallback images from Pexels API when product images are missing
- *
- * To get a FREE Pexels API key:
- * 1. Go to https://www.pexels.com/api/
- * 2. Click "Get Started" and create a free account
- * 3. Copy your API key and replace the value below
+ * Picsum Photos Image Fallback Utility
+ * Fetches random placeholder images from Picsum Photos (Lorem Picsum) when product images are missing
+ * Using Picsum Photos API - free, reliable, no API key required
+ * API: https://picsum.photos/
  */
 
-const PEXELS_API_KEY = 'YOUR_PEXELS_API_KEY_HERE'; // Replace with your actual Pexels API key from https://www.pexels.com/api/
-
-// Cache for Pexels images to avoid repeated API calls
+// Cache for Picsum images to avoid repeated API calls
 const imageCache: Record<string, string> = {};
 
 /**
- * Map TikTok category names to Pexels search queries
+ * Map TikTok category names to Unsplash search queries
  */
 const categoryToSearchQuery: Record<string, string> = {
   // Apparel & Fashion
-  'Womenswear': 'women fashion clothing',
-  'Menswear': 'men fashion clothing',
-  'Kids Fashion': 'kids children clothing',
-  'Fashion Accessories': 'fashion accessories jewelry',
-  'Shoes': 'shoes footwear',
-  'Muslim Fashion': 'modest fashion hijab',
+  'Womenswear': 'women-fashion',
+  "Women's Underwear": 'lingerie',
+  'Menswear': 'men-fashion',
+  "Men's Underwear": 'mens-underwear',
+  'Kids Fashion': 'kids-clothing',
+  'Fashion Accessories': 'fashion-accessories',
+  'Shoes': 'shoes',
+  'Muslim Fashion': 'modest-fashion',
 
   // Electronics & Tech
-  'Phones & Electronics': 'smartphone electronics gadgets',
-  'Computers & Office Equipment': 'laptop computer office',
-  'Tech & Electronics': 'technology electronics devices',
+  'Phones & Electronics': 'smartphone',
+  'Computers & Office Equipment': 'laptop',
+  'Tech & Electronics': 'technology',
 
   // Home & Living
-  'Home Supplies': 'home decor supplies',
-  'Furniture': 'modern furniture interior',
-  'Kitchenware': 'kitchen utensils cookware',
-  'Household Appliances': 'home appliances kitchen',
-  'Home Improvement': 'home improvement tools',
-  'Textiles & Soft Furnishings': 'textiles fabrics home',
+  'Home Supplies': 'home-decor',
+  'Furniture': 'furniture',
+  'Kitchenware': 'kitchen',
+  'Household Appliances': 'appliances',
+  'Home Improvement': 'tools',
+  'Textiles & Soft Furnishings': 'textiles',
 
   // Beauty & Personal Care
-  'Beauty & Personal Care': 'beauty cosmetics skincare',
+  'Beauty & Personal Care': 'cosmetics',
 
   // Automotive
-  'Automotive & Motorbike': 'car automotive vehicle',
-  'Vehicle & Transportation': 'vehicle transportation car',
+  'Automotive & Motorbike': 'car',
+  'Vehicle & Transportation': 'vehicle',
 
   // Baby & Kids
-  'Baby & Maternity': 'baby products maternity',
-  'Baby, Kids & Maternity': 'baby kids products',
+  'Baby & Maternity': 'baby',
+  'Baby, Kids & Maternity': 'baby-products',
 
   // Sports & Outdoor
-  'Sports & Outdoor': 'sports outdoor fitness',
+  'Sports & Outdoor': 'sports',
 
   // Pets
-  'Pet Supplies': 'pet supplies dog cat',
-  'Pets': 'pet products animals',
+  'Pet Supplies': 'pets',
+  'Pets': 'pet',
 
   // Food & Beverage
-  'Food & Beverages': 'food beverage products',
-  'Food & Beverage': 'food drink products',
+  'Food & Beverages': 'food',
+  'Food & Beverage': 'food-drink',
 
   // Health
-  'Health': 'health wellness fitness',
+  'Health': 'health',
 
   // Toys & Hobbies
-  'Toys & Hobbies': 'toys games hobbies',
+  'Toys & Hobbies': 'toys',
 
   // Bags & Luggage
-  'Luggage & Bags': 'luggage bags travel',
+  'Luggage & Bags': 'luggage',
 
   // Jewelry
-  'Jewellery, Accessories & Derivatives': 'jewelry accessories',
+  'Jewellery, Accessories & Derivatives': 'jewelry',
 
   // Tools
-  'Tools & Hardware': 'tools hardware equipment',
+  'Tools & Hardware': 'tools',
 
   // Books & Media
-  'Books, Magazines & Audio': 'books reading literature',
+  'Books, Magazines & Audio': 'books',
 
   // Collectibles
-  'Collectibles': 'collectibles vintage items',
+  'Collectibles': 'vintage',
 
   // Virtual Products
-  'Virtual Products': 'digital products technology',
+  'Virtual Products': 'digital',
 
   // Apps & Games
-  'Apps': 'mobile apps technology',
-  'Games': 'video games gaming',
+  'Apps': 'mobile-app',
+  'Games': 'gaming',
 
   // Services
-  'Business Services': 'business office professional',
-  'Life Services': 'lifestyle services',
-  'Financial Services': 'finance money banking',
-  'Education': 'education learning books',
-  'News & Entertainment': 'entertainment media news',
-  'Travel': 'travel vacation tourism',
+  'Business Services': 'business',
+  'Life Services': 'lifestyle',
+  'Financial Services': 'finance',
+  'Education': 'education',
+  'News & Entertainment': 'entertainment',
+  'Travel': 'travel',
 
   // E-Commerce
-  'E-Commerce (Non-app)': 'online shopping ecommerce',
+  'E-Commerce (Non-app)': 'shopping',
 
   // Default fallback
-  'default': 'product shopping retail'
+  'default': 'product'
 };
 
 /**
@@ -119,7 +116,7 @@ export const extractCategoryName = (product: any): string => {
 };
 
 /**
- * Get search query for Pexels based on category
+ * Get search query for Unsplash based on category
  */
 const getCategorySearchQuery = (categoryName: string): string => {
   // Try exact match first
@@ -140,56 +137,36 @@ const getCategorySearchQuery = (categoryName: string): string => {
 };
 
 /**
- * Fetch a random image from Pexels for a given category
+ * Fetch a random image from Unsplash for a given category
  */
 export const fetchPexelsFallbackImage = async (categoryName: string): Promise<string> => {
   // Check cache first
   if (imageCache[categoryName]) {
-    console.log('📦 Using cached Pexels image for category:', categoryName);
+    console.log('📦 Using cached Unsplash image for category:', categoryName);
     return imageCache[categoryName];
   }
 
   try {
     const searchQuery = getCategorySearchQuery(categoryName);
-    console.log('🔍 Fetching Pexels image for category:', categoryName, 'with query:', searchQuery);
+    console.log('🔍 Fetching Unsplash image for category:', categoryName, 'with query:', searchQuery);
 
-    const response = await fetch(
-      `https://api.pexels.com/v1/search?query=${encodeURIComponent(searchQuery)}&per_page=15&orientation=square`,
-      {
-        headers: {
-          'Authorization': PEXELS_API_KEY
-        }
-      }
-    );
+    // Using Unsplash Source API - simple, no API key required
+    // Format: https://source.unsplash.com/400x400/?{query}
+    const imageUrl = `https://source.unsplash.com/400x400/?${encodeURIComponent(searchQuery)}`;
 
-    if (!response.ok) {
-      throw new Error(`Pexels API error: ${response.status}`);
-    }
+    // Cache the image URL
+    imageCache[categoryName] = imageUrl;
 
-    const data = await response.json();
-
-    if (data.photos && data.photos.length > 0) {
-      // Get a random image from the results
-      const randomIndex = Math.floor(Math.random() * Math.min(data.photos.length, 10));
-      const imageUrl = data.photos[randomIndex].src.medium;
-
-      // Cache the image URL
-      imageCache[categoryName] = imageUrl;
-
-      console.log('✅ Pexels image fetched successfully:', imageUrl);
-      return imageUrl;
-    } else {
-      console.warn('⚠️ No Pexels images found for category:', categoryName);
-      return '';
-    }
+    console.log('✅ Unsplash image URL generated:', imageUrl);
+    return imageUrl;
   } catch (error) {
-    console.error('❌ Error fetching Pexels image:', error);
+    console.error('❌ Error generating Unsplash image:', error);
     return '';
   }
 };
 
 /**
- * Get product image URL with Pexels fallback
+ * Get product image URL with Unsplash fallback
  */
 export const getProductImageWithFallback = async (product: any): Promise<string> => {
   // Try to get the original product image
@@ -205,13 +182,13 @@ export const getProductImageWithFallback = async (product: any): Promise<string>
     return originalImage;
   }
 
-  // Otherwise, fetch fallback from Pexels
+  // Otherwise, fetch fallback from Unsplash
   const categoryName = extractCategoryName(product);
   return await fetchPexelsFallbackImage(categoryName);
 };
 
 /**
- * Preload Pexels images for common categories
+ * Preload Unsplash images for common categories
  */
 export const preloadCommonCategoryImages = async () => {
   const commonCategories = [
@@ -225,7 +202,7 @@ export const preloadCommonCategoryImages = async () => {
     'Toys & Hobbies'
   ];
 
-  console.log('🚀 Preloading Pexels images for common categories...');
+  console.log('🚀 Preloading Unsplash images for common categories...');
 
   for (const category of commonCategories) {
     await fetchPexelsFallbackImage(category);
