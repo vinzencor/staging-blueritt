@@ -2094,17 +2094,25 @@ const ProductImageWithFallback: React.FC<ProductImageWithFallbackProps> = ({ pro
     setIsLoadingFallback(true);
 
     try {
-      const categoryName = extractCategoryName(product);
-      console.log('🖼️ Fetching Picsum fallback for category:', categoryName);
+      // Use url_title for more relevant images, fallback to title or category
+      const searchQuery = product.url_title || product.title || extractCategoryName(product);
+      const cacheKey = `${product.id || ''}_${searchQuery}`;
 
-      const fallbackImage = await fetchPexelsFallbackImage(categoryName);
+      console.log('🖼️ Fetching Pexels fallback for product:', {
+        id: product.id,
+        url_title: product.url_title,
+        title: product.title,
+        searchQuery
+      });
+
+      const fallbackImage = await fetchPexelsFallbackImage(searchQuery, cacheKey);
 
       if (fallbackImage) {
-        console.log('✅ Picsum fallback loaded:', fallbackImage);
+        console.log('✅ Pexels fallback loaded:', fallbackImage);
         setImageSrc(fallbackImage);
       }
     } catch (error) {
-      console.error('❌ Error fetching Picsum fallback:', error);
+      console.error('❌ Error fetching Pexels fallback:', error);
     } finally {
       setIsLoadingFallback(false);
     }

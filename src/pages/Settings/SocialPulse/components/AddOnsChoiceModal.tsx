@@ -13,11 +13,15 @@ const AddOnsChoiceModal: React.FC<AddOnsChoiceModalProps> = ({ isOpen, onClose }
   if (!isOpen) return null;
 
   const handlePurchaseAddOns = () => {
+    // Close modal first
+    onClose();
     // Navigate to Subscription page with "Purchase Add-ons" tab active
     navigate('/settings/subscription', { state: { activeTab: 'Purchase Add-ons' } });
   };
 
   const handleUpdateSubscription = () => {
+    // Close modal first
+    onClose();
     // Navigate to Subscription page with "Plans" tab active
     navigate('/settings/subscription', { state: { activeTab: 'Plans' } });
   };

@@ -143,7 +143,7 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
         {/* Grid for "Amazon Product Searches" type */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            🔵 Amazon Product Searches
+            Amazon Product Searches
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-stretch">
             {addons
@@ -210,7 +210,7 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
         {/* Grid for "TikTok Product Searches" type */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            🟣 TikTok Product Searches
+            TikTok Product Searches
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-stretch">
             {addons
@@ -275,7 +275,7 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
         {/* Grid for "Supplier Discoveries" type */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            🏭 Supplier Discoveries
+             Supplier Discoveries
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
           {addons
@@ -339,7 +339,7 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
         {/* Grid for "Gross profit" type */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            🧮 MarginMax Gross Profit Calculations
+             MarginMax Gross Profit Calculations
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
           {addons
@@ -403,7 +403,7 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
         {/* Grid for "Net profit" type */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            🧮 MarginMax Net Profit Calculations
+               MarginMax Net Profit Calculations
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
           {addons

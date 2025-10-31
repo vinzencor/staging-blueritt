@@ -1,15 +1,19 @@
 /**
- * Picsum Photos Image Fallback Utility
- * Fetches random placeholder images from Picsum Photos (Lorem Picsum) when product images are missing
- * Using Picsum Photos API - free, reliable, no API key required
- * API: https://picsum.photos/
+ * Pexels Image Fallback Utility
+ * Fetches category-based images from Pexels API when product images are missing
+ * Using Pexels Photos Search API
+ * API: https://api.pexels.com/v1/search
  */
 
-// Cache for Picsum images to avoid repeated API calls
+// Cache for images to avoid repeated API calls
 const imageCache: Record<string, string> = {};
 
+// Pexels API configuration
+const PEXELS_API_KEY = 'NWGTQYjciu6iAamexgTguvRGjnhXX4eao8HsRGh8SSCETpuP7UE78YCA';
+const PEXELS_API_URL = 'https://api.pexels.com/v1/search';
+
 /**
- * Map TikTok category names to Unsplash search queries
+ * Map TikTok category names to image search queries
  */
 const categoryToSearchQuery: Record<string, string> = {
   // Apparel & Fashion
@@ -116,7 +120,7 @@ export const extractCategoryName = (product: any): string => {
 };
 
 /**
- * Get search query for Unsplash based on category
+ * Get search query for image search based on category
  */
 const getCategorySearchQuery = (categoryName: string): string => {
   // Try exact match first
@@ -137,36 +141,78 @@ const getCategorySearchQuery = (categoryName: string): string => {
 };
 
 /**
- * Fetch a random image from Unsplash for a given category
+ * Fetch a random image from Pexels API for a given search query
+ * @param searchQuery - The search query (can be product title, url_title, or category)
+ * @param cacheKey - Optional cache key (defaults to searchQuery)
  */
-export const fetchPexelsFallbackImage = async (categoryName: string): Promise<string> => {
+export const fetchPexelsFallbackImage = async (searchQuery: string, cacheKey?: string): Promise<string> => {
+  const key = cacheKey || searchQuery;
+
   // Check cache first
-  if (imageCache[categoryName]) {
-    console.log('📦 Using cached Unsplash image for category:', categoryName);
-    return imageCache[categoryName];
+  if (imageCache[key]) {
+    console.log('📦 Using cached image for:', key);
+    return imageCache[key];
   }
 
   try {
-    const searchQuery = getCategorySearchQuery(categoryName);
-    console.log('🔍 Fetching Unsplash image for category:', categoryName, 'with query:', searchQuery);
+    // Clean up the search query - remove special characters and extra spaces
+    const cleanQuery = searchQuery
+      .replace(/[^\w\s-]/g, ' ') // Replace special chars with space
+      .replace(/\s+/g, ' ')       // Replace multiple spaces with single space
+      .trim();
 
-    // Using Unsplash Source API - simple, no API key required
-    // Format: https://source.unsplash.com/400x400/?{query}
-    const imageUrl = `https://source.unsplash.com/400x400/?${encodeURIComponent(searchQuery)}`;
+    console.log('🔍 Fetching Pexels image with query:', cleanQuery);
 
-    // Cache the image URL
-    imageCache[categoryName] = imageUrl;
+    // Call Pexels Photos Search API
+    // Parameters: query (search term), per_page (number of results)
+    const url = `${PEXELS_API_URL}?query=${encodeURIComponent(cleanQuery)}&per_page=15`;
 
-    console.log('✅ Unsplash image URL generated:', imageUrl);
-    return imageUrl;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': PEXELS_API_KEY
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Pexels API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Extract image URL from Pexels response
+    // Pexels returns data in format: { photos: [...], page, per_page, total_results }
+    if (data.photos && data.photos.length > 0) {
+      // Get a random image from the results
+      const randomIndex = Math.floor(Math.random() * Math.min(data.photos.length, 15));
+      const photo = data.photos[randomIndex];
+
+      // Pexels photos have src object with different sizes
+      // Use medium size for better quality and performance
+      const imageUrl = photo?.src?.medium ||
+                      photo?.src?.large ||
+                      photo?.src?.original ||
+                      '';
+
+      if (imageUrl) {
+        // Cache the image URL
+        imageCache[key] = imageUrl;
+        console.log('✅ Pexels image URL fetched:', imageUrl);
+        return imageUrl;
+      }
+    }
+
+    console.warn('⚠️ No images found for query:', cleanQuery);
+    return '';
   } catch (error) {
-    console.error('❌ Error generating Unsplash image:', error);
+    console.error('❌ Error fetching image from Pexels API:', error);
     return '';
   }
 };
 
 /**
- * Get product image URL with Unsplash fallback
+ * Get product image URL with Pexels fallback
+ * Uses product's url_title for more relevant images
  */
 export const getProductImageWithFallback = async (product: any): Promise<string> => {
   // Try to get the original product image
@@ -182,13 +228,16 @@ export const getProductImageWithFallback = async (product: any): Promise<string>
     return originalImage;
   }
 
-  // Otherwise, fetch fallback from Unsplash
-  const categoryName = extractCategoryName(product);
-  return await fetchPexelsFallbackImage(categoryName);
+  // Otherwise, fetch fallback from Pexels API using url_title or title
+  // Priority: url_title > title > category
+  const searchQuery = product.url_title || product.title || extractCategoryName(product);
+  const cacheKey = `${product.id || ''}_${searchQuery}`;
+
+  return await fetchPexelsFallbackImage(searchQuery, cacheKey);
 };
 
 /**
- * Preload Unsplash images for common categories
+ * Preload images for common categories
  */
 export const preloadCommonCategoryImages = async () => {
   const commonCategories = [
@@ -202,7 +251,7 @@ export const preloadCommonCategoryImages = async () => {
     'Toys & Hobbies'
   ];
 
-  console.log('🚀 Preloading Unsplash images for common categories...');
+  console.log('🚀 Preloading images for common categories...');
 
   for (const category of commonCategories) {
     await fetchPexelsFallbackImage(category);
