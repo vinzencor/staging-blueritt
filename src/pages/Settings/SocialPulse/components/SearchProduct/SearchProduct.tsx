@@ -1,10 +1,24 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Stepper from "@/components/common/Stepper";
 import { Search, SlidersHorizontal } from "lucide-react";
 import Drawer from "@mui/material/Drawer";
 import { Options, TSearchFilters } from "../../index";
 import { toast } from "react-toastify";
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
+import { COUNTRY_OPTIONS } from '@/utils/constants';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/common/select/Select";
+import {
+  loadAmazonCategories,
+  getSubcategories,
+  type AmazonCategoryItem,
+} from '@/utils/amazonCategories';
 
 type TSearchProductsProps = {
   updateSearchSettings: (
@@ -21,18 +35,6 @@ type TSearchProductsProps = {
   selectedSearchOption: Options;
 };
 
-// ✅ shared country list
-const COUNTRY_OPTIONS = [
-  { label: "United States", value: "US" },
-  { label: "United Kingdom", value: "UK" },
-  { label: "Germany", value: "DE" },
-  { label: "France", value: "FR" },
-  { label: "Italy", value: "IT" },
-  { label: "Spain", value: "ES" },
-  { label: "India", value: "IN" },
-  { label: "Canada", value: "CA" },
-];
-
 const SearchProducts: React.FC<TSearchProductsProps> = ({
   updateSearchSettings,
   updateFiltersAndPage,
@@ -44,6 +46,24 @@ const SearchProducts: React.FC<TSearchProductsProps> = ({
   const [searchQuery, setSearchQuery] = useState(defaultSearchString || "");
   const [category, setCategory] = useState<Options>(Options.Product);
   const [country, setCountry] = useState<string>(COUNTRY_OPTIONS[0].value);
+
+  // Category and subcategory state
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("");
+  const [localRootCategories, setLocalRootCategories] = useState<AmazonCategoryItem[]>([]);
+
+  // Load local Amazon categories on mount
+  useEffect(() => {
+    const { rootCategories } = loadAmazonCategories();
+    setLocalRootCategories(rootCategories);
+    console.log('📁 Loaded local Amazon categories:', rootCategories.length);
+  }, []);
+
+  // Get subcategories for selected category
+  const subcategoriesList = useMemo(() => {
+    if (!selectedCategory) return [];
+    return getSubcategories(selectedCategory);
+  }, [selectedCategory]);
 
   // ✅ filter state
   const [filters, setFilters] = useState<TSearchFilters>({
@@ -89,13 +109,25 @@ const SearchProducts: React.FC<TSearchProductsProps> = ({
   };
 
   const handleSearch = () => {
-    if (!searchQuery.trim() && selectedSearchOption !== Options.Category) {
-      toast.error("Please enter a value before searching.");
-      return;
+    // Validation based on search type
+    if (category === Options.Category) {
+      if (!selectedCategory) {
+        toast.error("Please select a category before searching.");
+        return;
+      }
+      if (!selectedSubcategory) {
+        toast.error("Please select a subcategory before searching.");
+        return;
+      }
+    } else if (category === Options.Product || category === Options.ASIN) {
+      if (!searchQuery.trim()) {
+        toast.error("Please enter a value before searching.");
+        return;
+      }
     }
 
     // Check for blocked keywords if searching by product
-    if (selectedSearchOption === Options.Product && searchQuery.trim()) {
+    if (category === Options.Product && searchQuery.trim()) {
       const keywordCheck = checkForBlockedKeywords(searchQuery);
       if (keywordCheck.isBlocked) {
         toast.error(`Keyword blocked: ${getBlockedContentMessage(keywordCheck.category)}`);
@@ -109,7 +141,10 @@ const SearchProducts: React.FC<TSearchProductsProps> = ({
     }
 
     updateFiltersAndPage(filters, 1);
-    updateSearchSettings(selectedSearchOption, country, searchQuery);
+
+    // For category search, use the subcategory ID as the query
+    const searchValue = category === Options.Category ? selectedSubcategory : searchQuery;
+    updateSearchSettings(category, country, searchValue);
 
     // ✅ mark search
     setHasSearched(true);
@@ -131,97 +166,163 @@ const SearchProducts: React.FC<TSearchProductsProps> = ({
 
       {/* Ultra-Modern Search Interface */}
       <div className="bg-gradient-to-r from-white via-blue-50/30 to-emerald-50/30 p-8 border-b border-gray-100">
-        <div className="flex flex-col lg:flex-row gap-4 items-stretch">
-          {/* Search Bar */}
-          <div className="relative flex-1 min-w-0">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleSearch();
-                }
-              }}
-              placeholder="Search for products... (e.g., Apple Watch, Wireless Headphones)"
-              className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-lg
-              focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200
-              text-gray-900 placeholder-gray-500 bg-gray-50 focus:bg-white hover:border-gray-400
-              text-sm font-medium"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Search Option Selector */}
+          <div className="w-full">
+            <Select value={category} onValueChange={(value) => setCategory(value as Options)}>
+              <SelectTrigger className="h-[45px] w-full px-3 text-sm">
+                <SelectValue placeholder="Select Search Type" />
+              </SelectTrigger>
+              <SelectContent className="w-full box py-3">
+                <SelectGroup className="flex flex-col gap-3">
+                  <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                    {Object.values(Options).map((opt) => (
+                      <SelectItem
+                        key={opt}
+                        className="cursor-pointer"
+                        value={opt}
+                      >
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </div>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic px-1">
+              Search Type
+            </p>
           </div>
 
-          {/* Category Dropdown */}
-          <div className="w-full lg:w-44">
-            <div className="relative">
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value as Options)}
-                className="w-full px-4 py-4 border border-gray-300 rounded-lg
-                focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200
-                bg-gray-50 focus:bg-white text-gray-900 appearance-none cursor-pointer hover:border-gray-400
-                text-sm font-medium pr-10"
-              >
-                {Object.values(Options).map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+          {/* Country Select */}
+          <div className="w-full">
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger className="h-[45px] w-full px-3 text-sm">
+                <SelectValue placeholder="Select a Country" />
+              </SelectTrigger>
+              <SelectContent className="w-full box py-3">
+                <SelectGroup className="flex flex-col gap-3">
+                  <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                    {COUNTRY_OPTIONS.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        className="cursor-pointer"
+                        value={option.value}
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </div>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic px-1">
+              Amazon Marketplace
+            </p>
+          </div>
+
+          {/* Conditional Inputs based on selected option */}
+          {category === Options.Category && (
+            <>
+              {/* Category Select */}
+              <div className="w-full">
+                <Select value={selectedCategory} onValueChange={(value) => {
+                  setSelectedCategory(value);
+                  setSelectedSubcategory(''); // Reset subcategory when category changes
+                }}>
+                  <SelectTrigger className="h-[45px] w-full px-3 text-sm">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full box py-3">
+                    <SelectGroup className="flex flex-col gap-3">
+                      <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                        {localRootCategories.map((cat) => (
+                          <SelectItem
+                            key={cat.id}
+                            className="cursor-pointer"
+                            value={cat.id}
+                          >
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </div>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic px-1">
+                  Main Category
+                </p>
               </div>
-            </div>
-          </div>
 
-          {/* Country Dropdown */}
-          <div className="w-full lg:w-48">
-            <div className="relative">
-              <select
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="w-full px-4 py-4 border border-gray-300 rounded-lg
-                focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200
-                bg-gray-50 focus:bg-white text-gray-900 appearance-none cursor-pointer hover:border-gray-400
-                text-sm font-medium pr-10"
-              >
-                {COUNTRY_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+              {/* Subcategory Select - Only show if category is selected */}
+              {selectedCategory && (
+                <div className="w-full">
+                  <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+                    <SelectTrigger className="h-[45px] w-full px-3 text-sm">
+                      <SelectValue placeholder="Select Subcategory" />
+                    </SelectTrigger>
+                    <SelectContent className="w-full box py-3">
+                      <SelectGroup className="flex flex-col gap-3">
+                        <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                          {subcategoriesList.map((subcat) => (
+                            <SelectItem
+                              key={subcat.id}
+                              className="cursor-pointer"
+                              value={subcat.id}
+                            >
+                              {subcat.name}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic px-1">
+                    Subcategory
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Product/ASIN Input */}
+          {(category === Options.Product || category === Options.ASIN) && (
+            <div className="w-full">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSearch();
+                    }
+                  }}
+                  placeholder={category === Options.Product ? "Enter product name..." : "Enter ASIN..."}
+                  className="h-[45px] w-full pl-10 pr-3 text-sm border border-gray-300 dark:border-gray-600 rounded-lg
+                  focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200
+                  text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400
+                  bg-white dark:bg-gray-700"
+                />
               </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic px-1">
+                {category === Options.Product ? "Product Name" : "ASIN Code"}
+              </p>
             </div>
-          </div>
+          )}
 
-          {/* Action Buttons Container */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+          {/* Action Buttons */}
+          <div className="w-full flex gap-3">
             {/* Filter Button */}
             <button
               type="button"
               onClick={() => setIsFilterOpen(true)}
-              className="px-6 py-4 border border-gray-300 rounded-lg
-              hover:bg-gray-50 hover:border-gray-400 flex items-center justify-center gap-2 text-gray-700
-              transition-all duration-200 font-medium text-sm min-w-[120px]"
+              className="flex-1 h-[45px] px-4 border border-gray-300 dark:border-gray-600 rounded-lg
+              hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500
+              flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300
+              transition-all duration-200 font-medium text-sm"
             >
               <SlidersHorizontal className="w-4 h-4" />
               <span>Filters</span>
@@ -230,13 +331,11 @@ const SearchProducts: React.FC<TSearchProductsProps> = ({
             {/* Search Button */}
             <button
               type="button"
-              // disabled={disableSearchButton}
               onClick={handleSearch}
-              className="px-6 py-4 bg-emerald-600 text-white font-semibold
+              className="flex-1 h-[45px] px-4 bg-emerald-600 text-white font-semibold
               rounded-lg hover:bg-emerald-700
-              transition-all duration-200 flex items-center justify-center space-x-2
-              min-w-[140px] shadow-lg hover:shadow-xl opacity-50 
-              hover:bg-emerald-600 hover:shadow-lg text-sm"
+              transition-all duration-200 flex items-center justify-center gap-2
+              shadow-lg hover:shadow-xl text-sm"
             >
               <Search className="w-4 h-4" />
               <span>Search Now</span>

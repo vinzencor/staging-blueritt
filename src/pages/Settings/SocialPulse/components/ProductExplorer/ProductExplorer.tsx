@@ -37,10 +37,7 @@ import {
 
 import {
   loadAmazonCategories,
-  getRootCategories,
   getSubcategories,
-  getCategoryById,
-  extractCategoryId,
   AmazonCategoryItem,
 } from '@/utils/amazonCategories';
 
@@ -79,20 +76,45 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const [selectedMainCategory, setSelectedMainCategory] = useState<string>('');
   const [currentSubcategories, setCurrentSubcategories] = useState<BestSellerCategory[]>([]);
   const [selectedType, setSelectedType] = useState<string>('BEST_SELLERS');
-const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(false);
+  const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(false);
 
-  // Local Amazon categories from JSON
+  // Local Amazon categories from JSON (for ALL countries)
   const [localRootCategories, setLocalRootCategories] = useState<AmazonCategoryItem[]>([]);
+
   const [selectedLocalRootCategory, setSelectedLocalRootCategory] = useState<string>('');
   const [selectedLocalSubcategory, setSelectedLocalSubcategory] = useState<string>('');
   const [selectedCategoryPath, setSelectedCategoryPath] = useState<string>(''); // Store full category path for display
 
-  // Load local Amazon categories on mount
+  // Helper function to extract numeric category ID from local JSON format
+  // Local JSON uses format like "baby-products/695338011", API needs just "695338011"
+  const extractNumericCategoryId = (categoryId: string): string => {
+    if (!categoryId) return categoryId;
+
+    // If it contains a slash, extract the numeric part after the slash
+    if (categoryId.includes('/')) {
+      const parts = categoryId.split('/');
+      return parts[parts.length - 1]; // Get the last part (numeric ID)
+    }
+
+    // Otherwise return as-is
+    return categoryId;
+  };
+
+  // Load local categories on mount (for ALL countries)
   React.useEffect(() => {
     const { rootCategories } = loadAmazonCategories();
     setLocalRootCategories(rootCategories);
-    console.log('📁 Loaded local Amazon categories:', rootCategories.length);
+    console.log('📂 Loaded local categories for all countries:', rootCategories.length);
   }, []);
+
+  // Reset category selection when country changes
+  React.useEffect(() => {
+    setSelectedLocalRootCategory('');
+    setSelectedLocalSubcategory('');
+    setSelectedCategoryId('');
+    setSelectedCategoryPath('');
+    console.log('🌍 Country changed to:', country, '- Resetting category selection');
+  }, [country]);
 
   // Countries list
   const countries = [
@@ -272,25 +294,28 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
     queryFn: async () => {
       console.log('🚀 Products Query Starting:', {
         categoryId: selectedCategoryId,
-        country: country,
+        selectedCountry: country,
+        apiCountry: 'US', // Always fetch from US
         page: page,
         type: selectedType,
         enabled: !!selectedCategoryId
       });
 
-      // Extract actual category ID from full path (e.g., "appliances/3741261" -> "3741261")
-      const actualCategoryId = extractCategoryId(selectedCategoryId);
+      // Extract numeric ID from local JSON format (e.g., "baby-products/695338011" -> "695338011")
+      const apiCategoryId = extractNumericCategoryId(selectedCategoryId);
 
-      console.log('📦 Extracted Category ID:', {
+      console.log('📦 Using Category ID:', {
         original: selectedCategoryId,
-        extracted: actualCategoryId
+        forAPI: apiCategoryId,
+        selectedCountry: country,
+        apiCountry: 'US' // Always fetch from US
       });
 
       try {
-        // Fetch only 1 page to avoid multiple quota deductions
+        // ✅ Always fetch from US regardless of selected country
         const result = await getAmazonProductsByCategoryDirect({
-          categoryId: actualCategoryId,
-          country: country,
+          categoryId: apiCategoryId,
+          country: 'US', // ✅ Always use US
           page: 1,
           sortBy: 'RELEVANCE',
           productCondition: 'ALL',
@@ -308,7 +333,6 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
 
         console.log('🎯 Products Fetched:', {
           categoryId: selectedCategoryId,
-          extractedId: actualCategoryId,
           totalProducts: result?.data?.products?.length || 0
         });
 
@@ -327,46 +351,7 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
     refetchOnMount: false,
   });
 
-  // Best Seller Categories Query - Fetch hierarchical categories dynamically from API
-  const {
-    data: bestSellerCategoriesData,
-    isLoading: bestSellerCategoriesLoading,
-    error: bestSellerCategoriesError,
-  } = useQuery({
-    queryKey: ['amazon-explorer-best-seller-categories', country],
-    queryFn: async () => {
-      console.log('🔍 Fetching best seller categories for country:', country);
-      const result = await getAmazonBestSellerCategories({ country });
-      console.log('📋 Best Seller Categories API response:', result);
-      return result;
-    },
-    enabled: false, // DISABLED - using local categories now
-    staleTime: 1000 * 60 * 60, // 1 hour - categories don't change often
-    retry: 0, // No retries since this is disabled
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
-
-  // Process best seller categories when data changes
-  React.useEffect(() => {
-    if (bestSellerCategoriesData?.data) {
-      const { categories, main_categories } = bestSellerCategoriesData.data;
-      setBestSellerCategories(categories || []);
-      setMainCategories(main_categories || []);
-
-      console.log('📂 Main categories found:', main_categories?.length || 0);
-      console.log('� Total categories found:', categories?.length || 0);
-
-      // If a main category is selected, update subcategories
-      if (selectedMainCategory) {
-        const selectedMain = main_categories?.find(cat => cat.category === selectedMainCategory);
-        if (selectedMain && selectedMain.subcategories) {
-          setCurrentSubcategories(selectedMain.subcategories);
-          console.log(`📁 Subcategories for ${selectedMainCategory}:`, selectedMain.subcategories.length);
-        }
-      }
-    }
-  }, [bestSellerCategoriesData, selectedMainCategory]);
+  // No longer fetching categories from API - using local JSON for all countries
 
   // Log query results when data changes
   React.useEffect(() => {
@@ -642,9 +627,9 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
-                        <TrendingUp className="w-8 h-8 text-[orange]" />
-                        Amazon Trends
-                      </h1>
+                <TrendingUp className="w-8 h-8 text-[orange]" />
+                Amazon Trends
+              </h1>
               <p className="text-gray-600 dark:text-gray-400">Discover trending products, search by keywords, or browse by category</p>
             </div>
 
@@ -840,7 +825,10 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
                   >
                     <option value="">Select Main Category</option>
                     {localRootCategories.map((category, index) => (
-                      <option key={category.id || index} value={category.id}>
+                      <option
+                        key={category.id || index}
+                        value={category.id}
+                      >
                         {category.name}
                       </option>
                     ))}
@@ -860,8 +848,9 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
                         setSelectedCategoryId(e.target.value);
 
                         // Build category path for display
+                        const subcategories = getSubcategories(selectedLocalRootCategory);
                         const mainCategoryName = localRootCategories.find(cat => cat.id === selectedLocalRootCategory)?.name || '';
-                        const subcategoryName = getSubcategories(selectedLocalRootCategory).find(sub => sub.id === e.target.value)?.name || '';
+                        const subcategoryName = subcategories.find(sub => sub.id === e.target.value)?.name || '';
                         const fullPath = mainCategoryName && subcategoryName ? `${mainCategoryName} > ${subcategoryName}` : '';
                         setSelectedCategoryPath(fullPath);
 
@@ -872,7 +861,10 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
                     >
                       <option value="">Select Subcategory</option>
                       {getSubcategories(selectedLocalRootCategory).map((subcategory, index) => (
-                        <option key={subcategory.id || index} value={subcategory.id}>
+                        <option
+                          key={subcategory.id || index}
+                          value={subcategory.id}
+                        >
                           {subcategory.name}
                         </option>
                       ))}
@@ -906,15 +898,7 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
                 </div>
               </div> */}
 
-              {/* Category Loading State */}
-              {bestSellerCategoriesLoading && (
-                <div className="flex items-center justify-center py-4">
-                  <AmazonLoader
-                    size="sm"
-                    text={`Loading categories for ${countries.find(c => c.code === country)?.name}...`}
-                  />
-                </div>
-              )}
+              {/* Category Loading State - No longer needed as categories load from local JSON */}
 
               {/* Selected Category Display */}
               {selectedCategoryId && (
@@ -1042,24 +1026,28 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
                     <div className="m-4">
                       <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Main Categories</h4>
                       <div className="flex flex-wrap gap-3">
-                        {localRootCategories.map((category, index) => (
-                          <button
-                            key={category.id || index}
-                            onClick={() => {
-                              setSelectedLocalRootCategory(category.id);
-                            }}
-                            className="group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-800 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:transform hover:scale-102"
-                          >
-                            <div className="flex items-center gap-2 px-3 py-1">
-                              <span className="text-xs font-bold">{category.name}</span>
-                              {category.has_children && (
-                                <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">
-                                  {getSubcategories(category.id).length}
-                                </span>
-                              )}
-                            </div>
-                          </button>
-                        ))}
+                        {localRootCategories.map((category, index) => {
+                          const subcategoriesCount = category.has_children ? getSubcategories(category.id).length : 0;
+
+                          return (
+                            <button
+                              key={category.id || index}
+                              onClick={() => {
+                                setSelectedLocalRootCategory(category.id);
+                              }}
+                              className="group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-800 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:transform hover:scale-102"
+                            >
+                              <div className="flex items-center gap-2 px-3 py-1">
+                                <span className="text-xs font-bold">{category.name}</span>
+                                {subcategoriesCount > 0 && (
+                                  <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                                    {subcategoriesCount}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1288,9 +1276,9 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
       {/* Add-ons Modal */}
       {showAddOnsChoiceModalAmazon && (
         <AddOnsChoiceModalAmazon
-        isOpen={showAddOnsChoiceModalAmazon}
-        onClose={() => setShowAddOnsChoiceModalAmazon(false)}
-      />
+          isOpen={showAddOnsChoiceModalAmazon}
+          onClose={() => setShowAddOnsChoiceModalAmazon(false)}
+        />
       )}
     </div>
   );
