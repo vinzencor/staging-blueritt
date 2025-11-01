@@ -1,16 +1,17 @@
 /**
- * Pexels Image Fallback Utility
- * Fetches category-based images from Pexels API when product images are missing
- * Using Pexels Photos Search API
- * API: https://api.pexels.com/v1/search
+ * Freepik Image Fallback Utility
+ * Fetches category-based images from Freepik API when product images are missing
+ * Using backend proxy to avoid CORS issues
+ * Backend endpoint: /products/freepik/image-proxy/
  */
+
+import api from '@/api';
 
 // Cache for images to avoid repeated API calls
 const imageCache: Record<string, string> = {};
 
-// Pexels API configuration
-const PEXELS_API_KEY = 'NWGTQYjciu6iAamexgTguvRGjnhXX4eao8HsRGh8SSCETpuP7UE78YCA';
-const PEXELS_API_URL = 'https://api.pexels.com/v1/search';
+// Backend proxy URL for Freepik API
+const FREEPIK_PROXY_URL = '/products/freepik/image-proxy/';
 
 /**
  * Map TikTok category names to image search queries
@@ -141,7 +142,7 @@ const getCategorySearchQuery = (categoryName: string): string => {
 };
 
 /**
- * Fetch a random image from Pexels API for a given search query
+ * Fetch a random image from Freepik API via backend proxy for a given search query
  * @param searchQuery - The search query (can be product title, url_title, or category)
  * @param cacheKey - Optional cache key (defaults to searchQuery)
  */
@@ -161,43 +162,30 @@ export const fetchPexelsFallbackImage = async (searchQuery: string, cacheKey?: s
       .replace(/\s+/g, ' ')       // Replace multiple spaces with single space
       .trim();
 
-    console.log('🔍 Fetching Pexels image with query:', cleanQuery);
+    console.log('🔍 Fetching Freepik image via backend proxy with query:', cleanQuery);
 
-    // Call Pexels Photos Search API
-    // Parameters: query (search term), per_page (number of results)
-    const url = `${PEXELS_API_URL}?query=${encodeURIComponent(cleanQuery)}&per_page=15`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': PEXELS_API_KEY
+    // Call backend proxy endpoint using axios (backend will append "product" to the query)
+    const response = await api.get(FREEPIK_PROXY_URL, {
+      params: {
+        term: cleanQuery
       }
     });
 
-    if (!response.ok) {
-      throw new Error(`Pexels API request failed with status ${response.status}`);
-    }
+    const data = response.data;
+    console.log('Freepik proxy response:', data);
 
-    const data = await response.json();
-
-    // Extract image URL from Pexels response
-    // Pexels returns data in format: { photos: [...], page, per_page, total_results }
-    if (data.photos && data.photos.length > 0) {
+    // Extract image URL from proxy response
+    // Backend returns: { success: true, images: [...], total: number }
+    if (data.success && data.images && data.images.length > 0) {
       // Get a random image from the results
-      const randomIndex = Math.floor(Math.random() * Math.min(data.photos.length, 15));
-      const photo = data.photos[randomIndex];
-
-      // Pexels photos have src object with different sizes
-      // Use medium size for better quality and performance
-      const imageUrl = photo?.src?.medium ||
-                      photo?.src?.large ||
-                      photo?.src?.original ||
-                      '';
+      const randomIndex = Math.floor(Math.random() * Math.min(data.images.length, 20));
+      const image = data.images[randomIndex];
+      const imageUrl = image?.url || '';
 
       if (imageUrl) {
         // Cache the image URL
         imageCache[key] = imageUrl;
-        console.log('✅ Pexels image URL fetched:', imageUrl);
+        console.log('✅ Freepik image URL fetched via proxy:', imageUrl);
         return imageUrl;
       }
     }
@@ -205,13 +193,13 @@ export const fetchPexelsFallbackImage = async (searchQuery: string, cacheKey?: s
     console.warn('⚠️ No images found for query:', cleanQuery);
     return '';
   } catch (error) {
-    console.error('❌ Error fetching image from Pexels API:', error);
+    console.error('❌ Error fetching image from Freepik proxy:', error);
     return '';
   }
 };
 
 /**
- * Get product image URL with Pexels fallback
+ * Get product image URL with Freepik fallback
  * Uses product's url_title for more relevant images
  */
 export const getProductImageWithFallback = async (product: any): Promise<string> => {
@@ -228,7 +216,7 @@ export const getProductImageWithFallback = async (product: any): Promise<string>
     return originalImage;
   }
 
-  // Otherwise, fetch fallback from Pexels API using url_title or title
+  // Otherwise, fetch fallback from Freepik API using url_title or title
   // Priority: url_title > title > category
   const searchQuery = product.url_title || product.title || extractCategoryName(product);
   const cacheKey = `${product.id || ''}_${searchQuery}`;

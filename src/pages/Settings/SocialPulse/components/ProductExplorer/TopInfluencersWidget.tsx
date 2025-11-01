@@ -46,6 +46,32 @@ export interface BestSellerProduct {
 // Default category for best sellers
 const DEFAULT_CATEGORY = 'amazon-devices';
 
+// Country options for Amazon marketplace
+const COUNTRY_OPTIONS = [
+  { code: 'US', name: 'United States', flag: '🇺🇸' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+  { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+  { code: 'CN', name: 'China', flag: '🇨🇳' },
+  { code: 'FR', name: 'France', flag: '🇫🇷' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
+  { code: 'IT', name: 'Italy', flag: '🇮🇹' },
+  { code: 'MX', name: 'Mexico', flag: '🇲🇽' },
+  { code: 'NL', name: 'Netherlands', flag: '🇳🇱' },
+  { code: 'SG', name: 'Singapore', flag: '🇸🇬' },
+  { code: 'ES', name: 'Spain', flag: '🇪🇸' },
+  { code: 'TR', name: 'Turkey', flag: '🇹🇷' },
+  { code: 'AE', name: 'UAE', flag: '🇦🇪' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+  { code: 'SA', name: 'Saudi Arabia', flag: '🇸🇦' },
+  { code: 'PL', name: 'Poland', flag: '🇵🇱' },
+  { code: 'SE', name: 'Sweden', flag: '🇸🇪' },
+  { code: 'BE', name: 'Belgium', flag: '🇧🇪' },
+  { code: 'EG', name: 'Egypt', flag: '🇪🇬' },
+];
+
 // Loading Skeleton Component
 const LoadingSkeleton: React.FC = () => (
   <div className="space-y-3">
@@ -164,6 +190,7 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState('US');
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Determine if we're on Amazon page
@@ -178,7 +205,7 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
       setError(null);
       try {
         const response = await fetch(
-          `https://real-time-amazon-data.p.rapidapi.com/best-sellers?category=${DEFAULT_CATEGORY}&type=BEST_SELLERS&page=1&country=US`,
+          `https://real-time-amazon-data.p.rapidapi.com/best-sellers?category=${DEFAULT_CATEGORY}&type=BEST_SELLERS&page=1&country=${selectedCountry}`,
           {
             method: 'GET',
             headers: {
@@ -209,7 +236,7 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
     };
 
     fetchBestSellers();
-  }, [isAmazonPage]);
+  }, [isAmazonPage, selectedCountry]);
 
   // Auto-scroll effect - continuous carousel scroll
   useEffect(() => {
@@ -275,7 +302,7 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
   const WidgetContent = () => (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 shadow-md dark:shadow-lg h-full flex flex-col">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           {/* Icon only on mobile, with hover tooltip */}
           <div className="relative group">
             {/* Mobile: Icon only */}
@@ -283,17 +310,15 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
               <TrendingUp className="w-5 h-5 text-[#ffa41c] dark:text-[#ffa41c]" />
               {/* Hover tooltip for mobile */}
               <div className="absolute left-0 top-full mt-2 hidden group-hover:block bg-gray-900 text-white text-xs py-1 px-2 rounded whitespace-nowrap z-50">
-                Trending Products
+                Turn Trends Profitable
               </div>
             </div>
 
             {/* Desktop: Full text */}
             <h2 className="hidden lg:flex text-lg font-bold text-gray-900 dark:text-white items-center">
               <TrendingUp className="w-5 h-5 mr-2 text-[#ffa41c] dark:text-[#ffa41c]" />
-              Trending Products
-              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                ({products.length})
-              </span>
+              Turn Trends Profitable
+
             </h2>
           </div>
 
@@ -304,6 +329,24 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
           >
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Country Dropdown */}
+        <div className="w-full">
+          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Amazon Marketplace
+          </label>
+          <select
+            value={selectedCountry}
+            onChange={(e) => setSelectedCountry(e.target.value)}
+            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-[#ffa41c] focus:border-[#ffa41c] transition-colors"
+          >
+            {COUNTRY_OPTIONS.map((country) => (
+              <option key={country.code} value={country.code}>
+                {country.flag} {country.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <div

@@ -95,21 +95,22 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
   };
 
   const displayNames: { [key: string]: string } = {
+    "Product Searches": "Product Searches",
     "AI Supplier Matches": "Supplier Discoveries",
-    "Supplier Discoveries": "Supplier Discoveries",
-    "Amazon Product Searches": "Product Searches",
-    "TikTok Product Searches": "Product Searches",
     "MarginMax Gross Profit Search": "Calculate Gross Profit ",
     "MarginMax Net Profit Search": "Calculate Net Profit",
+    "Amazon Product Searches": "Amazon Trend Searches",
+    "TikTok Product Searches": "TikTok Trend Searches",
+    "TikTok Trending Hashtags": "TikTok Trending Hashtags",
   };
   const displayicon: { [key: string]: JSX.Element } = {
     "AI Supplier Matches": <i className="ti ti-building-factory-2"></i>,
-    "Supplier Discoveries": <i className="ti ti-building-factory-2"></i>,
-    "Amazon Product Searches": <i className="ri-amazon-line"></i>,
-    "TikTok Product Searches": <i className="ri-tiktok-line"></i>,
     "Product Searches": <i className="ri-search-line"></i>,
     "MarginMax Gross Profit Search": <i className="bx bx-calculator"></i>,
     "MarginMax Net Profit Search": <i className="bx bx-calculator"></i>,
+    "Amazon Product Searches": <i className="ri-search-line"></i>,
+    "TikTok Product Searches": <i className="ri-search-line"></i>,
+    "TikTok Trending Hashtags": <i className="ri-hashtag"></i>,
   };
 
   if (isLoading) {
@@ -140,19 +141,15 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
   return (
     <>
       <div>
-        {/* Grid for "Amazon Product Searches" type */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            Amazon Product Searches
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-stretch">
-            {addons
-              .filter(
-                (addon: Addon) =>
-                  addon.type_display.toLowerCase() === "amazon product searches"
-              )
-              .sort((a: any, b: any) => a.cost - b.cost)
-              .map((addon: Addon) => (
+        {/* Grid for "product searches" type */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
+          {addons
+            .filter(
+              (addon: Addon) =>
+                addon.type_display.toLowerCase() === "product searches"
+            )
+            .sort((a: any, b: any) => a.cost - b.cost)
+            .map((addon: Addon) => (
               <Spktitlecards
                 key={addon.id}
                 Navigate="#!"
@@ -184,11 +181,10 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
                     onClick={() => handleBuyClick(addon)}
                     className={`w-[60%] px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary/50 transition font-medium disabled:opacity-50
 
-          ${
-            isTrial || !isSubscribed
-              ? "bg-gray-400 text-black cursor-not-allowed"
-              : "bg-primary text-white hover:bg-primary/90"
-          }
+          ${isTrial || !isSubscribed
+                        ? "bg-gray-400 text-black cursor-not-allowed"
+                        : "bg-primary text-white hover:bg-primary/90"
+                      }
       `}
                     disabled={
                       purchasingAddonId !== null || isTrial || !isSubscribed
@@ -198,91 +194,20 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
                     {isTrial
                       ? "Buy now"
                       : purchasingAddonId === addon.id
-                      ? "Processing..."
-                      : "Buy now"}
+                        ? "Processing..."
+                        : "Buy now"}
                   </button>
                 </div>
               </Spktitlecards>
             ))}
-          </div>
         </div>
 
-        {/* Grid for "TikTok Product Searches" type */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-            TikTok Product Searches
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-stretch">
-            {addons
-              .filter(
-                (addon: Addon) =>
-                  addon.type_display.toLowerCase() === "tiktok product searches"
-              )
-              .sort((a: any, b: any) => a.cost - b.cost)
-              .map((addon: Addon) => (
-                <Spktitlecards
-                  key={addon.id}
-                  Navigate="#!"
-                  Customclass="custom-card h-full flex flex-col min-h-[140px] w-[100%]"
-                >
-                  <div className="flex-grow space-y-4">
-                    <span className="flex items-center text-primary justify-center text-[30px] mt-3">
-                      {displayicon[addon.type_display] && (
-                        <span>{displayicon[addon.type_display]}</span>
-                      )}
-                    </span>
-
-                    <div className="flex flex-wrap justify-center items-center text-[15px] font-bold gap-x-1 gap-y-1 whitespace-nowrap">
-                      {addon.num_searches > 0 && (
-                        <span>{addon.num_searches}</span>
-                      )}
-                      <span className="break-keep">
-                        {displayNames[addon.type_display] || addon.type_display}
-                      </span>
-                    </div>
-
-                    <p className="text-base font-semibold text-primary text-center mt-4">
-                      {addon.cost} $
-                    </p>
-                  </div>
-
-                  <div className="flex justify-center mt-8">
-                    <button
-                      onClick={() => handleBuyClick(addon)}
-                      className={`w-[60%] px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary/50 transition font-medium disabled:opacity-50
-            ${
-              isTrial || !isSubscribed
-                ? "bg-gray-400 text-black cursor-not-allowed"
-                : "bg-primary text-white hover:bg-primary/90"
-            }
-        `}
-                      disabled={
-                        purchasingAddonId !== null || isTrial || !isSubscribed
-                      }
-                    >
-                      {isTrial
-                        ? "Buy now"
-                        : purchasingAddonId === addon.id
-                        ? "Processing..."
-                        : "Buy now"}
-                    </button>
-                  </div>
-                </Spktitlecards>
-              ))}
-          </div>
-        </div>
-
-        {/* Grid for "Supplier Discoveries" type */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-             Supplier Discoveries
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
+        {/* Grid for "AI Supplier Matches" type */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch mt-8">
           {addons
             .filter(
               (addon: Addon) =>
-                addon.type_display.toLowerCase() === "ai supplier matches" ||
-                addon.type_display.toLowerCase() === "supplier discoveries"
+                addon.type_display.toLowerCase() === "ai supplier matches"
             )
             .sort((a: any, b: any) => a.cost - b.cost)
             .map((addon: Addon) => (
@@ -316,32 +241,26 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
                   <button
                     onClick={() => handleBuyClick(addon)}
                     className={`w-[60%]  px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary/50 transition font-medium disabled:opacity-50
-     ${
-    isTrial || !isSubscribed
-      ? "bg-gray-400 text-black cursor-not-allowed"
-      : "bg-primary text-white hover:bg-primary/90"
-  }
+     ${isTrial || !isSubscribed
+                        ? "bg-gray-400 text-black cursor-not-allowed"
+                        : "bg-primary text-white hover:bg-primary/90"
+                      }
   `}
                     disabled={purchasingAddonId !== null || isTrial || !isSubscribed}
                   >
                     {isTrial
                       ? "Buy now"
                       : purchasingAddonId === addon.id
-                      ? "Processing..."
-                      : "Buy now"}
+                        ? "Processing..."
+                        : "Buy now"}
                   </button>
                 </div>
               </Spktitlecards>
             ))}
-          </div>
         </div>
 
         {/* Grid for "Gross profit" type */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-             MarginMax Gross Profit Calculations
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch mt-8">
           {addons
             .filter(
               (addon: Addon) =>
@@ -380,32 +299,26 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
                   <button
                     onClick={() => handleBuyClick(addon)}
                     className={`w-[60%]  px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary/50 transition font-medium disabled:opacity-50
-     ${
-    isTrial || !isSubscribed
-      ? "bg-gray-400 text-black cursor-not-allowed"
-      : "bg-primary text-white hover:bg-primary/90"
-  }
+     ${isTrial || !isSubscribed
+                        ? "bg-gray-400 text-black cursor-not-allowed"
+                        : "bg-primary text-white hover:bg-primary/90"
+                      }
   `}
                     disabled={purchasingAddonId !== null || isTrial || !isSubscribed}
                   >
                     {isTrial
                       ? "Buy now"
                       : purchasingAddonId === addon.id
-                      ? "Processing..."
-                      : "Buy now"}
+                        ? "Processing..."
+                        : "Buy now"}
                   </button>
                 </div>
               </Spktitlecards>
             ))}
-          </div>
         </div>
 
         {/* Grid for "Net profit" type */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-               MarginMax Net Profit Calculations
-          </h3>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch mt-8 mb-4">
           {addons
             .filter(
               (addon: Addon) =>
@@ -444,12 +357,10 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
                   <button
                     onClick={() => handleBuyClick(addon)}
                     className={`w-[60%]  px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary/50 transition font-medium disabled:opacity-50
-   ${
-
-    isTrial || !isSubscribed
-      ? "bg-gray-400 text-black cursor-not-allowed"
-      : "bg-primary text-white hover:bg-primary/90"
-  }
+   ${isTrial || !isSubscribed
+                        ? "bg-gray-400 text-black cursor-not-allowed"
+                        : "bg-primary text-white hover:bg-primary/90"
+                      }
 
   `}
                     disabled={purchasingAddonId !== null || isTrial || !isSubscribed}
@@ -457,14 +368,243 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
                     {isTrial
                       ? "Buy now"
                       : purchasingAddonId === addon.id
-                      ? "Processing..."
-                      : "Buy now"}
+                        ? "Processing..."
+                        : "Buy now"}
                   </button>
                 </div>
               </Spktitlecards>
             ))}
-          </div>
         </div>
+
+        {/* Grid for "Amazon Product Searches" type */}
+
+
+        {/* Grid for "TikTok Product Searches" type */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch mt-8">
+          {addons
+            .filter(
+              (addon: Addon) =>
+                addon.type_display.toLowerCase() === "tiktok product searches"
+            )
+            .sort((a: any, b: any) => a.cost - b.cost)
+            .map((addon: Addon) => (
+              <Spktitlecards
+                key={addon.id}
+                Navigate="#!"
+                Customclass="custom-card h-full flex flex-col min-h-[140px] w-[100%]"
+              >
+                <div className="flex-grow space-y-4">
+                  <span className="flex items-center text-primary justify-center text-[30px] mt-3">
+                    <i className="ri-search-line"></i>
+                  </span>
+
+                  <div className="flex flex-wrap justify-center items-center text-[15px] font-bold gap-x-1 gap-y-1 whitespace-nowrap">
+                    {addon.num_searches > 0 && (
+                      <span>{addon.num_searches}</span>
+                    )}
+                    <span className="break-keep">
+                      TikTok Trend  Searches
+                    </span>
+                  </div>
+
+                  <p className="text-base font-semibold text-primary text-center mt-4">
+                    {addon.cost} $
+                  </p>
+                </div>
+
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={() => handleBuyClick(addon)}
+                    className={`w-[60%] px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary/50 transition font-medium disabled:opacity-50
+          ${isTrial || !isSubscribed
+                        ? "bg-gray-400 text-black cursor-not-allowed"
+                        : "bg-primary text-white hover:bg-primary/90"
+                      }
+      `}
+                    disabled={
+                      purchasingAddonId !== null || isTrial || !isSubscribed
+                    }
+                  >
+                    {isTrial
+                      ? "Buy now"
+                      : purchasingAddonId === addon.id
+                        ? "Processing..."
+                        : "Buy now"}
+                  </button>
+                </div>
+              </Spktitlecards>
+            ))}
+        </div>
+
+        {/* Grid for "Supplier Discoveries" type */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch mt-8 mb-4">
+          {addons
+            .filter(
+              (addon: Addon) =>
+                addon.type_display.toLowerCase() === "supplier discoveries"
+            )
+            .sort((a: any, b: any) => a.cost - b.cost)
+            .map((addon: Addon) => (
+              <Spktitlecards
+                key={addon.id}
+                Navigate="#!"
+                Customclass="custom-card h-full flex flex-col min-h-[140px] w-[100%]"
+              >
+                <div className="flex-grow space-y-4">
+                  <span className="flex items-center text-primary justify-center text-[30px] mt-3">
+                    <i className="ti ti-building-factory-2"></i>
+                  </span>
+
+                  <div className="flex flex-wrap justify-center items-center text-[15px] font-bold gap-x-1 gap-y-1 whitespace-nowrap">
+                    {addon.num_searches > 0 && (
+                      <span>{addon.num_searches}</span>
+                    )}
+                    <span className="break-keep">
+                      Supplier Discoveries
+                    </span>
+                  </div>
+
+                  <p className="text-base font-semibold text-primary text-center mt-4">
+                    {addon.cost} $
+                  </p>
+                </div>
+
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={() => handleBuyClick(addon)}
+                    className={`w-[60%] px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary/50 transition font-medium disabled:opacity-50
+          ${isTrial || !isSubscribed
+                        ? "bg-gray-400 text-black cursor-not-allowed"
+                        : "bg-primary text-white hover:bg-primary/90"
+                      }
+      `}
+                    disabled={
+                      purchasingAddonId !== null || isTrial || !isSubscribed
+                    }
+                  >
+                    {isTrial
+                      ? "Buy now"
+                      : purchasingAddonId === addon.id
+                        ? "Processing..."
+                        : "Buy now"}
+                  </button>
+                </div>
+              </Spktitlecards>
+            ))}
+        </div>
+
+        {/* Grid for "TikTok Trending Hashtags" type */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch mt-8 mb-4">
+          {addons
+            .filter(
+              (addon: Addon) =>
+                addon.type_display.toLowerCase() === "tiktok trending hashtags"
+            )
+            .sort((a: any, b: any) => a.cost - b.cost)
+            .map((addon: Addon) => (
+              <Spktitlecards
+                key={addon.id}
+                Navigate="#!"
+                Customclass="custom-card h-full flex flex-col min-h-[140px] w-[100%]"
+              >
+                <div className="flex-grow space-y-4">
+                  <span className="flex items-center text-primary justify-center text-[30px] mt-3">
+                    <i className="ri-hashtag"></i>
+                  </span>
+
+                  <div className="flex flex-wrap justify-center items-center text-[15px] font-bold gap-x-1 gap-y-1 whitespace-nowrap">
+                    {addon.num_searches > 0 && (
+                      <span>{addon.num_searches}</span>
+                    )}
+                    <span className="break-keep">
+                      TikTok Trending Hashtags
+                    </span>
+                  </div>
+
+                  <p className="text-base font-semibold text-primary text-center mt-4">
+                    {addon.cost} $
+                  </p>
+                </div>
+
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={() => handleBuyClick(addon)}
+                    className={`w-[60%] px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary/50 transition font-medium disabled:opacity-50
+          ${isTrial || !isSubscribed
+                        ? "bg-gray-400 text-black cursor-not-allowed"
+                        : "bg-primary text-white hover:bg-primary/90"
+                      }
+      `}
+                    disabled={
+                      purchasingAddonId !== null || isTrial || !isSubscribed
+                    }
+                  >
+                    {isTrial
+                      ? "Buy now"
+                      : purchasingAddonId === addon.id
+                        ? "Processing..."
+                        : "Buy now"}
+                  </button>
+                </div>
+              </Spktitlecards>
+            ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch mt-8">
+        {addons
+          .filter(
+            (addon: Addon) =>
+              addon.type_display.toLowerCase() === "amazon product searches"
+          )
+          .sort((a: any, b: any) => a.cost - b.cost)
+          .map((addon: Addon) => (
+            <Spktitlecards
+              key={addon.id}
+              Navigate="#!"
+              Customclass="custom-card h-full flex flex-col min-h-[140px] w-[100%]"
+            >
+              <div className="flex-grow space-y-4">
+                <span className="flex items-center text-primary justify-center text-[30px] mt-3">
+                  <i className="ri-search-line"></i>
+                </span>
+
+                <div className="flex flex-wrap justify-center items-center text-[15px] font-bold gap-x-1 gap-y-1 whitespace-nowrap">
+                  {addon.num_searches > 0 && (
+                    <span>{addon.num_searches}</span>
+                  )}
+                  <span className="break-keep">
+                    Amazon Trend Searches
+                  </span>
+                </div>
+
+                <p className="text-base font-semibold text-primary text-center mt-4">
+                  {addon.cost} $
+                </p>
+              </div>
+
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={() => handleBuyClick(addon)}
+                  className={`w-[60%] px-3 py-2 rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-primary/50 transition font-medium disabled:opacity-50
+          ${isTrial || !isSubscribed
+                      ? "bg-gray-400 text-black cursor-not-allowed"
+                      : "bg-primary text-white hover:bg-primary/90"
+                    }
+      `}
+                  disabled={
+                    purchasingAddonId !== null || isTrial || !isSubscribed
+                  }
+                >
+                  {isTrial
+                    ? "Buy now"
+                    : purchasingAddonId === addon.id
+                      ? "Processing..."
+                      : "Buy now"}
+                </button>
+              </div>
+            </Spktitlecards>
+          ))}
       </div>
 
       {/* Confirmation Modal */}
@@ -509,11 +649,10 @@ const AddonsTab = ({ refreshAccountData }: AddonsTabProps) => {
                   Cancel
                 </button>
                 <button
-                  className={`px-4 py-2 text-white rounded ${
-                    confirmText.toLowerCase() !== "confirm"
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-primary hover:bg-primary"
-                  }`}
+                  className={`px-4 py-2 text-white rounded ${confirmText.toLowerCase() !== "confirm"
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-primary hover:bg-primary"
+                    }`}
                   onClick={handleConfirmPurchase}
                   disabled={confirmText.toLowerCase() !== "confirm"}
                 >

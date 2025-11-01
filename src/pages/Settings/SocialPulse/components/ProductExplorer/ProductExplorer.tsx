@@ -637,11 +637,14 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
       {/* Header and Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-md dark:shadow-lg">
         <div className="p-6">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Blueritt Socialpulse</h2>
+          <h2 className="text-3xl font-bold text-blue-900 dark:text-white mb-2">BlueRitt SocialPulse</h2>
 
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Amazon Trends</h2>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+                        <TrendingUp className="w-8 h-8 text-[orange]" />
+                        Amazon Trends
+                      </h1>
               <p className="text-gray-600 dark:text-gray-400">Discover trending products, search by keywords, or browse by category</p>
             </div>
 
@@ -765,7 +768,7 @@ const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(f
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                    TopChoice Plus Type
+                    Trend Type
                   </label>
                   <select
                     value={selectedType}

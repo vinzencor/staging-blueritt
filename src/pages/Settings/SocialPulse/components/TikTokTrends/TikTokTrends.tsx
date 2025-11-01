@@ -660,13 +660,13 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
   return (
     <div className="w-full max-w-7xl mx-auto p-6">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Blueritt Socialpulse</h2>
+          <h2 className="text-3xl font-bold text-blue-900 dark:text-white mb-2">BlueRitt SocialPulse</h2>
 
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
           <TrendingUp className="w-8 h-8 text-[#0072D6]" />
-          Blueritt - TikTok Trends
+          TikTok Trends
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
           Discover trending products from TikTok Creative Center API
@@ -2075,7 +2075,7 @@ const ShopAnalysisTab: React.FC<ShopAnalysisTabProps> = ({
   );
 };
 
-// Product Image Component with Pexels Fallback
+// Product Image Component with Freepik Fallback
 interface ProductImageWithFallbackProps {
   product: any;
   className?: string;
@@ -2098,7 +2098,7 @@ const ProductImageWithFallback: React.FC<ProductImageWithFallbackProps> = ({ pro
       const searchQuery = product.url_title || product.title || extractCategoryName(product);
       const cacheKey = `${product.id || ''}_${searchQuery}`;
 
-      console.log('🖼️ Fetching Pexels fallback for product:', {
+      console.log('🖼️ Fetching Freepik fallback for product:', {
         id: product.id,
         url_title: product.url_title,
         title: product.title,
@@ -2108,11 +2108,11 @@ const ProductImageWithFallback: React.FC<ProductImageWithFallbackProps> = ({ pro
       const fallbackImage = await fetchPexelsFallbackImage(searchQuery, cacheKey);
 
       if (fallbackImage) {
-        console.log('✅ Pexels fallback loaded:', fallbackImage);
+        console.log('✅ Freepik fallback loaded:', fallbackImage);
         setImageSrc(fallbackImage);
       }
     } catch (error) {
-      console.error('❌ Error fetching Pexels fallback:', error);
+      console.error('❌ Error fetching Freepik fallback:', error);
     } finally {
       setIsLoadingFallback(false);
     }

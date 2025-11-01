@@ -25,6 +25,7 @@ import {
 import { getAmazonCategories } from "@/api/product";
 import AmazonTrendsProductDetailsModal from "../SearchProduct/AmazonTrendsProductDetailsModal";
 import { type AmazonTrendingProduct } from "@/api/amazonTrends";
+import { loadAmazonCategories, type AmazonCategoryItem } from "@/utils/amazonCategories";
 
 type TUpdatedSearchFilters = {
   starRatingMin: number;
@@ -198,11 +199,26 @@ const Card: React.FC<TDataTableProps> = ({
   const [showProductModal, setShowProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<AmazonTrendingProduct | null>(null);
 
-  const { data: categoriesData } = useQuery({
-    queryKey: ["getAmazonCategories"],
-    queryFn: getAmazonCategories,
-    staleTime: 1000 * 60 * 60 * 24,
-  });
+  // Load local Amazon categories from JSON file (same as BlueRitt Explorer)
+  const [localCategories, setLocalCategories] = useState<AmazonCategoryItem[]>([]);
+
+  useEffect(() => {
+    const { allCategories } = loadAmazonCategories();
+    setLocalCategories(allCategories);
+    console.log('📁 Loaded Amazon categories from local JSON:', allCategories.length);
+  }, []);
+
+  // Transform local categories to match the expected format for the dropdown
+  const categoriesData = useMemo(() => {
+    if (localCategories.length === 0) return null;
+
+    return {
+      data: localCategories.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+      }))
+    };
+  }, [localCategories]);
 
   const sortedProducts = useMemo(() => {
     if (sortOption.key === "default") return products;

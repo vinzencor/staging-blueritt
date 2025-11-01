@@ -430,14 +430,30 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               )}
             </div>
 
-            {/* Calculate Profit Button */}
-            <button
-              onClick={() => onSelectSupplier(supplier)}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <Calculator className="w-4 h-4" />
-              Calculate Profit
-            </button>
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              {/* Contact Supplier Button */}
+              {supplier.contact_url && (
+                <a
+                  href={supplier.contact_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-2 px-4 rounded-lg transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Contact Supplier
+                </a>
+              )}
+
+              {/* Calculate Profit Button */}
+              <button
+                onClick={() => onSelectSupplier(supplier)}
+                className={`${supplier.contact_url ? 'flex-1' : 'w-full'} bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-colors flex items-center justify-center gap-2`}
+              >
+                <Calculator className="w-4 h-4" />
+                Calculate Profit
+              </button>
+            </div>
           </div>
         ))}
       </div>

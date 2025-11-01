@@ -629,160 +629,14 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-  <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-    {/* Header */}
-    <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
-      <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-        Posts by {influencerName}
-      </h2>
-      <button
-        onClick={onClose}
-        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-      >
-        <X className="w-6 h-6" />
-      </button>
-    </div>
-
-    {/* Content */}
-    <div className="p-4">
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-8">
-          <Loader className="w-6 h-6 animate-spin text-purple-600 mb-2" />
-          <p className="text-sm text-gray-600 dark:text-gray-400">Loading posts...</p>
-        </div>
-      ) : error ? (
-        <div className="flex items-start gap-3 text-orange-600 text-sm p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-medium">{error}</p>
-            <p className="text-xs mt-1 opacity-75">Influencer: {influencerName}</p>
-          </div>
-        </div>
-      ) : posts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
-          {posts.map((post, index) => (
-            <div
-              key={post.post_id || index}
-              className="bg-white h-[294px] dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md transition-shadow flex flex-col"
-            >
-              {/* Image and Content Side by Side */}
-              <div className="flex flex-1 justify-center items-center">
-                {/* Post Image/Thumbnail */}
-                {(post.post_thumbnail || post.image_url || post.image) && (
-                  <div className="w-1/3 flex-shrink-0">
-                    <div className="h-full bg-gray-200 dark:bg-gray-600 overflow-hidden">
-                      <img
-                        src={post.post_thumbnail || post.image_url || post.image}
-                        alt={post.post_title || 'Post'}
-                        className="w-full h-[215px] object-cover p-2"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Post Info */}
-                <div className="flex-1 p-4 flex flex-col">
-                  {/* Post Type Badge */}
-                  {post.post_type && (
-                    <div className="mb-2">
-                      <span className="inline-block bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs px-2 py-1 rounded">
-                        {post.post_type}
-                      </span>
-                    </div>
-                  )}
-
-                  {(post.post_title || post.title) && (
-                    <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
-                      {post.post_title || post.title}
-                    </h3>
-                  )}
-
-                  {(post.post_description || post.description) && (
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-3 flex-1">
-                      {post.post_description || post.description}
-                    </p>
-                  )}
-
-                  {/* Stats */}
-                  <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
-                    {(post.likes_count || post.likes) && (
-                      <span className="flex items-center gap-1">
-                        <span>❤️</span>
-                        <span>{post.likes_count || post.likes}</span>
-                      </span>
-                    )}
-                    {(post.comments_count || post.comments) && (
-                      <span className="flex items-center gap-1">
-                        <span>💬</span>
-                        <span>{post.comments_count || post.comments}</span>
-                      </span>
-                    )}
-                    {post.video_duration && (
-                      <span className="flex items-center gap-1">
-                        <span>⏱️</span>
-                        <span>{post.video_duration}</span>
-                      </span>
-                    )}
-                    {post.list_items_count && (
-                      <span className="flex items-center gap-1">
-                        <span>📋</span>
-                        <span>{post.list_items_count} items</span>
-                      </span>
-                    )}
-                    {post.is_pinned && (
-                      <span className="flex items-center gap-1">
-                        <span>📌</span>
-                        <span>Pinned</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* View Post Button - Full width at bottom */}
-              {(post.post_url || post.url) && (
-                <div className="border-t border-gray-200 dark:border-gray-600">
-                  <button
-                    onClick={() => setSelectedPost(post)}
-                    className="w-full bg-[#ffa41c] hover:bg-[#e59419] text-white text-center py-3 px-4 text-sm font-medium transition-colors duration-200"
-                  >
-                    View Post
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center mb-4">
-            <AlertCircle className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No posts found
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 max-w-md">
-            No posts available for {influencerName}. This influencer might not have any public posts or there might be an issue with the data source.
-          </p>
-        </div>
-      )}
-    </div>
-  </div>
-
-  {/* Post Detail Modal */}
-  {selectedPost && (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-            Post Details
+            Posts by {influencerName}
           </h2>
           <button
-            onClick={() => setSelectedPost(null)}
+            onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
             <X className="w-6 h-6" />
@@ -790,118 +644,264 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Post Image */}
-          {(selectedPost.post_thumbnail || selectedPost.image_url || selectedPost.image) && (
-            <div className="w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
-              <img
-                src={selectedPost.post_thumbnail || selectedPost.image_url || selectedPost.image}
-                alt={selectedPost.post_title || 'Post'}
-                className="w-full h-auto object-cover max-h-96"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
+        <div className="p-4">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader className="w-6 h-6 animate-spin text-purple-600 mb-2" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Loading posts...</p>
             </div>
-          )}
-
-          {/* Post Type Badge */}
-          {selectedPost.post_type && (
-            <div>
-              <span className="inline-block bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-sm px-3 py-1 rounded-full font-medium">
-                {selectedPost.post_type}
-              </span>
-            </div>
-          )}
-
-          {/* Post Title */}
-          {(selectedPost.post_title || selectedPost.title) && (
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {selectedPost.post_title || selectedPost.title}
-              </h3>
-            </div>
-          )}
-
-          {/* Post Description */}
-          {(selectedPost.post_description || selectedPost.description) && (
-            <div>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                {selectedPost.post_description || selectedPost.description}
-              </p>
-            </div>
-          )}
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {(selectedPost.likes_count || selectedPost.likes) && (
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 text-center">
-                <div className="text-2xl mb-2">❤️</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Likes</div>
-                <div className="text-xl font-bold text-gray-900 dark:text-white">
-                  {selectedPost.likes_count || selectedPost.likes}
-                </div>
-              </div>
-            )}
-            {(selectedPost.comments_count || selectedPost.comments) && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
-                <div className="text-2xl mb-2">💬</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Comments</div>
-                <div className="text-xl font-bold text-gray-900 dark:text-white">
-                  {selectedPost.comments_count || selectedPost.comments}
-                </div>
-              </div>
-            )}
-            {selectedPost.video_duration && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 text-center">
-                <div className="text-2xl mb-2">⏱️</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Duration</div>
-                <div className="text-xl font-bold text-gray-900 dark:text-white">
-                  {selectedPost.video_duration}
-                </div>
-              </div>
-            )}
-            {selectedPost.list_items_count && (
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                <div className="text-2xl mb-2">📋</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Items</div>
-                <div className="text-xl font-bold text-gray-900 dark:text-white">
-                  {selectedPost.list_items_count}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Pinned Badge */}
-          {selectedPost.is_pinned && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 flex items-center gap-3">
-              <span className="text-2xl">📌</span>
+          ) : error ? (
+            <div className="flex items-start gap-3 text-orange-600 text-sm p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-yellow-900 dark:text-yellow-300">Pinned Post</p>
-                <p className="text-sm text-yellow-800 dark:text-yellow-400">This post is pinned on the influencer's profile</p>
+                <p className="font-medium">{error}</p>
+                <p className="text-xs mt-1 opacity-75">Influencer: {influencerName}</p>
               </div>
             </div>
-          )}
+          ) : posts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
+              {posts.map((post, index) => (
+                <div
+                  key={post.post_id || index}
+                  className="bg-white h-[294px] dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md transition-shadow flex flex-col"
+                >
+                  {/* Image and Content Side by Side */}
+                  <div className="flex flex-1 justify-center items-center">
+                    {/* Post Image/Thumbnail */}
+                    {(post.post_thumbnail || post.image_url || post.image) && (
+                      <div className="w-1/3 flex-shrink-0">
+                        <div className="h-full bg-gray-200 dark:bg-gray-600 overflow-hidden">
+                          <img
+                            src={post.post_thumbnail || post.image_url || post.image}
+                            alt={post.post_title || 'Post'}
+                            className="w-full h-[215px] object-cover p-2"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
 
-          {/* View Original Button */}
-          {(selectedPost.post_url || selectedPost.url) && (
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <a
-                href={selectedPost.post_url || selectedPost.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full bg-[#ffa41c] hover:bg-[#e59419] text-white py-3 px-4 rounded-lg text-center font-medium transition-colors duration-200 flex items-center justify-center gap-2"
-              >
-                View Original Post
-                <ExternalLink className="w-4 h-4" />
-              </a>
+                    {/* Post Info */}
+                    <div className="flex-1 p-4 flex flex-col">
+                      {/* Post Type Badge */}
+                      {post.post_type && (
+                        <div className="mb-2">
+                          <span className="inline-block bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs px-2 py-1 rounded">
+                            {post.post_type}
+                          </span>
+                        </div>
+                      )}
+
+                      {(post.post_title || post.title) && (
+                        <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-2 line-clamp-2">
+                          {post.post_title || post.title}
+                        </h3>
+                      )}
+
+                      {(post.post_description || post.description) && (
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 line-clamp-3 flex-1">
+                          {post.post_description || post.description}
+                        </p>
+                      )}
+
+                      {/* Stats */}
+                      <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
+                        {(post.likes_count || post.likes) && (
+                          <span className="flex items-center gap-1">
+                            <span>❤️</span>
+                            <span>{post.likes_count || post.likes}</span>
+                          </span>
+                        )}
+                        {(post.comments_count || post.comments) && (
+                          <span className="flex items-center gap-1">
+                            <span>💬</span>
+                            <span>{post.comments_count || post.comments}</span>
+                          </span>
+                        )}
+                        {post.video_duration && (
+                          <span className="flex items-center gap-1">
+                            <span>⏱️</span>
+                            <span>{post.video_duration}</span>
+                          </span>
+                        )}
+                        {post.list_items_count && (
+                          <span className="flex items-center gap-1">
+                            <span>📋</span>
+                            <span>{post.list_items_count} items</span>
+                          </span>
+                        )}
+                        {post.is_pinned && (
+                          <span className="flex items-center gap-1">
+                            <span>📌</span>
+                            <span>Pinned</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* View Post Button - Full width at bottom */}
+                  {(post.post_url || post.url) && (
+                    <div className="border-t border-gray-200 dark:border-gray-600">
+                      <button
+                        onClick={() => setSelectedPost(post)}
+                        className="w-full bg-[#ffa41c] hover:bg-[#e59419] text-white text-center py-3 px-4 text-sm font-medium transition-colors duration-200"
+                      >
+                        View Post
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                No posts found
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                No posts available for {influencerName}. This influencer might not have any public posts or there might be an issue with the data source.
+              </p>
             </div>
           )}
         </div>
       </div>
+
+      {/* Post Detail Modal */}
+      {selectedPost && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                Post Details
+              </h2>
+              <button
+                onClick={() => setSelectedPost(null)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Post Image */}
+              {(selectedPost.post_thumbnail || selectedPost.image_url || selectedPost.image) && (
+                <div className="w-full rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700">
+                  <img
+                    src={selectedPost.post_thumbnail || selectedPost.image_url || selectedPost.image}
+                    alt={selectedPost.post_title || 'Post'}
+                    className="w-full h-auto object-cover max-h-96"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Post Type Badge */}
+              {selectedPost.post_type && (
+                <div>
+                  <span className="inline-block bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-sm px-3 py-1 rounded-full font-medium">
+                    {selectedPost.post_type}
+                  </span>
+                </div>
+              )}
+
+              {/* Post Title */}
+              {(selectedPost.post_title || selectedPost.title) && (
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {selectedPost.post_title || selectedPost.title}
+                  </h3>
+                </div>
+              )}
+
+              {/* Post Description */}
+              {(selectedPost.post_description || selectedPost.description) && (
+                <div>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    {selectedPost.post_description || selectedPost.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {(selectedPost.likes_count || selectedPost.likes) && (
+                  <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 text-center">
+                    <div className="text-2xl mb-2">❤️</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Likes</div>
+                    <div className="text-xl font-bold text-gray-900 dark:text-white">
+                      {selectedPost.likes_count || selectedPost.likes}
+                    </div>
+                  </div>
+                )}
+                {(selectedPost.comments_count || selectedPost.comments) && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
+                    <div className="text-2xl mb-2">💬</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Comments</div>
+                    <div className="text-xl font-bold text-gray-900 dark:text-white">
+                      {selectedPost.comments_count || selectedPost.comments}
+                    </div>
+                  </div>
+                )}
+                {selectedPost.video_duration && (
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 text-center">
+                    <div className="text-2xl mb-2">⏱️</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Duration</div>
+                    <div className="text-xl font-bold text-gray-900 dark:text-white">
+                      {selectedPost.video_duration}
+                    </div>
+                  </div>
+                )}
+                {selectedPost.list_items_count && (
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
+                    <div className="text-2xl mb-2">📋</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Items</div>
+                    <div className="text-xl font-bold text-gray-900 dark:text-white">
+                      {selectedPost.list_items_count}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Pinned Badge */}
+              {selectedPost.is_pinned && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 flex items-center gap-3">
+                  <span className="text-2xl">📌</span>
+                  <div>
+                    <p className="font-semibold text-yellow-900 dark:text-yellow-300">Pinned Post</p>
+                    <p className="text-sm text-yellow-800 dark:text-yellow-400">This post is pinned on the influencer's profile</p>
+                  </div>
+                </div>
+              )}
+
+              {/* View Original Button */}
+              {(selectedPost.post_url || selectedPost.url) && (
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <a
+                    href={selectedPost.post_url || selectedPost.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#ffa41c] hover:bg-[#e59419] text-white py-3 px-4 rounded-lg text-center font-medium transition-colors duration-200 flex items-center justify-center gap-2"
+                  >
+                    View Original Post
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  )}
-</div>
   );
 };
 
@@ -941,14 +941,15 @@ const InfluencersPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <h2 className="text-3xl font-bold text-blue-900 dark:text-white mb-2">BlueRitt SocialPulse</h2>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center">
-              <Users className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Influencer Link</h1>
+              <Users className="w-6 h-6 text-[blue]" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3">
+              Influencer Link
+            </h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
             Discover and analyze top influencers
