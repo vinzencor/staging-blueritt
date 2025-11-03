@@ -113,7 +113,6 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     setSelectedLocalSubcategory('');
     setSelectedCategoryId('');
     setSelectedCategoryPath('');
-    console.log('🌍 Country changed to:', country, '- Resetting category selection');
   }, [country]);
 
   // Countries list - Only 13 countries from BlueRitt Explorer
@@ -163,7 +162,6 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           type: selectedType
         });
 
-        console.log('✅ Best sellers response:', result);
 
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
@@ -171,13 +169,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        console.log('Best sellers products fetched:', result?.data?.products?.length || 0);
-        console.log('=== END FRONTEND BESTSELLERS DEBUG ===');
 
         // Return the result as-is
         return result;
       } catch (error) {
-        console.error('❌ Error fetching best sellers:', error);
+        console.error('Error fetching best sellers:', error);
         throw error;
       }
     },
@@ -206,20 +202,16 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           page: 1
         });
 
-        console.log('✅ Search response:', result);
-
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
           console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        console.log('Search products fetched:', result?.data?.products?.length || 0);
-
         // Return the result as-is
         return result;
       } catch (error) {
-        console.error('❌ Error fetching search results:', error);
+        console.error('Error fetching search results:', error);
         throw error;
       }
     },
@@ -248,20 +240,15 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           page: 1
         });
 
-        console.log('✅ Category response:', result);
-
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
-          console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
           updateAmazonSearchQuota(result.remaining_quota);
         }
-
-        console.log('Category products fetched:', result?.data?.products?.length || 0);
 
         // Return the result as-is
         return result;
       } catch (error) {
-        console.error('❌ Error fetching category products:', error);
+        console.error('Error fetching category products:', error);
         throw error;
       }
     },
@@ -284,7 +271,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   } = useQuery({
     queryKey: ['amazon-best-seller-products-explorer', selectedCategoryId, country, page, selectedType],
     queryFn: async () => {
-      console.log('🚀 Products Query Starting:', {
+      console.log('Products Query Starting:', {
         categoryId: selectedCategoryId,
         selectedCountry: country,
         page: page,
@@ -295,7 +282,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       // Extract numeric ID from local JSON format (e.g., "baby-products/695338011" -> "695338011")
       const apiCategoryId = extractNumericCategoryId(selectedCategoryId);
 
-      console.log('📦 Using Category ID:', {
+      console.log('Using Category ID:', {
         original: selectedCategoryId,
         forAPI: apiCategoryId,
         selectedCountry: country,
@@ -314,11 +301,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           dealsAndDiscounts: 'NONE',
         });
 
-        console.log('✅ Category products response:', result);
-
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
-          console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
@@ -333,7 +317,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           result.data.products = shuffledProducts;
         }
 
-        console.log('🎯 Products Fetched and Shuffled:', {
+        console.log('Products Fetched and Shuffled:', {
           categoryId: selectedCategoryId,
           displayCountry: country,
           actualCountry: 'US',
@@ -343,7 +327,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         // Return the result with shuffled products
         return result;
       } catch (error) {
-        console.error('❌ Error fetching products:', error);
+        console.error('Error fetching products:', error);
         throw error;
       }
     },
@@ -355,7 +339,6 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     refetchOnMount: false,
   });
 
-  // No longer fetching categories from API - using local JSON for all countries
 
   // Log query results when data changes
   React.useEffect(() => {
@@ -363,7 +346,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       const products = directCategoryProductsData?.data?.products;
       const isProductsArray = Array.isArray(products);
 
-      console.log('🎉 Direct Category Products Query SUCCESS:', {
+      console.log('Direct Category Products Query SUCCESS:', {
         categoryId: selectedCategoryId,
         hasData: !!directCategoryProductsData,
         hasProducts: !!products,
