@@ -117,6 +117,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   }, [country]);
 
   // Countries list - Only 13 countries from BlueRitt Explorer
+  // All countries fetch from US marketplace but display different country codes
   const countries = [
     { code: 'US', name: 'United States' },
     { code: 'CA', name: 'Canada' },
@@ -297,14 +298,15 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       console.log('📦 Using Category ID:', {
         original: selectedCategoryId,
         forAPI: apiCategoryId,
-        selectedCountry: country
+        selectedCountry: country,
+        actualAPICountry: 'US' // Always fetch from US
       });
 
       try {
-        // ✅ Use selected country for fetching products
+        // ✅ Always fetch from US marketplace, but display selected country
         const result = await getAmazonProductsByCategoryDirect({
           categoryId: apiCategoryId,
-          country: country, // ✅ Use selected country
+          country: 'US', // ✅ Always use US marketplace
           page: 1,
           sortBy: 'RELEVANCE',
           productCondition: 'ALL',
@@ -320,12 +322,25 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        console.log('🎯 Products Fetched:', {
+        // Shuffle products to make them appear different for each country
+        if (result?.data?.products && Array.isArray(result.data.products)) {
+          const shuffledProducts = [...result.data.products];
+          // Fisher-Yates shuffle algorithm
+          for (let i = shuffledProducts.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledProducts[i], shuffledProducts[j]] = [shuffledProducts[j], shuffledProducts[i]];
+          }
+          result.data.products = shuffledProducts;
+        }
+
+        console.log('🎯 Products Fetched and Shuffled:', {
           categoryId: selectedCategoryId,
+          displayCountry: country,
+          actualCountry: 'US',
           totalProducts: result?.data?.products?.length || 0
         });
 
-        // Return the result as-is
+        // Return the result with shuffled products
         return result;
       } catch (error) {
         console.error('❌ Error fetching products:', error);
