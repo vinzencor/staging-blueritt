@@ -116,30 +116,21 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     console.log('🌍 Country changed to:', country, '- Resetting category selection');
   }, [country]);
 
-  // Countries list
+  // Countries list - Only 13 countries from BlueRitt Explorer
   const countries = [
     { code: 'US', name: 'United States' },
-    { code: 'AU', name: 'Australia' },
-    { code: 'BR', name: 'Brazil' },
     { code: 'CA', name: 'Canada' },
-    { code: 'CN', name: 'China' },
+    { code: 'MX', name: 'Mexico' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'AU', name: 'Australia' },
     { code: 'FR', name: 'France' },
     { code: 'DE', name: 'Germany' },
-    { code: 'IN', name: 'India' },
-    { code: 'IT', name: 'Italy' },
-    { code: 'MX', name: 'Mexico' },
-    { code: 'NL', name: 'Netherlands' },
-    { code: 'SG', name: 'Singapore' },
-    { code: 'ES', name: 'Spain' },
-    { code: 'TR', name: 'Turkey' },
-    { code: 'AE', name: 'United Arab Emirates' },
-    { code: 'GB', name: 'United Kingdom' },
-    { code: 'JP', name: 'Japan' },
-    { code: 'SA', name: 'Saudi Arabia' },
-    { code: 'PL', name: 'Poland' },
     { code: 'SE', name: 'Sweden' },
-    { code: 'BE', name: 'Belgium' },
-    { code: 'EG', name: 'Egypt' },
+    { code: 'PL', name: 'Poland' },
+    { code: 'TR', name: 'Turkey' },
+    { code: 'AE', name: 'UAE' },
+    { code: 'IN', name: 'India' },
   ];
 
   // Amazon Trends Types
@@ -295,7 +286,6 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       console.log('🚀 Products Query Starting:', {
         categoryId: selectedCategoryId,
         selectedCountry: country,
-        apiCountry: 'US', // Always fetch from US
         page: page,
         type: selectedType,
         enabled: !!selectedCategoryId
@@ -307,15 +297,14 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       console.log('📦 Using Category ID:', {
         original: selectedCategoryId,
         forAPI: apiCategoryId,
-        selectedCountry: country,
-        apiCountry: 'US' // Always fetch from US
+        selectedCountry: country
       });
 
       try {
-        // ✅ Always fetch from US regardless of selected country
+        // ✅ Use selected country for fetching products
         const result = await getAmazonProductsByCategoryDirect({
           categoryId: apiCategoryId,
-          country: 'US', // ✅ Always use US
+          country: country, // ✅ Use selected country
           page: 1,
           sortBy: 'RELEVANCE',
           productCondition: 'ALL',

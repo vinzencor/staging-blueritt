@@ -46,23 +46,21 @@ export interface BestSellerProduct {
 // Default category for best sellers
 const DEFAULT_CATEGORY = 'amazon-devices';
 
-// Country options for Amazon marketplace
+// Country options for Amazon marketplace - Only 13 countries from BlueRitt Explorer
 const COUNTRY_OPTIONS = [
   { code: 'US', name: 'United States', flag: '🇺🇸' },
-  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
-  { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
   { code: 'CA', name: 'Canada', flag: '🇨🇦' },
-  { code: 'CN', name: 'China', flag: '🇨🇳' },
+  { code: 'MX', name: 'Mexico', flag: '🇲🇽' },
+  { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
   { code: 'FR', name: 'France', flag: '🇫🇷' },
   { code: 'DE', name: 'Germany', flag: '🇩🇪' },
-  { code: 'IN', name: 'India', flag: '🇮🇳' },
-  { code: 'IT', name: 'Italy', flag: '🇮🇹' },
-  { code: 'MX', name: 'Mexico', flag: '🇲🇽' },
-  { code: 'NL', name: 'Netherlands', flag: '🇳🇱' },
-  { code: 'SG', name: 'Singapore', flag: '🇸🇬' },
-  { code: 'ES', name: 'Spain', flag: '🇪🇸' },
+  { code: 'SE', name: 'Sweden', flag: '🇸🇪' },
+  { code: 'PL', name: 'Poland', flag: '🇵🇱' },
   { code: 'TR', name: 'Turkey', flag: '🇹🇷' },
   { code: 'AE', name: 'UAE', flag: '🇦🇪' },
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
   { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
   { code: 'JP', name: 'Japan', flag: '🇯🇵' },
   { code: 'SA', name: 'Saudi Arabia', flag: '🇸🇦' },
