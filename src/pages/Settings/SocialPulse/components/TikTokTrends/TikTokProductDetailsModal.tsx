@@ -770,11 +770,18 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onSelectSupplier }) => {
-  // Filter to show only verified suppliers (exclude "Unverified" status)
+  // ✅ TikTok: ALWAYS show ONLY verified suppliers (completely exclude unverified)
   const verifiedSuppliers = suppliers.filter(supplier =>
     supplier.verification_status &&
     supplier.verification_status.toLowerCase() !== 'unverified'
   );
+
+  console.log('🏭 TikTok Supplier Filtering:', {
+    totalSuppliers: suppliers.length,
+    verifiedSuppliers: verifiedSuppliers.length,
+    displayingVerifiedOnly: true, // Always true for TikTok
+    unverifiedExcluded: suppliers.length - verifiedSuppliers.length
+  });
 
   if (isLoading) {
     return (
@@ -802,7 +809,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
         <Truck className="w-16 h-16 mx-auto text-gray-400 mb-4" />
         <p className="text-gray-600">
           {suppliers.length > 0
-            ? 'No verified suppliers found. All suppliers are unverified.'
+            ? 'No verified suppliers found. All suppliers are unverified. Only verified suppliers are displayed in TikTok Trends.'
             : 'Click "Discover Suppliers" to find verified suppliers for this TikTok product'
           }
         </p>
@@ -816,7 +823,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex-shrink-0">
         <h4 className="font-semibold text-purple-900 mb-2">Analysis Complete</h4>
         <p className="text-sm text-purple-800">
-          Found {verifiedSuppliers.length} verified suppliers in {analysisTime.toFixed(1)} seconds using AI matching
+          Found {verifiedSuppliers.length} verified suppliers in {analysisTime.toFixed(1)} seconds using AI matching (showing verified only)
         </p>
       </div>
 

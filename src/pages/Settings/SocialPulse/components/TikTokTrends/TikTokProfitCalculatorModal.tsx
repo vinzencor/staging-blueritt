@@ -248,6 +248,14 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
 
     // Debug logging - Check all possible title and rating fields
     const productAny = product as any; // Type assertion to access dynamic fields
+
+    // Determine the best image URL (try multiple sources)
+    const bestImageUrl = product.image_url ||
+                        productAny.cover_url ||
+                        productAny.image_url ||
+                        (productAny.images && productAny.images[0]) ||
+                        '';
+
     console.log('🔍 TikTok Product Save Debug:', {
       productId: product.id,
       productTitle: product.title,
@@ -262,6 +270,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
       supplierName: supplier.name,
       imageUrl: product.image_url,
       coverUrl: productAny.cover_url,
+      bestImageUrl: bestImageUrl,
       rating: product.rating,
       productRating: productAny.product_rating,
       reviewCount: productAny.review_count,
@@ -273,7 +282,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
     const bestTitle = productAny.url_title || product.title || 'TikTok Product';
 
     // Determine the best rating to use (check multiple possible fields)
-    const bestRating = productAny.product_rating || product.rating || 0;
+    // TikTok Creative Center products don't have ratings, so use a default of 4.5 if no rating exists
+    const bestRating = productAny.product_rating || product.rating || 4.5;
 
     // Determine the best price to use (prioritize calculation selling price, then supplier price, then product price)
     const bestPrice = calculation.pi_sellingPrice ||
@@ -283,7 +293,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
     console.log('🔍 Best Values Determined:', {
       bestTitle,
       bestRating,
-      bestPrice
+      bestPrice,
+      bestImageUrl
     });
 
     // Prepare product data with MarginMax Basic field structure
@@ -320,7 +331,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
           product_star_rating: bestRating.toString(),
           product_num_ratings: productAny.review_count || 0,
           product_url: productAny.video_url || productAny.url || '',
-          product_photo: product.image_url || productAny.cover_url || '',
+          product_photo: bestImageUrl,
           product_num_offers: 1,
           product_availability: 'In Stock',
           is_best_seller: false,
@@ -332,7 +343,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
           product_description: productAny.description || '',
           product_information: {},
           product_videos: productAny.video_url ? [productAny.video_url] : [],
-          product_photos: product.image_url ? [product.image_url] : [],
+          product_photos: bestImageUrl ? [bestImageUrl] : [],
           has_video: !!productAny.video_url,
           product_details: {},
           primary_delivery_time: supplier.lead_time || '7-14 days',
@@ -369,10 +380,18 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
         lead_time: supplier.lead_time,
         estimated_price: supplier.estimated_price,
         verification_status: supplier.verification_status,
+        verification_badge: supplier.verification_badge || supplier.verification_status,
         ai_match_score: supplier.ai_match_score,
         rating: supplier.rating || 0,
         total_transactions: supplier.total_transactions || 0,
         response_rate: supplier.response_rate || '95%',
+        years_in_business: supplier.years_in_business || 0,
+        main_products: supplier.main_products || '',
+        certifications: supplier.certifications || [],
+        trade_assurance: supplier.trade_assurance || false,
+        contact_method: supplier.contact_method || '',
+        contact_url: supplier.contact_url || '',
+        match_explanation: supplier.match_explanation || '',
       },
 
       // Product Information (MarginMax Basic format)

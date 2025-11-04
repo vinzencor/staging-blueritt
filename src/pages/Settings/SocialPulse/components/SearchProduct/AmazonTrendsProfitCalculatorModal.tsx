@@ -247,6 +247,14 @@ const AmazonTrendsProfitCalculatorModal: React.FC<AmazonTrendsProfitCalculatorMo
       return '$0';
     };
 
+    // Determine the best image URL (try multiple sources)
+    const productAny = product as any;
+    const bestImageUrl = product.product_photo ||
+                        productAny.image ||
+                        productAny.product_image ||
+                        (productAny.product_photos && productAny.product_photos[0]) ||
+                        '';
+
     // Debug logging
     console.log('🔍 Amazon Trends Product Save Debug:', {
       productAsin: product.asin,
@@ -257,6 +265,7 @@ const AmazonTrendsProfitCalculatorModal: React.FC<AmazonTrendsProfitCalculatorMo
       saveTitle: saveTitle.trim(),
       supplierName: supplier.name,
       imageUrl: product.product_photo,
+      bestImageUrl: bestImageUrl,
       rating: product.product_star_rating,
       reviewCount: product.product_num_ratings,
       brand: product.brand,
@@ -295,7 +304,7 @@ const AmazonTrendsProfitCalculatorModal: React.FC<AmazonTrendsProfitCalculatorMo
           product_star_rating: product.product_star_rating || '0',
           product_num_ratings: product.product_num_ratings || 0,
           product_url: product.product_url || '',
-          product_photo: product.product_photo || '',
+          product_photo: bestImageUrl,
           product_num_offers: 1,
           product_availability: 'In Stock',
           is_best_seller: product.is_best_seller || false,
@@ -307,7 +316,7 @@ const AmazonTrendsProfitCalculatorModal: React.FC<AmazonTrendsProfitCalculatorMo
           product_description: '',
           product_information: {},
           product_videos: [],
-          product_photos: product.product_photo ? [product.product_photo] : [],
+          product_photos: bestImageUrl ? [bestImageUrl] : [],
           has_video: false,
           product_details: {},
           brand: product.brand || '',
@@ -346,10 +355,18 @@ const AmazonTrendsProfitCalculatorModal: React.FC<AmazonTrendsProfitCalculatorMo
         lead_time: supplier.lead_time,
         estimated_price: supplier.estimated_price,
         verification_status: supplier.verification_status,
+        verification_badge: supplier.verification_badge || supplier.verification_status,
         ai_match_score: supplier.ai_match_score,
         rating: supplier.rating || 0,
         total_transactions: supplier.total_transactions || 0,
         response_rate: supplier.response_rate || '95%',
+        years_in_business: supplier.years_in_business || 0,
+        main_products: supplier.main_products || '',
+        certifications: supplier.certifications || [],
+        trade_assurance: supplier.trade_assurance || false,
+        contact_method: supplier.contact_method || '',
+        contact_url: supplier.contact_url || '',
+        match_explanation: supplier.match_explanation || '',
       },
 
       // Product Information (MarginMax Basic format)

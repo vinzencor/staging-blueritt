@@ -131,7 +131,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
   const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
   const [hashtagsError, setHashtagsError] = useState<string | null>(null);
   const [hashtagPeriod, setHashtagPeriod] = useState('120');
-  const [hashtagCountry, setHashtagCountry] = useState('US');
+  const [hashtagCountry, setHashtagCountry] = useState('GB'); // ✅ Default to UK
   const [hashtagIndustry, setHashtagIndustry] = useState('');
 
   // Determine if we're on TikTok page

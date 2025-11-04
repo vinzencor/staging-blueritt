@@ -330,11 +330,18 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onSelectSupplier }) => {
-  // Filter to show only verified suppliers (exclude "Unverified" status)
+  // ✅ Amazon: ALWAYS show ONLY verified suppliers (completely exclude unverified)
   const verifiedSuppliers = suppliers?.filter(supplier =>
     supplier.verification_status &&
     supplier.verification_status.toLowerCase() !== 'unverified'
   ) || [];
+
+  console.log('🏭 Amazon Trends Supplier Filtering:', {
+    totalSuppliers: suppliers?.length || 0,
+    verifiedSuppliers: verifiedSuppliers.length,
+    displayingVerifiedOnly: true, // Always true for Amazon
+    unverifiedExcluded: (suppliers?.length || 0) - verifiedSuppliers.length
+  });
 
   if (isLoading) {
     return (
@@ -352,7 +359,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
         <Truck className="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <p className="text-gray-600 dark:text-gray-400">
           {suppliers && suppliers.length > 0
-            ? 'No verified suppliers found. All suppliers are unverified.'
+            ? 'No verified suppliers found. All suppliers are unverified. Only verified suppliers are displayed in Amazon Trends.'
             : 'No suppliers discovered yet'
           }
         </p>
@@ -372,7 +379,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       {analysisTime > 0 && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
           <p className="text-sm text-blue-800 dark:text-blue-300">
-            ✓ Found {verifiedSuppliers.length} verified suppliers in {analysisTime.toFixed(2)}s
+            ✓ Found {verifiedSuppliers.length} verified suppliers in {analysisTime.toFixed(2)}s (showing verified only)
           </p>
         </div>
       )}

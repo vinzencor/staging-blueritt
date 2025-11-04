@@ -169,6 +169,18 @@ const ProductList: React.FC<ProductListProps> = ({
   const getAmazonData = (product: TProduct) => {
     const amazonProduct = product.amazon_product;
 
+    console.log('🔍 ProductList getAmazonData Debug:', {
+      productId: product.id,
+      productName: product.name,
+      hasAmazonProduct: !!amazonProduct,
+      amazonProductKeys: amazonProduct ? Object.keys(amazonProduct) : [],
+      amazonProduct: amazonProduct,
+      hasData: !!amazonProduct?.data,
+      hasAsin: !!amazonProduct?.asin,
+      hasTitle: !!amazonProduct?.title,
+      hasProductPhoto: !!amazonProduct?.product_photo
+    });
+
     if (!amazonProduct) {
       return null;
     }
@@ -327,7 +339,10 @@ const ProductList: React.FC<ProductListProps> = ({
               gross_profit: product.gross_profit,
               net_profit: product.net_profit,
               quantity: product.quantity,
-              supplier_info: product.supplier_info
+              supplier_info: product.supplier_info,
+              amazonData: amazonData,
+              rating: amazonData?.rating,
+              rawRating: product.amazon_product?.data?.product_star_rating
             });
           }
 
@@ -376,7 +391,9 @@ const ProductList: React.FC<ProductListProps> = ({
                   Asin={hasAmazonData ? amazonData.asin || "" : ""}
                   Currency={hasAmazonData ? amazonData.currency || "" : ""}
                   StarRating={
-                    hasAmazonData ? amazonData.rating?.toString() || "0" : "0"
+                    hasAmazonData && amazonData.rating && amazonData.rating > 0
+                      ? amazonData.rating.toString()
+                      : "0"
                   }
                   SalesVolume={`${amazonData?.salesVolume}` || "0"}
                   ratingCount={amazonData?.numRatings || 0}
@@ -467,37 +484,167 @@ const ProductList: React.FC<ProductListProps> = ({
                   ) : (
                     /* Show seller/supplier info for Amazon/TikTok products */
                     <div className="p-4">
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-900 mb-3">
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
                           {product.supplier_info ? 'Supplier Information' : 'Seller Details'}
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                          {/* Display supplier info if available (from TikTok calculator) */}
+                          {/* Display supplier info if available (from TikTok/Amazon calculator) */}
                           {product.supplier_info ? (
                             <>
-                              <div>
-                                <span className="text-gray-600">Supplier Name:</span>
-                                <span className="ml-2 font-medium">{product.supplier_info.name || 'N/A'}</span>
+                              {/* Supplier Name with Verification Badge */}
+                              <div className="col-span-2">
+                                <span className="text-gray-600 dark:text-gray-400">Supplier Name:</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="font-bold text-gray-900 dark:text-white text-lg">
+                                    {product.supplier_info.name || 'N/A'}
+                                  </span>
+                                  {product.supplier_info.verification_status && (
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                      product.supplier_info.verification_status === 'Gold Verified'
+                                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                                        : product.supplier_info.verification_status === 'Verified'
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+                                    }`}>
+                                      {product.supplier_info.verification_status}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
+
+                              {/* Location */}
                               <div>
-                                <span className="text-gray-600">Location:</span>
-                                <span className="ml-2 font-medium">{product.supplier_info.location || 'N/A'}</span>
+                                <span className="text-gray-600 dark:text-gray-400">Location:</span>
+                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                  {product.supplier_info.location || 'N/A'}
+                                </span>
                               </div>
+
+                              {/* AI Match Score */}
                               <div>
-                                <span className="text-gray-600">Estimated Price:</span>
-                                <span className="ml-2 font-medium">{product.supplier_info.estimated_price || 'N/A'}</span>
+                                <span className="text-gray-600 dark:text-gray-400">AI Match Score:</span>
+                                <span className="ml-2 font-bold text-purple-600 dark:text-purple-400">
+                                  {product.supplier_info.ai_match_score || 'N/A'}%
+                                </span>
                               </div>
+
+                              {/* MOQ */}
                               <div>
-                                <span className="text-gray-600">Minimum Order:</span>
-                                <span className="ml-2 font-medium">{product.supplier_info.minimum_order || 'N/A'}</span>
+                                <span className="text-gray-600 dark:text-gray-400">MOQ:</span>
+                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                  {product.supplier_info.moq || product.supplier_info.minimum_order || 'N/A'}
+                                </span>
                               </div>
+
+                              {/* Lead Time */}
                               <div>
-                                <span className="text-gray-600">AI Match Score:</span>
-                                <span className="ml-2 font-medium">{product.supplier_info.ai_match_score || 'N/A'}%</span>
+                                <span className="text-gray-600 dark:text-gray-400">Lead Time:</span>
+                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                  {product.supplier_info.lead_time || 'N/A'}
+                                </span>
                               </div>
+
+                              {/* Estimated Price */}
                               <div>
-                                <span className="text-gray-600">Product Source:</span>
-                                <span className="ml-2 font-medium">TikTok Trends</span>
+                                <span className="text-gray-600 dark:text-gray-400">Est. Price:</span>
+                                <span className="ml-2 font-bold text-green-600 dark:text-green-400">
+                                  {product.supplier_info.estimated_price || 'N/A'}
+                                </span>
+                              </div>
+
+                              {/* Response Rate */}
+                              <div>
+                                <span className="text-gray-600 dark:text-gray-400">Response Rate:</span>
+                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                  {product.supplier_info.response_rate || 'N/A'}
+                                </span>
+                              </div>
+
+                              {/* Rating */}
+                              {product.supplier_info.rating !== undefined && (
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Rating:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                    {product.supplier_info.rating}/5
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Total Transactions */}
+                              {product.supplier_info.total_transactions !== undefined && (
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Total Transactions:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                    {product.supplier_info.total_transactions.toLocaleString()}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Years in Business */}
+                              {product.supplier_info.years_in_business !== undefined && product.supplier_info.years_in_business > 0 && (
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Years in Business:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                    {product.supplier_info.years_in_business} years
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Trade Assurance */}
+                              {product.supplier_info.trade_assurance && (
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Trade Assurance:</span>
+                                  <span className="ml-2 font-medium text-green-600 dark:text-green-400">
+                                    ✓ Available
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Main Products */}
+                              {product.supplier_info.main_products && (
+                                <div className="col-span-2">
+                                  <span className="text-gray-600 dark:text-gray-400">Main Products:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                    {Array.isArray(product.supplier_info.main_products)
+                                      ? product.supplier_info.main_products.join(', ')
+                                      : product.supplier_info.main_products}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Certifications */}
+                              {product.supplier_info.certifications && product.supplier_info.certifications.length > 0 && (
+                                <div className="col-span-2">
+                                  <span className="text-gray-600 dark:text-gray-400">Certifications:</span>
+                                  <div className="flex flex-wrap gap-2 mt-2">
+                                    {product.supplier_info.certifications.map((cert: string, idx: number) => (
+                                      <span key={idx} className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-medium">
+                                        {cert}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Match Explanation */}
+                              {product.supplier_info.match_explanation && (
+                                <div className="col-span-2">
+                                  <span className="text-gray-600 dark:text-gray-400">Match Explanation:</span>
+                                  <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 italic">
+                                    {product.supplier_info.match_explanation}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Product Source */}
+                              <div className="col-span-2">
+                                <span className="text-gray-600 dark:text-gray-400">Product Source:</span>
+                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                  {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' :
+                                   product.amazon_product?.source === 'amazon_trends' ? 'Amazon Trends' :
+                                   'TikTok Trends'}
+                                </span>
                               </div>
                             </>
                           ) : (

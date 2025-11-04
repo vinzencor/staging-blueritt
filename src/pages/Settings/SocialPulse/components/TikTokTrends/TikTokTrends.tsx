@@ -256,7 +256,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   const [selectedSortBy, setSelectedSortBy] = useState('post');
   const [selectedSortOrder, setSelectedSortOrder] = useState('desc');
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('US');
+  const [selectedCountry, setSelectedCountry] = useState('GB'); // ✅ Default to UK
   const [shouldFetch, setShouldFetch] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [showProductModal, setShowProductModal] = useState(false);
@@ -282,7 +282,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
   // Trending Hashtags state
   const [hashtagPeriod, setHashtagPeriod] = useState('120');
-  const [hashtagCountry, setHashtagCountry] = useState('US');
+  const [hashtagCountry, setHashtagCountry] = useState('GB'); // ✅ Default to UK
   const [hashtagIndustry, setHashtagIndustry] = useState('');
   const [trendingHashtags, setTrendingHashtags] = useState<any[]>([]);
   const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
@@ -1700,15 +1700,16 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onCalculateClick }) => {
-  // Filter to show only verified suppliers (exclude "Unverified" status)
+  // ✅ TikTok: ALWAYS show ONLY verified suppliers (completely exclude unverified)
   const verifiedSuppliers = suppliers?.filter(supplier =>
     supplier.verification_status &&
     supplier.verification_status.toLowerCase() !== 'unverified'
   ) || [];
 
-  console.log('🏭 SuppliersTab render:', {
+  console.log('🏭 TikTok Trends SuppliersTab render:', {
     totalSuppliersCount: suppliers?.length || 0,
     verifiedSuppliersCount: verifiedSuppliers.length,
+    displayingVerifiedOnly: true, // Always true for TikTok
     isLoading,
     analysisTime,
     verifiedSuppliers: verifiedSuppliers.slice(0, 2) // Log first 2 verified suppliers for debugging
@@ -1737,7 +1738,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
         </h3>
         <p className="text-gray-600 dark:text-gray-300 text-center max-w-md">
           {suppliers && suppliers.length > 0
-            ? 'All suppliers are unverified. Only verified suppliers are displayed.'
+            ? 'All suppliers are unverified. Only verified suppliers are displayed in TikTok Trends.'
             : 'We couldn\'t find any suppliers for this product. Try clicking "Discover Suppliers" to search again.'
           }
         </p>
@@ -1753,7 +1754,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
           Supplier Analysis Complete
         </h3>
         <div className="text-sm text-gray-600 dark:text-gray-300">
-          <p>Found {verifiedSuppliers.length} verified suppliers in {analysisTime}s</p>
+          <p>Found {verifiedSuppliers.length} verified suppliers in {analysisTime}s (showing verified only)</p>
           <p>Suppliers are ranked by AI match score and verification status</p>
         </div>
       </div>

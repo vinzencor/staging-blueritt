@@ -66,7 +66,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [country, setCountry] = useState('US');
+  const [country, setCountry] = useState('GB'); // ✅ Default to UK (but always fetch from US)
   const [page, setPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -113,10 +113,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     setSelectedLocalSubcategory('');
     setSelectedCategoryId('');
     setSelectedCategoryPath('');
+    console.log('🌍 Country changed to:', country, '- Resetting category selection');
   }, [country]);
 
   // Countries list - Only 13 countries from BlueRitt Explorer
-  // All countries fetch from US marketplace but display different country codes
   const countries = [
     { code: 'US', name: 'United States' },
     { code: 'CA', name: 'Canada' },
@@ -142,6 +142,16 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     { value: 'NEW_RELEASES', name: 'New Releases', description: 'Latest product releases' },
   ];
 
+  // Helper function to shuffle array (Fisher-Yates algorithm)
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   // Best Sellers Query
   const {
     data: bestSellersData,
@@ -152,16 +162,17 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     queryKey: ['amazon-explorer-best-sellers', country, page, selectedType],
     queryFn: async () => {
       console.log('=== FRONTEND BESTSELLERS DEBUG ===');
-      console.log('Fetching best sellers with params:', { country, page, type: selectedType });
+      console.log('Fetching best sellers with params (ALWAYS US):', { displayCountry: country, actualCountry: 'US', page, type: selectedType });
 
       try {
-        // Fetch only 1 page to avoid multiple quota deductions
+        // ✅ ALWAYS fetch from US, regardless of selected country
         const result = await getAmazonExplorerBestSellers({
-          country,
+          country: 'US', // ✅ Always use US
           page: 1,
           type: selectedType
         });
 
+        console.log('✅ Best sellers response:', result);
 
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
@@ -169,11 +180,19 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
+        // ✅ Shuffle products to make them appear different for each country
+        if (result?.data?.products && Array.isArray(result.data.products)) {
+          result.data.products = shuffleArray(result.data.products);
+          console.log('🔀 Products shuffled for country:', country);
+        }
 
-        // Return the result as-is
+        console.log('Best sellers products fetched:', result?.data?.products?.length || 0);
+        console.log('=== END FRONTEND BESTSELLERS DEBUG ===');
+
+        // Return the result with shuffled products
         return result;
       } catch (error) {
-        console.error('Error fetching best sellers:', error);
+        console.error('❌ Error fetching best sellers:', error);
         throw error;
       }
     },
@@ -195,12 +214,16 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     queryKey: ['amazon-explorer-search', searchQuery, country, page],
     queryFn: async () => {
       try {
-        // Fetch only 1 page to avoid multiple quota deductions
+        console.log('🔍 Fetching search results (ALWAYS US):', { displayCountry: country, actualCountry: 'US', query: searchQuery });
+
+        // ✅ ALWAYS fetch from US, regardless of selected country
         const result = await searchAmazonExplorerProducts({
           query: searchQuery,
-          country,
+          country: 'US', // ✅ Always use US
           page: 1
         });
+
+        console.log('✅ Search response:', result);
 
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
@@ -208,10 +231,18 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        // Return the result as-is
+        // ✅ Shuffle products to make them appear different for each country
+        if (result?.data?.products && Array.isArray(result.data.products)) {
+          result.data.products = shuffleArray(result.data.products);
+          console.log('🔀 Search products shuffled for country:', country);
+        }
+
+        console.log('Search products fetched:', result?.data?.products?.length || 0);
+
+        // Return the result with shuffled products
         return result;
       } catch (error) {
-        console.error('Error fetching search results:', error);
+        console.error('❌ Error fetching search results:', error);
         throw error;
       }
     },
@@ -233,22 +264,35 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     queryKey: ['amazon-explorer-category', selectedCategory, country, page],
     queryFn: async () => {
       try {
-        // Fetch only 1 page to avoid multiple quota deductions
+        console.log('📦 Fetching category products (ALWAYS US):', { displayCountry: country, actualCountry: 'US', category: selectedCategory });
+
+        // ✅ ALWAYS fetch from US, regardless of selected country
         const result = await getAmazonExplorerProductsByCategory({
           category_id: selectedCategory,
-          country,
+          country: 'US', // ✅ Always use US
           page: 1
         });
 
+        console.log('✅ Category response:', result);
+
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
+          console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        // Return the result as-is
+        // ✅ Shuffle products to make them appear different for each country
+        if (result?.data?.products && Array.isArray(result.data.products)) {
+          result.data.products = shuffleArray(result.data.products);
+          console.log('🔀 Category products shuffled for country:', country);
+        }
+
+        console.log('Category products fetched:', result?.data?.products?.length || 0);
+
+        // Return the result with shuffled products
         return result;
       } catch (error) {
-        console.error('Error fetching category products:', error);
+        console.error('❌ Error fetching category products:', error);
         throw error;
       }
     },
@@ -271,9 +315,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   } = useQuery({
     queryKey: ['amazon-best-seller-products-explorer', selectedCategoryId, country, page, selectedType],
     queryFn: async () => {
-      console.log('Products Query Starting:', {
+      console.log('🚀 Products Query Starting (ALWAYS US):', {
         categoryId: selectedCategoryId,
-        selectedCountry: country,
+        displayCountry: country,
+        actualCountry: 'US',
         page: page,
         type: selectedType,
         enabled: !!selectedCategoryId
@@ -282,18 +327,18 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       // Extract numeric ID from local JSON format (e.g., "baby-products/695338011" -> "695338011")
       const apiCategoryId = extractNumericCategoryId(selectedCategoryId);
 
-      console.log('Using Category ID:', {
+      console.log('📦 Using Category ID:', {
         original: selectedCategoryId,
         forAPI: apiCategoryId,
-        selectedCountry: country,
-        actualAPICountry: 'US' // Always fetch from US
+        displayCountry: country,
+        actualCountry: 'US'
       });
 
       try {
-        // ✅ Always fetch from US marketplace, but display selected country
+        // ✅ ALWAYS fetch from US, regardless of selected country
         const result = await getAmazonProductsByCategoryDirect({
           categoryId: apiCategoryId,
-          country: 'US', // ✅ Always use US marketplace
+          country: 'US', // ✅ Always use US
           page: 1,
           sortBy: 'RELEVANCE',
           productCondition: 'ALL',
@@ -301,33 +346,29 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           dealsAndDiscounts: 'NONE',
         });
 
+        console.log('✅ Category products response:', result);
+
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
+          console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        // Shuffle products to make them appear different for each country
+        // ✅ Shuffle products to make them appear different for each country
         if (result?.data?.products && Array.isArray(result.data.products)) {
-          const shuffledProducts = [...result.data.products];
-          // Fisher-Yates shuffle algorithm
-          for (let i = shuffledProducts.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffledProducts[i], shuffledProducts[j]] = [shuffledProducts[j], shuffledProducts[i]];
-          }
-          result.data.products = shuffledProducts;
+          result.data.products = shuffleArray(result.data.products);
+          console.log('🔀 Direct category products shuffled for country:', country);
         }
 
-        console.log('Products Fetched and Shuffled:', {
+        console.log('🎯 Products Fetched:', {
           categoryId: selectedCategoryId,
-          displayCountry: country,
-          actualCountry: 'US',
           totalProducts: result?.data?.products?.length || 0
         });
 
         // Return the result with shuffled products
         return result;
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('❌ Error fetching products:', error);
         throw error;
       }
     },
@@ -339,6 +380,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     refetchOnMount: false,
   });
 
+  // No longer fetching categories from API - using local JSON for all countries
 
   // Log query results when data changes
   React.useEffect(() => {
@@ -346,7 +388,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       const products = directCategoryProductsData?.data?.products;
       const isProductsArray = Array.isArray(products);
 
-      console.log('Direct Category Products Query SUCCESS:', {
+      console.log('🎉 Direct Category Products Query SUCCESS:', {
         categoryId: selectedCategoryId,
         hasData: !!directCategoryProductsData,
         hasProducts: !!products,
