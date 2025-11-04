@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, AlertCircle, Loader, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import api from '../../../../../api';
 
 // Add CSS for auto-scroll animation
 const scrollStyles = `
@@ -202,28 +203,23 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(
-          `https://real-time-amazon-data.p.rapidapi.com/best-sellers?category=${DEFAULT_CATEGORY}&type=BEST_SELLERS&page=1&country=${selectedCountry}`,
-          {
-            method: 'GET',
-            headers: {
-              'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
-              'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-            }
+        // ✅ Call backend endpoint instead of RapidAPI directly
+        const response = await api.get('/products/amazon-trends/best-sellers-by-category/', {
+          params: {
+            category: DEFAULT_CATEGORY,
+            type: 'BEST_SELLERS',
+            page: '1',
+            country: selectedCountry
           }
-        );
+        });
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Best sellers data:', data);
+        const data = response.data;
+        console.log('Best sellers data:', data);
 
-          if (data.data && data.data.best_sellers && Array.isArray(data.data.best_sellers)) {
-            setProducts(data.data.best_sellers);
-          } else {
-            setError('No products found');
-          }
+        if (data.data && data.data.best_sellers && Array.isArray(data.data.best_sellers)) {
+          setProducts(data.data.best_sellers);
         } else {
-          setError(`Failed to load products (Status: ${response.status})`);
+          setError('No products found');
         }
       } catch (err) {
         console.error('Error fetching best sellers:', err);

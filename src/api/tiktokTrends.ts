@@ -111,6 +111,7 @@ export interface SupplierInfo {
   location: string;
   verification_status: string;
   verification_badge: string;
+  verification_badges?: string[]; // Array of all verification badges
   years_in_business: number;
   main_products: string | string[];
   certifications: string[];
@@ -123,8 +124,13 @@ export interface SupplierInfo {
   estimated_price: string;
   contact_url: string;
   response_rate: string;
+  // Verification fields from Alibaba API
   trade_assurance: boolean;
-  verified_supplier?: boolean; // Backend compatibility
+  verified_supplier?: boolean;
+  alibaba_guaranteed?: boolean;
+  verified_pro?: boolean;
+  is_gold?: boolean;
+  is_assessed?: boolean;
   rating?: number; // Backend compatibility
   total_transactions?: number; // Backend compatibility
   // Additional optional properties
@@ -305,29 +311,19 @@ export const getTikTokProductDetails = async (productId: string): Promise<{
 
 /**
  * Get TikTok Creative Center product details (age levels and hashtags)
- * This calls the TikTok Creative Center API directly to fetch audience demographics and trending hashtags
+ * This calls the backend API which wraps the TikTok Creative Center API
  */
 export const getTikTokCreativeCenterProductDetails = async (
   productId: string
 ): Promise<TikTokCreativeCenterResponse> => {
   try {
-    console.log('🎨 Calling TikTok Creative Center API with product_id:', productId);
+    console.log('🎨 Calling TikTok Creative Center API via backend with product_id:', productId);
 
-    const response = await fetch(`https://tiktok-creative-center-api.p.rapidapi.com/api/trending/top-products/detail?product_id=${productId}`, {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
-        'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-      }
-    });
+    // ✅ Call backend endpoint instead of RapidAPI directly
+    const response = await api.get(`/products/tiktok-trends/product-details/${productId}/`);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ TikTok Creative Center API response:', data);
-    return data;
+    console.log('✅ TikTok Creative Center API response:', response.data);
+    return response.data;
   } catch (error) {
     console.error('❌ Error fetching TikTok Creative Center details:', error);
     // Return empty response on error

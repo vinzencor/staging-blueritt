@@ -43,7 +43,6 @@ const ProProfitProPage = lazy(() => import("@/pages/ProfitPro/Pro"));
 
 const SocialPage = lazy(() => import("@/pages/Settings/SocialPulse/index"));
 const InfluencersPage = lazy(() => import("@/pages/Settings/SocialPulse/Influencers"));
-const WalletSetupSuccessPage = lazy(() => import("@/pages/Wallet/SetupSuccess"));
 
 
 type RouteType = {
@@ -243,11 +242,7 @@ const routes: RouteType[] = [
     element: SubscriptionCancelPage,
     isProtected: false,
   },
-  {
-    path: "/wallet/setup-success",
-    element: WalletSetupSuccessPage,
-    isProtected: true,
-  },
+  
 ];
 
 export { routes, type RouteType };

@@ -120,8 +120,9 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
 
-  // Handle supplier discovery
+  // ✅ Handle supplier discovery - EXACT COPY from BlueRitt Explorer
   const handleDiscoverSuppliers = async () => {
+    // Prevent multiple simultaneous calls
     if (isSupplierDiscoveryLoading) {
       console.log('Supplier discovery already in progress, ignoring click');
       return;
@@ -133,21 +134,31 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
     try {
       const response = await discoverSuppliers({
         title: product.title,
-        id: product.id,
-        price: product.price,
+        asin: product.id || '',
+        brand: product.brand || '',
+        price: product.price || '',
         category: 'TikTok Product'
       });
 
+      console.log('🔍 Supplier Discovery Response:', response);
+
       // Update quota if remaining_quota is provided in response
       if (response?.remaining_quota !== undefined) {
-        console.log('🔄 TikTok Supplier Discovery - Updating quota:', response.remaining_quota);
+        console.log('🔄 Product Explorer Supplier Discovery - Updating quota:', response.remaining_quota);
         updateSupplierQuota(response.remaining_quota);
       }
 
-      setSuppliers(response.suppliers);
-      setSupplierAnalysisTime(response.analysis_time);
+      // Handle both response formats: response.suppliers or response.data.suppliers
+      const suppliersData = response.suppliers || response.data?.suppliers || [];
+      const analysisTime = response.analysis_time || response.data?.analysis_time || 0;
+
+      setSuppliers(Array.isArray(suppliersData) ? suppliersData : []);
+      setSupplierAnalysisTime(analysisTime);
     } catch (error) {
       console.error('Supplier discovery failed:', error);
+      // Reset suppliers to empty array on error
+      setSuppliers([]);
+      setSupplierAnalysisTime(0);
     } finally {
       setIsSupplierDiscoveryLoading(false);
     }
@@ -770,17 +781,13 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onSelectSupplier }) => {
-  // ✅ TikTok: ALWAYS show ONLY verified suppliers (completely exclude unverified)
-  const verifiedSuppliers = suppliers.filter(supplier =>
-    supplier.verification_status &&
-    supplier.verification_status.toLowerCase() !== 'unverified'
-  );
+  // ✅ EXACT COPY from BlueRitt Explorer - Show ONLY VERIFIED suppliers (backend filtered)
+  const displaySuppliers = suppliers || [];
 
-  console.log('🏭 TikTok Supplier Filtering:', {
-    totalSuppliers: suppliers.length,
-    verifiedSuppliers: verifiedSuppliers.length,
-    displayingVerifiedOnly: true, // Always true for TikTok
-    unverifiedExcluded: suppliers.length - verifiedSuppliers.length
+  console.log('🏭 TikTok Trends Supplier Display:', {
+    totalSuppliers: suppliers?.length || 0,
+    displayingVerifiedOnly: true,
+    note: 'Backend filters to show only verified suppliers with badges'
   });
 
   if (isLoading) {
@@ -788,140 +795,263 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-6"></div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Analyzing TikTok Product, Discovering Verified Suppliers and Computing AI Match Score...
+          Discovering Suppliers...
         </h3>
         <p className="text-gray-600 mb-4">
-          The process may take up to 30-45 seconds. Please wait while we generate the results.
+          Our AI is analyzing global suppliers to find the best matches for this product.
         </p>
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-md mx-auto">
-          <p className="text-sm text-purple-800">
-            Our AI is analyzing TikTok product specifications, supplier capabilities,
-            and market data to find the best matches for you.
+        <div className="bg-blue-50 rounded-lg p-4 max-w-md mx-auto">
+          <div className="flex items-center gap-2 text-blue-700">
+            <Zap className="w-5 h-5" />
+            <span className="font-medium">AI-Powered Matching</span>
+          </div>
+          <p className="text-blue-600 text-sm mt-1">
+            Analyzing product specifications, pricing, and supplier capabilities...
           </p>
         </div>
       </div>
     );
   }
 
-  if (verifiedSuppliers.length === 0) {
+  if (!displaySuppliers || displaySuppliers.length === 0) {
     return (
       <div className="text-center py-8">
         <Truck className="w-16 h-16 mx-auto text-gray-400 mb-4" />
         <p className="text-gray-600">
-          {suppliers.length > 0
-            ? 'No verified suppliers found. All suppliers are unverified. Only verified suppliers are displayed in TikTok Trends.'
-            : 'Click "Discover Suppliers" to find verified suppliers for this TikTok product'
-          }
+          No suppliers found. Click "Discover Suppliers" to start analysis.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col space-y-6">
-      {/* Analysis Summary */}
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex-shrink-0">
-        <h4 className="font-semibold text-purple-900 mb-2">Analysis Complete</h4>
-        <p className="text-sm text-purple-800">
-          Found {verifiedSuppliers.length} verified suppliers in {analysisTime.toFixed(1)} seconds using AI matching (showing verified only)
-        </p>
+    <div className="space-y-6">
+      {/* ✅ Analysis Summary - EXACT COPY from BlueRitt Explorer */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-purple-600" />
+              Supplier Analysis Complete
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Found {displaySuppliers.length} suppliers in {analysisTime.toFixed(1)}s
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-purple-600">{displaySuppliers.length}</div>
+            <div className="text-xs text-gray-500">Total Suppliers</div>
+          </div>
+        </div>
       </div>
 
-      {/* Suppliers List - Scrollable */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-2" style={{ maxHeight: 'calc(100vh - 400px)' }}>
-        {verifiedSuppliers.map((supplier, index) => (
-          <div key={supplier.id} className="bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-purple-300 hover:shadow-lg transition-all duration-200">
-            {/* Header with Name, Verification, and AI Score */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1 min-w-0 pr-4">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <h5 className="font-bold text-gray-900 text-lg">{supplier.name}</h5>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${
-                    supplier.verification_status === 'Gold Verified'
-                      ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                      : supplier.verification_status === 'Premium Verified'
-                      ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                      : 'bg-green-100 text-green-800 border border-green-300'
-                  }`}>
-                    {supplier.verification_status}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-2 font-medium">{supplier.location}</p>
-                <p className="text-sm text-gray-700 leading-relaxed">{supplier.main_products}</p>
+      {/* ✅ Suppliers List - EXACT COPY from BlueRitt Explorer */}
+      <div className="space-y-4">
+        {displaySuppliers.map((supplier, index) => (
+          <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h4 className="font-semibold text-gray-900">{supplier.name || supplier.supplier_name || 'Unknown Supplier'}</h4>
+                <p className="text-gray-600 text-sm">{supplier.location || 'Location not specified'}</p>
               </div>
-
-              <div className="text-right flex-shrink-0 bg-purple-50 rounded-lg p-3">
-                <div className="text-2xl font-bold text-purple-600">
-                  {supplier.ai_match_score}%
+              <div className="text-right">
+                <div className="text-lg font-bold text-green-600">
+                  {supplier.estimated_price || 'Price on request'}
                 </div>
-                <div className="text-xs text-purple-500 font-medium">AI Match</div>
+                <div className="text-xs text-gray-500">Est. Price</div>
               </div>
             </div>
 
-            {/* Product Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-                <span className="text-blue-600 block text-xs font-semibold mb-1">MOQ:</span>
-                <span className="font-bold text-gray-900">{supplier.moq.toLocaleString()} pcs</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div>
+                <div className="text-xs text-gray-500">MOQ</div>
+                <div className="font-medium">{supplier.moq || supplier.min_order_quantity || 'Contact supplier'}</div>
               </div>
-              <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-3 border border-orange-200">
-                <span className="text-orange-600 block text-xs font-semibold mb-1">Lead Time:</span>
-                <span className="font-bold text-gray-900">{supplier.lead_time}</span>
+              <div>
+                <div className="text-xs text-gray-500">Lead Time</div>
+                <div className="font-medium">{supplier.lead_time || 'Contact supplier'}</div>
               </div>
-              <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-3 border border-green-200">
-                <span className="text-green-600 block text-xs font-semibold mb-1">Est. Price:</span>
-                <span className="font-bold text-green-700">{supplier.estimated_price}</span>
+              <div>
+                <div className="text-xs text-gray-500">Verification</div>
+                <div className="font-medium text-blue-600">{supplier.verification_status || (supplier.verified_supplier ? 'Verified' : 'Unverified')}</div>
               </div>
-            </div>
 
-            {/* Match Explanation */}
-            <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-              <div className="flex items-start gap-2">
-                <div className="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-white text-xs font-bold">AI</span>
+              <div className="flex items-center justify-end gap-[8px]">
+                <div className="relative h-[90px] w-[90px]">
+                  {/* Circular Progress Bar */}
+                  <svg className="transform -rotate-90" width="90" height="90">
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke="#e5e7eb"
+                      strokeWidth="8"
+                      fill="none"
+                    />
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke={
+                        (supplier.ai_match_score || 0) >= 80
+                          ? '#22c55e'
+                          : (supplier.ai_match_score || 0) >= 60
+                          ? '#eab308'
+                          : '#ef4444'
+                      }
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 40}
+                      strokeDashoffset={
+                        2 * Math.PI * 40 * (1 - (supplier.ai_match_score || 0) / 100)
+                      }
+                    />
+                  </svg>
+
+                  {/* Content in center */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-[10px] rounded-full">
+                    <div className="text-xs text-gray-500">AI Match</div>
+                    <div className="font-medium text-purple-600">
+                      {supplier.ai_match_score || 0}%
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-purple-800 font-medium italic">"{supplier.match_explanation}"</p>
               </div>
             </div>
 
-            {/* Certifications and Actions */}
-            <div className="space-y-4">
-              {/* Certifications */}
-              <div className="flex flex-wrap gap-2">
-                {supplier.certifications.slice(0, 3).map((cert, certIndex) => (
-                  <span key={certIndex} className="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200 font-medium">
-                    {cert}
-                  </span>
-                ))}
-                {supplier.trade_assurance && (
-                  <span className="text-xs bg-blue-100 text-blue-800 px-3 py-1.5 rounded-full border border-blue-200 font-medium">
-                    ✓ Trade Assurance
-                  </span>
-                )}
+            {/* Additional supplier details */}
+            <div className="mb-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Years in Business:</span>
+                  <span className="font-medium ml-2">{supplier.years_in_business || 'N/A'} years</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Response Rate:</span>
+                  <span className="font-medium ml-2">{supplier.response_rate || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Rating:</span>
+                  <span className="font-medium ml-2">{supplier.rating || 'N/A'}/5.0</span>
+                </div>
+                <div>
+                  <span className="text-gray-600">Transactions:</span>
+                  <span className="font-medium ml-2">{supplier.total_transactions || 'N/A'}</span>
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3 justify-end pt-2 border-t border-gray-100">
-                {onSelectSupplier && (
-                  <button
-                    onClick={() => onSelectSupplier(supplier)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg transition-all duration-200 text-sm flex items-center gap-2 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
+              {supplier.main_products && (
+                <div className="mt-3">
+                  <span className="text-gray-600 text-sm">Main Products:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {Array.isArray(supplier.main_products)
+                      ? supplier.main_products.map((product: string, idx: number) => (
+                          <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                            {product}
+                          </span>
+                        ))
+                      : (
+                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                            {supplier.main_products}
+                          </span>
+                        )
+                    }
+                  </div>
+                </div>
+              )}
+
+              {supplier.certifications && supplier.certifications.length > 0 && (
+                <div className="mt-3">
+                  <span className="text-gray-600 text-sm">Certifications:</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {supplier.certifications.map((cert, idx) => (
+                      <span key={idx} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Verification Badges Section */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {/* AI Match Level Badge */}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                (supplier.ai_match_score || 0) >= 80
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                  : (supplier.ai_match_score || 0) >= 60
+                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+              }`}>
+                {(supplier.ai_match_score || 0) >= 80 ? 'Excellent Match' :
+                 (supplier.ai_match_score || 0) >= 60 ? 'Good Match' : 'Fair Match'}
+              </span>
+
+              {/* Display all verification badges from backend */}
+              {supplier.verification_badges && supplier.verification_badges.length > 0 ? (
+                supplier.verification_badges.map((badge, idx) => (
+                  <span
+                    key={idx}
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      badge === 'Gold Supplier' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                      badge === 'Verified Pro' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                      badge === 'Verified Supplier' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                      badge === 'Trade Assurance' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                      badge === 'Alibaba Guaranteed' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200' :
+                      badge === 'Assessed Supplier' ? 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200' :
+                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                    }`}
                   >
-                    <Calculator className="w-4 h-4" />
-                    Select & Calculate
-                  </button>
-                )}
+                    {badge}
+                  </span>
+                ))
+              ) : (
+                // Fallback to individual badge checks if verification_badges array not available
+                <>
+                  {supplier.is_gold && (
+                    <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-2 py-1 rounded-full text-xs font-medium">
+                      Gold Supplier
+                    </span>
+                  )}
+                  {supplier.verified_pro && (
+                    <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-2 py-1 rounded-full text-xs font-medium">
+                      Verified Pro
+                    </span>
+                  )}
+                  {supplier.verified_supplier && !supplier.verified_pro && !supplier.is_gold && (
+                    <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
+                      Verified Supplier
+                    </span>
+                  )}
+                  {supplier.trade_assurance && (
+                    <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded-full text-xs font-medium">
+                      Trade Assurance
+                    </span>
+                  )}
+                  {supplier.alibaba_guaranteed && (
+                    <span className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-1 rounded-full text-xs font-medium">
+                      Alibaba Guaranteed
+                    </span>
+                  )}
+                  {supplier.is_assessed && (
+                    <span className="bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200 px-2 py-1 rounded-full text-xs font-medium">
+                      Assessed Supplier
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
 
-                <a
-                  href={supplier.contact_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg transition-all duration-200 text-sm flex items-center gap-2 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  View Product
-                </a>
-              </div>
+            <div className="flex justify-between items-center">
+              <button
+                onClick={() => onSelectSupplier && onSelectSupplier(supplier)}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center gap-2"
+              >
+                <Calculator className="w-4 h-4" />
+                Select Supplier
+              </button>
             </div>
           </div>
         ))}

@@ -3,6 +3,7 @@ import { Flame, ChevronDown, ChevronUp, Loader, Hash, Loader2, X, Zap } from 'lu
 import { useLocation } from 'react-router-dom';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
+import api from '../../../../../api';
 
 // TikTok Hashtag interface
 export interface TikTokHashtag {
@@ -163,39 +164,27 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
     setIsHashtagsLoading(true);
     setHashtagsError(null);
     try {
-      const params = new URLSearchParams({
+      const params = {
         page: '1',
         limit: '50',
         period: hashtagPeriod,
         country: hashtagCountry,
         sort_by: 'popular',
-      });
+      };
 
-      const response = await fetch(
-        `https://tiktok-creative-center-api.p.rapidapi.com/api/trending/hashtag?${params}`,
-        {
-          method: 'GET',
-          headers: {
-            'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
-            'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-          }
-        }
-      );
+      // ✅ Call backend endpoint instead of RapidAPI directly
+      const response = await api.get('/products/tiktok-trends/hashtags/', { params });
+      const data = response.data;
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.data && data.data.list && Array.isArray(data.data.list)) {
-          setTrendingHashtags(data.data.list);
+      if (data.data && data.data.list && Array.isArray(data.data.list)) {
+        setTrendingHashtags(data.data.list);
 
-          // Deduct quota after successful fetch
-          const newQuota = hashtagQuotaDetails.quotaValue - 1;
-          updateHashtagQuota(newQuota);
-          console.log('🔄 Hashtag Discovery - Quota reduced:', hashtagQuotaDetails.quotaValue, '→', newQuota);
-        } else {
-          setHashtagsError('No hashtags found');
-        }
+        // Deduct quota after successful fetch
+        const newQuota = hashtagQuotaDetails.quotaValue - 1;
+        updateHashtagQuota(newQuota);
+        console.log('🔄 Hashtag Discovery - Quota reduced:', hashtagQuotaDetails.quotaValue, '→', newQuota);
       } else {
-        setHashtagsError('Failed to fetch hashtags');
+        setHashtagsError('No hashtags found');
       }
     } catch (err) {
       console.error('Error fetching hashtags:', err);

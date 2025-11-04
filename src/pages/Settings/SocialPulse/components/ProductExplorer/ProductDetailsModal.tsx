@@ -990,17 +990,13 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onSelectSupplier }) => {
-  // ✅ Amazon: ALWAYS show ONLY verified suppliers (completely exclude unverified)
-  const verifiedSuppliers = suppliers?.filter(supplier =>
-    supplier.verification_status &&
-    supplier.verification_status.toLowerCase() !== 'unverified'
-  ) || [];
+  // ✅ Show ONLY VERIFIED suppliers (backend filtered)
+  const displaySuppliers = suppliers || [];
 
-  console.log('🏭 Product Explorer Supplier Filtering:', {
+  console.log('🏭 BlueRitt Explorer Supplier Display:', {
     totalSuppliers: suppliers?.length || 0,
-    verifiedSuppliers: verifiedSuppliers.length,
-    displayingVerifiedOnly: true, // Always true for Amazon
-    unverifiedExcluded: (suppliers?.length || 0) - verifiedSuppliers.length
+    displayingVerifiedOnly: true,
+    note: 'Backend filters to show only verified suppliers with badges'
   });
 
   if (isLoading) {
@@ -1026,19 +1022,13 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     );
   }
 
-  if (!verifiedSuppliers || verifiedSuppliers.length === 0) {
+  if (!displaySuppliers || displaySuppliers.length === 0) {
     return (
       <div className="text-center py-8">
         <Truck className="w-16 h-16 mx-auto text-gray-400 mb-4" />
         <p className="text-gray-600">
-          {suppliers && suppliers.length > 0
-            ? 'No verified suppliers found. All suppliers are unverified. Only verified suppliers are displayed in Amazon Trends.'
-            : 'No suppliers found. Click "Discover Suppliers" to start analysis.'
-          }
+          No suppliers found. Click "Discover Suppliers" to start analysis.
         </p>
-        {suppliers && suppliers.length > 0 && (
-          <p className="text-sm text-gray-500 mt-2">Only verified suppliers are displayed.</p>
-        )}
       </div>
     );
   }
@@ -1054,19 +1044,19 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               Supplier Analysis Complete
             </h3>
             <p className="text-gray-600 text-sm">
-              Found {verifiedSuppliers.length} verified suppliers in {analysisTime.toFixed(1)}s (showing verified only)
+              Found {displaySuppliers.length} suppliers in {analysisTime.toFixed(1)}s
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-purple-600">{verifiedSuppliers.length}</div>
-            <div className="text-xs text-gray-500">Verified Suppliers</div>
+            <div className="text-2xl font-bold text-purple-600">{displaySuppliers.length}</div>
+            <div className="text-xs text-gray-500">Total Suppliers</div>
           </div>
         </div>
       </div>
 
       {/* Suppliers List */}
       <div className="space-y-4">
-        {verifiedSuppliers.map((supplier, index) => (
+        {displaySuppliers.map((supplier, index) => (
           <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
               <div>

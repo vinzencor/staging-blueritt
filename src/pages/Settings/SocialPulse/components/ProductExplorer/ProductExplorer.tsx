@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Filter, Grid, List, Star, ShoppingCart, ExternalLink, Eye, Package, TrendingUp, Zap, X } from 'lucide-react';
 import { toast } from 'react-toastify';
-import SearchesAlert from '../../../../../@spk/uielements/SearchesAlert';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
-import { usePersistentQuota } from '../../../../../hooks/usePersistentQuota';
 import AmazonLoader from '../../../../../components/AmazonLoader';
 import { QuotaNames } from '../../../../../enum';
 
@@ -60,7 +58,6 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   // For displaying plan name (use amazonSearchQuotaDetails as the main quota details)
   const quotaDetails = amazonSearchQuotaDetails;
 
-  const { quotas, reduceQuota, hasQuota } = usePersistentQuota();
 
   const [viewMode, setViewMode] = useState<ViewMode>('best-sellers');
   const [searchQuery, setSearchQuery] = useState('');
@@ -196,12 +193,14 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         throw error;
       }
     },
-    enabled: false, // Disable automatic fetching - only fetch when button is clicked
+    enabled: false, // ✅ CRITICAL: Disable ALL automatic fetching - only fetch when button is clicked
     staleTime: 1000 * 60 * 10, // 10 minutes - cache for 10 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes - prevent garbage collection refetches
     retry: 1, // Only retry once to prevent broken pipe errors
     retryDelay: 2000, // Fixed 2 second delay
-    refetchOnWindowFocus: false, // Don't refetch on window focus
-    refetchOnMount: false, // Don't refetch on mount if data exists
+    refetchOnWindowFocus: false, // ✅ Never refetch on window focus
+    refetchOnMount: false, // ✅ Never refetch on mount
+    refetchOnReconnect: false, // ✅ Never refetch on reconnect
   });
 
   // Search Query
@@ -246,12 +245,14 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         throw error;
       }
     },
-    enabled: false, // Manual trigger only
+    enabled: false, // ✅ CRITICAL: Manual trigger only - no automatic fetching
     staleTime: 1000 * 60 * 10, // 10 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes - prevent garbage collection refetches
     retry: 1, // Only retry once
     retryDelay: 2000, // Fixed 2 second delay
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: false, // ✅ Never refetch on window focus
+    refetchOnMount: false, // ✅ Never refetch on mount
+    refetchOnReconnect: false, // ✅ Never refetch on reconnect
   });
 
   // Category Query
@@ -296,12 +297,14 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         throw error;
       }
     },
-    enabled: false, // Manual trigger only
+    enabled: false, // ✅ CRITICAL: Manual trigger only - no automatic fetching
     staleTime: 1000 * 60 * 10, // 10 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes - prevent garbage collection refetches
     retry: 1, // Only retry once
     retryDelay: 2000, // Fixed 2 second delay
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: false, // ✅ Never refetch on window focus
+    refetchOnMount: false, // ✅ Never refetch on mount
+    refetchOnReconnect: false, // ✅ Never refetch on reconnect
   });
 
   // We use hardcoded working categories instead of API categories
@@ -321,7 +324,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         actualCountry: 'US',
         page: page,
         type: selectedType,
-        enabled: !!selectedCategoryId
+        enabled: !!selectedCategoryId,
+        timestamp: new Date().toISOString()
       });
 
       // Extract numeric ID from local JSON format (e.g., "baby-products/695338011" -> "695338011")
@@ -372,12 +376,14 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         throw error;
       }
     },
-    enabled: false, // Disable automatic fetching - only fetch when button is clicked
+    enabled: false, // ✅ CRITICAL: Disable ALL automatic fetching - only fetch when button is clicked
     staleTime: 1000 * 60 * 10, // 10 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes - prevent garbage collection refetches
     retry: 1, // Only retry once
     retryDelay: 2000, // Fixed 2 second delay
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: false, // ✅ Never refetch on window focus
+    refetchOnMount: false, // ✅ Never refetch on mount
+    refetchOnReconnect: false, // ✅ Never refetch on reconnect
   });
 
   // No longer fetching categories from API - using local JSON for all countries
@@ -664,42 +670,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
 
 
 
-            {/* View Mode Tabs */}
-            <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-              <button
-                onClick={() => {
-                  setViewMode('best-sellers');
-                  setPage(1);
-                }}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${viewMode === 'best-sellers'
-                  ? 'bg-white dark:bg-gray-800 text-orange-600 dark:text-orange-400 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
-              >
-                <TrendingUp className="w-4 h-4 inline mr-2" />
-                Best Sellers
-              </button>
-              <button
-                onClick={() => setViewMode('search')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${viewMode === 'search'
-                  ? 'bg-white dark:bg-gray-800 text-[#ffa41c] dark:text-orange-400 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
-              >
-                <Search className="w-4 h-4 inline mr-2" />
-                Search
-              </button>
-              <button
-                onClick={() => setViewMode('category')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${viewMode === 'category'
-                  ? 'bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                  }`}
-              >
-                <Package className="w-4 h-4 inline mr-2" />
-                By Category
-              </button>
-            </div>
+            {/* ✅ Removed tabs - only Best Sellers view now */}
 
           </div>
           {/* Subscription Quota Alert */}
@@ -789,11 +760,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                     onChange={(e) => {
                       setSelectedType(e.target.value);
                       setPage(1);
-                      if (selectedCategoryId) {
-                        refetchDirectCategoryProducts();
-                      } else {
-                        refetchBestSellers();
-                      }
+                      // ✅ Don't auto-fetch - only fetch when "Discover Products" button is clicked
                     }}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
@@ -902,6 +869,69 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 )}
               </div>
 
+              {/* ✅ Search Input - Added below category selection */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  Search Products (Optional)
+                </label>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setSearchQuery(newValue);
+
+                        // Real-time keyword checking for immediate feedback
+                        if (newValue.trim()) {
+                          const keywordCheck = checkForBlockedKeywords(newValue);
+                          if (keywordCheck.isBlocked) {
+                            // Visual feedback for blocked content
+                            e.target.style.borderColor = '#ef4444';
+                          } else {
+                            e.target.style.borderColor = '';
+                          }
+                        } else {
+                          e.target.style.borderColor = '';
+                        }
+                      }}
+                      placeholder="Search for products..."
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (!searchQuery.trim()) {
+                        toast.error('Please enter a search query');
+                        return;
+                      }
+
+                      // Check for blocked keywords before searching
+                      const keywordCheck = checkForBlockedKeywords(searchQuery);
+                      if (keywordCheck.isBlocked) {
+                        toast.error(`Blocked content detected: ${keywordCheck.matchedKeywords.join(', ')}`);
+                        return;
+                      }
+
+                      // Check backend quota before searching
+                      if (amazonSearchQuotaDetails.quotaValue <= 0) {
+                        setShowAddOnsChoiceModalAmazon(true);
+                        return;
+                      }
+
+                      setPage(1);
+                      refetchSearch();
+                    }}
+                    disabled={!searchQuery.trim()}
+                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <Search className="w-4 h-4" />
+                    Search
+                  </button>
+                </div>
+              </div>
+
               {/* Discover Products Button */}
               <div className="flex justify-center mt-4">
                 <button
@@ -952,9 +982,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       onClick={() => {
                         setSelectedCategoryId('');
                         setSelectedCategoryPath('');
+                        setSelectedLocalRootCategory('');
+                        setSelectedLocalSubcategory('');
                         setViewMode('best-sellers');
                         setPage(1);
-                        refetchBestSellers();
+                        // ✅ Don't auto-fetch - user needs to click "Discover Products" button
                       }}
                       className="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 text-sm font-medium"
                     >
@@ -966,8 +998,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
             </div>
           )}
 
-          {/* Search Controls */}
-          {viewMode === 'search' && (
+          {/* ✅ Search Controls - Removed (integrated into Best Sellers) */}
+          {false && viewMode === 'search' && (
             <div className="flex gap-3 mb-4">
               <div className="flex-1">
                 <input
@@ -1011,8 +1043,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
             </div>
           )}
 
-          {/* Category Controls */}
-          {viewMode === 'category' && (
+          {/* ✅ Category Controls - Removed (integrated into Best Sellers) */}
+          {false && viewMode === 'category' && (
             <div className="space-y-4 mb-6">
               {/* Country Selector */}
               <div className="flex gap-3">

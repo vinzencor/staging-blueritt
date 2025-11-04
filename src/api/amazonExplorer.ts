@@ -283,26 +283,17 @@ export const getAmazonExplorerCategories = async ({
   return response.data;
 };
 
-// Direct API call to Real-Time Amazon Data API for category list
+// Get Amazon category list via backend API
 export const getAmazonCategoryListDirect = async ({
   country = 'US',
 }: {
   country?: string;
 } = {}) => {
-  const response = await fetch(`https://real-time-amazon-data.p.rapidapi.com/product-category-list?country=${country}`, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
-      'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-    }
+  // ✅ Call backend endpoint instead of RapidAPI directly
+  const response = await api.get('/products/amazon-trends/category-list/', {
+    params: { country }
   });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data;
+  return response.data;
 };
 
 // Get Best Seller Categories with hierarchical structure
@@ -525,7 +516,7 @@ export const getAmazonBestSellerProducts = async ({
   }
 };
 
-// Direct Best Seller API call
+// Get Amazon best sellers via backend API
 export const getAmazonBestSellerProductsDirect = async ({
   category,
   country = 'US',
@@ -538,27 +529,25 @@ export const getAmazonBestSellerProductsDirect = async ({
   type?: string;
 }): Promise<AmazonExplorerResponse> => {
   try {
-    const response = await fetch(`https://real-time-amazon-data.p.rapidapi.com/best-sellers?category=${encodeURIComponent(category)}&type=${type}&page=${page}&country=${country}`, {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
-        'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5',
-      },
+    // ✅ Call backend endpoint instead of RapidAPI directly
+    const response = await api.get('/products/amazon-trends/best-sellers-by-category/', {
+      params: {
+        category,
+        country,
+        page: page.toString(),
+        type
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`Best Seller API Error: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = response.data;
 
     if (data.status === 'OK' && data.data) {
       // Transform the response to match our expected format
       return {
         status: 'success',
         data: {
-          products: data.data,
-          total: data.data.length,
+          products: data.data.best_sellers || data.data,
+          total: (data.data.best_sellers || data.data).length,
           page: page,
           country: country,
         },
@@ -677,7 +666,26 @@ export const formatReviewCount = (count: number): string => {
 };
 
 export const getProductImageUrl = (product: AmazonProduct): string => {
-  return product.product_photo || '/placeholder-product.png';
+  // Try multiple image fields with fallbacks
+  const productAny = product as any;
+
+  // Check all possible image field names from Amazon API
+  const imageUrl = product.product_photo ||
+                   productAny.product_main_image_url ||
+                   productAny.product_photo_url ||
+                   productAny.image ||
+                   productAny.image_url ||
+                   productAny.main_image ||
+                   (productAny.product_photos && productAny.product_photos.length > 0 ? productAny.product_photos[0] : null) ||
+                   (productAny.images && productAny.images.length > 0 ? productAny.images[0] : null) ||
+                   'https://via.placeholder.com/300x300?text=No+Image';
+
+  // Log if using placeholder
+  if (imageUrl === 'https://via.placeholder.com/300x300?text=No+Image') {
+    console.warn('⚠️ No image found for product:', product.product_title?.substring(0, 40), 'Available fields:', Object.keys(productAny).filter(k => k.toLowerCase().includes('image') || k.toLowerCase().includes('photo')));
+  }
+
+  return imageUrl;
 };
 
 export const getAmazonUrl = (product: AmazonProduct): string => {

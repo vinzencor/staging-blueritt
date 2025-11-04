@@ -13,6 +13,7 @@ import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../.
 import { fetchPexelsFallbackImage, extractCategoryName } from '../../../../../utils/pexelsImageFallback';
 import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
 import AddOnsChoiceModal from '../AddOnsChoiceModal';
+import api from '../../../../../api';
 
 // TikTok Categories with IDs
 const TIKTOK_CATEGORIES = [
@@ -158,31 +159,25 @@ const fetchTikTokTrendingProducts = async (params: {
     console.log('📊 Step 2: Fetching 3 pages sequentially from Direct TikTok API (with 1s delay between requests)...');
 
     const fetchPage = async (pageNum: number) => {
-      const queryParams = new URLSearchParams();
-      if (params.category_id) queryParams.append('category_id', params.category_id);
-      if (params.last) queryParams.append('last', params.last);
-      if (params.order_by) queryParams.append('order_by', params.order_by);
-      if (params.order_type) queryParams.append('order_type', params.order_type);
-      if (params.keyword) queryParams.append('keyword', params.keyword);
-      if (params.country_code) queryParams.append('country_code', params.country_code);
-      queryParams.append('page', pageNum.toString());
+      const apiParams = {
+        page: pageNum.toString(),
+        ...(params.category_id && { category_id: params.category_id }),
+        ...(params.last && { last: params.last }),
+        ...(params.order_by && { order_by: params.order_by }),
+        ...(params.order_type && { order_type: params.order_type }),
+        ...(params.keyword && { keyword: params.keyword }),
+        ...(params.country_code && { country: params.country_code })
+      };
 
-      const response = await fetch(`https://tiktok-creative-center-api.p.rapidapi.com/api/trending/top-products?${queryParams}`, {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
-          'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const products = data.data?.list || [];
-        console.log(`✅ Direct API Page ${pageNum}:`, products.length, 'products');
+      try {
+        // ✅ Call backend endpoint instead of RapidAPI directly
+        const response = await api.get('/products/tiktok-trends/creative-center/', { params: apiParams });
+        const products = response.data?.data?.list || [];
+        console.log(`✅ Backend API Page ${pageNum}:`, products.length, 'products');
         console.log(`📦 Page ${pageNum} products:`, products);
         return products;
-      } else {
-        console.warn(`⚠️ Direct API Page ${pageNum} failed with status:`, response.status);
+      } catch (error) {
+        console.warn(`⚠️ Backend API Page ${pageNum} failed:`, error);
         return [];
       }
     };
@@ -429,33 +424,18 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     setIsHashtagsLoading(true);
     setHashtagsError(null);
     try {
-      const queryParams = new URLSearchParams();
-      queryParams.append('page', '1');
-      queryParams.append('limit', '20');
-      queryParams.append('period', hashtagPeriod);
-      queryParams.append('country', hashtagCountry);
-      queryParams.append('sort_by', 'popular');
+      const params = {
+        page: '1',
+        limit: '20',
+        period: hashtagPeriod,
+        country: hashtagCountry,
+        sort_by: 'popular',
+        ...(hashtagIndustry && { industry_id: hashtagIndustry })
+      };
 
-      if (hashtagIndustry) {
-        queryParams.append('industry_id', hashtagIndustry);
-      }
-
-      const response = await fetch(
-        `https://tiktok-creative-center-api.p.rapidapi.com/api/trending/hashtag?${queryParams}`,
-        {
-          method: 'GET',
-          headers: {
-            'x-rapidapi-host': 'tiktok-creative-center-api.p.rapidapi.com',
-            'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      // ✅ Call backend endpoint instead of RapidAPI directly
+      const response = await api.get('/products/tiktok-trends/hashtags/', { params });
+      const data = response.data;
       console.log('✅ Trending Hashtags API response:', data);
 
       // Handle the API response structure: data.data.list
@@ -1700,19 +1680,16 @@ interface SuppliersTabProps {
 }
 
 const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onCalculateClick }) => {
-  // ✅ TikTok: ALWAYS show ONLY verified suppliers (completely exclude unverified)
-  const verifiedSuppliers = suppliers?.filter(supplier =>
-    supplier.verification_status &&
-    supplier.verification_status.toLowerCase() !== 'unverified'
-  ) || [];
+  // ✅ Show ALL suppliers (both verified and unverified)
+  const displaySuppliers = suppliers || [];
 
   console.log('🏭 TikTok Trends SuppliersTab render:', {
     totalSuppliersCount: suppliers?.length || 0,
-    verifiedSuppliersCount: verifiedSuppliers.length,
-    displayingVerifiedOnly: true, // Always true for TikTok
+    displayingAll: true,
+    verifiedCount: displaySuppliers.filter(s => s.verification_status?.toLowerCase() !== 'unverified').length,
+    unverifiedCount: displaySuppliers.filter(s => s.verification_status?.toLowerCase() === 'unverified').length,
     isLoading,
-    analysisTime,
-    verifiedSuppliers: verifiedSuppliers.slice(0, 2) // Log first 2 verified suppliers for debugging
+    analysisTime
   });
 
   if (isLoading) {
@@ -1729,18 +1706,15 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     );
   }
 
-  if (!verifiedSuppliers || verifiedSuppliers.length === 0) {
+  if (!displaySuppliers || displaySuppliers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Truck className="w-16 h-16 text-gray-400 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          No Verified Suppliers Found
+          No Suppliers Found
         </h3>
         <p className="text-gray-600 dark:text-gray-300 text-center max-w-md">
-          {suppliers && suppliers.length > 0
-            ? 'All suppliers are unverified. Only verified suppliers are displayed in TikTok Trends.'
-            : 'We couldn\'t find any suppliers for this product. Try clicking "Discover Suppliers" to search again.'
-          }
+          We couldn't find any suppliers for this product. Try clicking "Discover Suppliers" to search again.
         </p>
       </div>
     );
@@ -1754,14 +1728,14 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
           Supplier Analysis Complete
         </h3>
         <div className="text-sm text-gray-600 dark:text-gray-300">
-          <p>Found {verifiedSuppliers.length} verified suppliers in {analysisTime}s (showing verified only)</p>
+          <p>Found {displaySuppliers.length} suppliers in {analysisTime}s</p>
           <p>Suppliers are ranked by AI match score and verification status</p>
         </div>
       </div>
 
       {/* Suppliers List */}
       <div className="space-y-4">
-        {verifiedSuppliers.map((supplier) => (
+        {displaySuppliers.map((supplier) => (
           <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
             {/* Header with Name, Verification, and AI Score */}
             <div className="flex items-start justify-between mb-4">

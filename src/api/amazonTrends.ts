@@ -436,26 +436,17 @@ export const getAmazonCategoryList = async ({
   return response.data;
 };
 
-// Direct Amazon API call for category list
+// Get Amazon category list via backend API
 export const getAmazonCategoryListDirect = async ({
   country = 'US',
 }: {
   country?: string;
 } = {}) => {
-  const response = await fetch(`https://real-time-amazon-data.p.rapidapi.com/product-category-list?country=${country}`, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
-      'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-    }
+  // ✅ Call backend endpoint instead of RapidAPI directly
+  const response = await api.get('/products/amazon-trends/category-list/', {
+    params: { country }
   });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const data = await response.json();
-  return data;
+  return response.data;
 };
 
 // Products by category - Uses backend API with quota deduction
@@ -569,29 +560,18 @@ export interface InfluencerResponse {
   error?: string;
 }
 
-// Get influencer profile from RapidAPI
+// Get influencer profile via backend API
 export const getInfluencerProfile = async (influencerName: string, country: string = 'US'): Promise<InfluencerResponse> => {
   try {
-    const response = await fetch(
-      `https://real-time-amazon-data.p.rapidapi.com/influencer-profile?influencer_name=${influencerName}&country=${country}`,
-      {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
-          'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-        }
+    // ✅ Call backend endpoint instead of RapidAPI directly
+    const response = await api.get('/products/amazon-trends/influencer-profile/', {
+      params: {
+        influencer_name: influencerName,
+        country
       }
-    );
+    });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return {
-      status: 'success',
-      data: data.data || data
-    };
+    return response.data;
   } catch (error) {
     console.error(`Error fetching influencer ${influencerName}:`, error);
     return {

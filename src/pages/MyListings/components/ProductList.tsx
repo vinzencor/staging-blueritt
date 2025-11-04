@@ -197,9 +197,22 @@ const ProductList: React.FC<ProductListProps> = ({
                      amazonProduct.data?.country ||
                      'US';
 
+      console.log('✅ ProductList - Using new format with data wrapper:', {
+        hasData: !!amazonProduct.data,
+        rating: amazonProduct.data?.product_star_rating,
+        reviewCount: amazonProduct.data?.product_num_ratings
+      });
+
       return getProcessedProductData(amazonProduct, country);
     } else if (amazonProduct?.asin && amazonProduct?.title) {
       // Old Amazon Explorer format - convert to new format
+      console.log('⚠️ ProductList - Converting old Amazon Explorer format:', {
+        asin: amazonProduct.asin,
+        title: amazonProduct.title,
+        rating: amazonProduct.rating,
+        reviews: amazonProduct.reviews
+      });
+
       const convertedData: TAmazonProduct = {
         data: {
           asin: amazonProduct.asin,
@@ -207,9 +220,9 @@ const ProductList: React.FC<ProductListProps> = ({
           product_price: amazonProduct.price,
           product_original_price: null,
           currency: 'USD',
-          product_star_rating: amazonProduct.rating || '0',
-          product_num_ratings: amazonProduct.reviews || 0,
-          product_photo: amazonProduct.image,
+          product_star_rating: amazonProduct.rating || amazonProduct.product_star_rating || '0',
+          product_num_ratings: amazonProduct.reviews || amazonProduct.product_num_ratings || 0,
+          product_photo: amazonProduct.image || amazonProduct.product_photo,
           product_url: `https://amazon.com/dp/${amazonProduct.asin}`,
           product_byline: 'Amazon',
           product_byline_link: '',
@@ -257,10 +270,17 @@ const ProductList: React.FC<ProductListProps> = ({
       };
 
       return getProcessedProductData(convertedData, 'US');
-    } else if (amazonProduct?.product_photo) {
+    } else if (amazonProduct?.product_photo || amazonProduct?.product_title) {
       // Legacy format - wrap in data structure
+      console.log('⚠️ ProductList - Converting legacy format:', {
+        hasProductPhoto: !!amazonProduct.product_photo,
+        hasProductTitle: !!amazonProduct.product_title,
+        rating: amazonProduct.product_star_rating
+      });
+
       const country = amazonProduct.parameters?.country ||
                      amazonProduct.parameters?.searchCountry ||
+                     amazonProduct.country ||
                      'US';
 
       return getProcessedProductData(
@@ -268,6 +288,7 @@ const ProductList: React.FC<ProductListProps> = ({
         country
       );
     } else {
+      console.log('❌ ProductList - Unknown amazon_product format:', amazonProduct);
       return null;
     }
   };
