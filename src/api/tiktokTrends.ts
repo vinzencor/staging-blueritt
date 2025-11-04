@@ -255,72 +255,6 @@ export interface TikTokSearchParams {
 // API Functions
 
 /**
- * Search TikTok products - Main search function like MarginMax (GET method)
- */
-export const searchTikTokProducts = async (params: TikTokSearchParams): Promise<TikTokSearchResponse> => {
-  const searchParams = new URLSearchParams();
-
-  searchParams.append('keyword', params.keyword);
-  if (params.country_code) searchParams.append('country_code', params.country_code);
-  if (params.limit) searchParams.append('limit', params.limit.toString());
-  if (params.page) searchParams.append('page', params.page.toString());
-  if (params.start_product_rating !== undefined) {
-    searchParams.append('start_product_rating', params.start_product_rating.toString());
-  }
-  if (params.end_product_rating !== undefined) {
-    searchParams.append('end_product_rating', params.end_product_rating.toString());
-  }
-  if (params.category_id1) searchParams.append('category_id1', params.category_id1);
-  if (params.category1) searchParams.append('category1', params.category1);
-  if (params.shop_key_word) searchParams.append('shop_key_word', params.shop_key_word);
-  if (params.ship_from) searchParams.append('ship_from', params.ship_from);
-  if (params.free_shipping !== undefined) {
-    searchParams.append('free_shipping', params.free_shipping.toString());
-  }
-
-  const response = await api.get(`/products/tiktok-trends/search/?${searchParams.toString()}`);
-  return response.data;
-};
-
-/**
- * Search TikTok products using POST method - Alternative search method
- */
-export const searchTikTokProductsPost = async (params: {
-  keyword: string;
-  country_code?: string;
-  page?: number;
-  limit?: number;
-  categoryId?: number;
-  shop_key_word?: string;
-  ship_from?: string;
-  free_shipping?: boolean;
-  start_product_rating?: number;
-  end_product_rating?: number;
-  category_id1?: number;
-  category1?: string;
-  product_status?: boolean;
-}): Promise<TikTokSearchResponse> => {
-  const requestData = {
-    page: params.page || 1,
-    limit: params.limit || 10,
-    country_code: params.country_code || '',
-    categoryId: params.categoryId || 0,
-    shop_key_word: params.shop_key_word || '',
-    ship_from: params.ship_from || '',
-    free_shipping: params.free_shipping || false,
-    start_product_rating: params.start_product_rating || 0,
-    end_product_rating: params.end_product_rating || 5,
-    keyword: params.keyword,
-    category_id1: params.category_id1 || 0,
-    category1: params.category1 || '',
-    product_status: params.product_status || false,
-  };
-
-  const response = await api.post('/products/tiktok-trends/search-post/', requestData);
-  return response.data;
-};
-
-/**
  * Get trending TikTok products without search - Updated for pagination like Amazon Trends
  */
 export const getTikTokTrendingProducts = async ({
@@ -430,65 +364,7 @@ export const getTikTokProductTrends = async (
   return response.data;
 };
 
-/**
- * Get sales data for a specific TikTok product
- */
-export const getTikTokSalesData = async (
-  productId: string,
-  startDate: string,
-  endDate: string
-): Promise<{
-  data: TikTokSalesData;
-  remaining_quota: number;
-  period: string;
-}> => {
-  const response = await api.get(
-    `/products/tiktok-trends/sales-data/${productId}/?startDate=${startDate}&endDate=${endDate}`
-  );
-  return response.data;
-};
 
-/**
- * Get trends data for a specific TikTok product
- */
-export const getTikTokTrendsData = async (
-  productId: string,
-  startDate: string,
-  endDate: string
-): Promise<{
-  data: TikTokTrendsData;
-  remaining_quota: number;
-  period: string;
-}> => {
-  const response = await api.get(
-    `/products/tiktok-trends/trends-data/${productId}/?startDate=${startDate}&endDate=${endDate}`
-  );
-  return response.data;
-};
-
-/**
- * Get available TikTok categories
- */
-export const getTikTokCategories = async (): Promise<{
-  data: TikTokCategory[];
-  remaining_quota: number;
-}> => {
-  const response = await api.get('/products/tiktok-trends/categories/');
-  return response.data;
-};
-
-/**
- * Get available TikTok countries
- */
-export const getTikTokCountries = async (): Promise<{
-  data: TikTokCountry[];
-  remaining_quota: number;
-}> => {
-  const response = await api.get('/products/tiktok-trends/countries/');
-  return response.data;
-};
-
-// Utility Functions
 
 /**
  * Format number for display (1000 -> 1K, 1000000 -> 1M)
