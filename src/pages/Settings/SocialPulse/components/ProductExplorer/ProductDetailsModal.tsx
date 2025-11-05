@@ -324,8 +324,8 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
     };
 
     // Calculate fulfillment costs
-    const fulfillmentPerUnit = initialCalc.fm_referrfalFees + initialCalc.fm_fbaFulfillmentFees + 
-                              initialCalc.fm_monthlyStorageFees + initialCalc.fm_inboundShippingCost;
+    const fulfillmentPerUnit = initialCalc.fm_referrfalFees + initialCalc.fm_fbaFulfillmentFees +
+      initialCalc.fm_monthlyStorageFees + initialCalc.fm_inboundShippingCost;
     initialCalc.fm_perUnitCost = fulfillmentPerUnit;
     initialCalc.fm_totalCost = fulfillmentPerUnit * quantity;
 
@@ -369,10 +369,10 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
 
     if (calculation.fm_model === 'FBA') {
       perUnitCost = fm_referrfalFees + fm_fbaFulfillmentFees + fm_monthlyStorageFees +
-                   fm_longTermStorageFees + fm_inboundShippingCost;
+        fm_longTermStorageFees + fm_inboundShippingCost;
     } else {
       perUnitCost = fm_referrfalFees + fm_shippingFees + fm_handlingCost +
-                   fm_storageCost + fm_miscCost;
+        fm_storageCost + fm_miscCost;
     }
 
     const totalCost = perUnitCost * pi_quantity;
@@ -682,11 +682,10 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
                 <button
                   key={id}
                   onClick={() => setActiveTab(id as TabType)}
-                  className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${
-                    activeTab === id
+                  className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${activeTab === id
                       ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   {label}
@@ -881,11 +880,10 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ reviews, isLoading, error }) =>
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`w-4 h-4 ${
-                    i < review.review_star_rating
+                  className={`w-4 h-4 ${i < review.review_star_rating
                       ? 'text-yellow-400 fill-current'
                       : 'text-gray-300'
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -1107,8 +1105,8 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                         (supplier.ai_match_score || 0) >= 80
                           ? '#22c55e' // green-500
                           : (supplier.ai_match_score || 0) >= 60
-                          ? '#eab308' // yellow-500
-                          : '#ef4444' // red-500
+                            ? '#eab308' // yellow-500
+                            : '#ef4444' // red-500
                       }
                       strokeWidth="8"
                       strokeLinecap="round"
@@ -1121,24 +1119,27 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   </svg>
 
                   {/* Content in center */}
-                
+
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-[10px] rounded-full">
                     <div className="text-xs text-gray-500">AI Match</div>
                     <div className="font-medium text-purple-600">
-                      {supplier.ai_match_score || 0}%
+                      {supplier?.ai_match_score !== undefined
+                        ? Number(supplier.ai_match_score).toFixed(2)
+                        : 0
+                      }%
                     </div>
                   </div>
-              
+
                 </div>
 
-                  {/* price */}
-                  {/* <div className="text-right">
+                {/* price */}
+                {/* <div className="text-right">
                     <div className="text-lg font-bold text-green-600">
                       {supplier.estimated_price}
                     </div>
                     <div className="text-xs text-gray-500">Est. Price</div>
                   </div> */}
-                </div>
+              </div>
 
             </div>
 
@@ -1169,15 +1170,15 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   <div className="flex flex-wrap gap-1 mt-1">
                     {Array.isArray(supplier.main_products)
                       ? supplier.main_products.map((product: string, idx: number) => (
-                          <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                            {product}
-                          </span>
-                        ))
+                        <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                          {product}
+                        </span>
+                      ))
                       : (
-                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                            {supplier.main_products}
-                          </span>
-                        )
+                        <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                          {supplier.main_products}
+                        </span>
+                      )
                     }
                   </div>
                 </div>
@@ -1199,15 +1200,14 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  (supplier.ai_match_score || 0) >= 80
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${(supplier.ai_match_score || 0) >= 80
                     ? 'bg-green-100 text-green-800'
                     : (supplier.ai_match_score || 0) >= 60
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
                   {(supplier.ai_match_score || 0) >= 80 ? 'Excellent Match' :
-                   (supplier.ai_match_score || 0) >= 60 ? 'Good Match' : 'Fair Match'}
+                    (supplier.ai_match_score || 0) >= 60 ? 'Good Match' : 'Fair Match'}
                 </span>
                 {supplier.trade_assurance && (
                   <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">

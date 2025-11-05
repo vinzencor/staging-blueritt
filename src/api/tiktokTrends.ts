@@ -451,8 +451,151 @@ export const discoverSuppliers = async (productData: {
   id?: string;
   price?: string;
 }): Promise<SupplierDiscoveryResponse> => {
-  const response = await api.post('/products/suppliers/discover/', productData);
-  return response.data;
+  // ✅ Call backend endpoint with params (AlibabaProductMatcher expects 'query' and 'asin')
+  // Use URLSearchParams to ensure consistent encoding with + for spaces (same as Amazon)
+  const params = new URLSearchParams({
+    query: productData.title,  // Backend expects 'query' not 'title'
+    asin: productData.id || 'TIKTOK',  // ASIN is required by backend, use TikTok product ID
+    country: 'US',  // Default country
+  });
+
+  console.log('🔍 TikTok Supplier Discovery Request:', `/products/suppliers/discover/?${params.toString()}`);
+
+  const response = await api.get(`/products/suppliers/discover/?${params.toString()}`);
+
+  // ✅ Transform AlibabaProductMatcher response format to frontend format
+  const backendData = response.data;
+  const suppliersArray = backendData.suppliers || backendData.products || [];
+
+  // Transform each supplier from backend format to frontend format
+  const transformedSuppliers = suppliersArray.map((supplierData: any) => {
+    const item = supplierData.item || {};
+    const seller = item.seller_store || {};
+    const company = item.company_details || item.company || {};
+
+    // 🔍 DEBUG: Log the actual structure
+    console.log('🔍 TikTok Supplier Data Structure:', {
+      item_keys: Object.keys(item),
+      seller_keys: Object.keys(seller),
+      company_keys: Object.keys(company),
+      seller_full: seller,
+      company_full: company,
+    });
+
+    // Extract SKU data for price and MOQ
+    const sku = item.sku || {};
+    const skuDef = sku.def || {};
+    const priceModule = skuDef.priceModule || {};
+    const quantityModule = skuDef.quantityModule || {};
+    const minOrder = quantityModule.minOrder || {};
+
+    // Get price from priceList or fallback to sku_listing
+    const priceList = priceModule.priceList || [];
+    const firstPrice = priceList[0] || {};
+    const skuListing = item.sku_listing || {};
+    const skuListingPrice = skuListing.def?.priceModule || {};
+
+    // Extract company details
+    const companyName = company.companyName || '';
+    const companyType = company.companyType || '';
+
+    // ✅ Extract years in business from seller.storeAge (e.g., "5 YRS" or "5")
+    const storeAge = seller.storeAge || companyType || '';
+    const yearsMatch = storeAge.match(/(\d+)/);
+    let yearsInBusiness = yearsMatch ? parseInt(yearsMatch[1]) : 0;
+
+    // ✅ If years is still 0, try to extract from company establishment year
+    if (yearsInBusiness === 0 && company.companyEstablishmentYear) {
+      const currentYear = new Date().getFullYear();
+      const establishmentYear = parseInt(company.companyEstablishmentYear);
+      if (!isNaN(establishmentYear) && establishmentYear > 1900 && establishmentYear <= currentYear) {
+        yearsInBusiness = currentYear - establishmentYear;
+      }
+    }
+
+    // ✅ Extract rating from seller.storeEvaluates
+    const storeEvaluates = seller.storeEvaluates || [];
+    let rating = 0;
+    let responseRate = 'N/A';
+    let totalTransactions = 0;
+
+    console.log('🔍 Store Evaluates:', storeEvaluates);
+
+    // Parse storeEvaluates for rating, response rate, and transactions
+    storeEvaluates.forEach((evaluate: any) => {
+      const title = evaluate.title?.toLowerCase() || '';
+      const score = evaluate.score || '';
+
+      console.log('🔍 Evaluate:', { title, score });
+
+      if (title.includes('rating') || title.includes('score')) {
+        // Extract rating (e.g., "4.5/5.0" or "4.5")
+        const ratingMatch = score.match(/([\d.]+)/);
+        if (ratingMatch) {
+          rating = parseFloat(ratingMatch[1]);
+        }
+      } else if (title.includes('response') || title.includes('reply')) {
+        // Extract response rate (e.g., "95%" or "95")
+        responseRate = score.includes('%') ? score : `${score}%`;
+      } else if (title.includes('transaction') || title.includes('order')) {
+        // Extract total transactions (e.g., "1,234" or "1234")
+        const transactionMatch = score.replace(/,/g, '').match(/(\d+)/);
+        if (transactionMatch) {
+          totalTransactions = parseInt(transactionMatch[1]);
+        }
+      }
+    });
+
+    return {
+      id: item.itemId || item.id || '',
+      name: companyName || 'Unknown Supplier',
+      supplier_name: companyName,
+      location: company.companyAddress?.country || 'China',
+      verification_status: company.status?.gold ? 'Gold Supplier' : (company.status?.verified ? 'Verified' : 'Standard'),
+      verification_badge: company.status?.gold ? 'Gold Supplier' : (company.status?.verified ? 'Verified Supplier' : ''),
+      years_in_business: yearsInBusiness,
+      main_products: item.title || '',
+      certifications: item.description?.certifications || [],
+      contact_method: item.itemUrl || '',
+      ai_match_score: supplierData.score || 0,
+      match_explanation: `AI Match Score: ${supplierData.score}% (Absolute: ${supplierData.absolute_score}%)`,
+      moq: minOrder.quantity || 0,
+      min_order_quantity: minOrder.quantityFormatted || `${minOrder.quantity || 0} ${minOrder.unit || 'Pieces'}`,
+      lead_time: 'Contact supplier', // Not available in API response
+      estimated_price: firstPrice.priceFormatted || skuListingPrice.priceFormatted || priceModule.priceFormatted || 'Contact supplier',
+      contact_url: item.itemUrl || '',
+      response_rate: responseRate,
+      trade_assurance: company.status?.assessed || false,
+      verified_supplier: company.status?.verified || false,
+      rating: rating,
+      total_transactions: totalTransactions,
+      price_per_unit: firstPrice.priceFormatted || priceModule.priceFormatted,
+      minimum_order: minOrder.quantity,
+      // Keep raw item data for reference
+      _raw_item: item,
+      _raw_seller: seller,
+      _raw_company: company,
+      _raw_sku: sku,
+    };
+  });
+
+  return {
+    status: 'success',
+    analysis_time: 0,
+    product_info: {
+      title: productData.title,
+      category: productData.category || '',
+      id: productData.id || '',
+      price: productData.price || '',
+    } as any,  // Type assertion for TikTok products (uses 'id' instead of 'asin')
+    suppliers: transformedSuppliers,
+    total_suppliers: transformedSuppliers.length,
+    analysis_summary: {
+      criteria_analyzed: ['AI Matching', 'Verification Status', 'Trade Assurance'],
+      top_match_score: transformedSuppliers[0]?.ai_match_score || 0,
+    },
+    remaining_quota: backendData.remaining_quota,
+  };
 };
 
 /**

@@ -1,8 +1,8 @@
 /**
- * Freepik Image Fallback Utility
- * Fetches category-based images from Freepik API when product images are missing
+ * Pexels Image Fallback Utility
+ * Fetches category-based images from Pexels API when product images are missing
  * Using backend proxy to avoid CORS issues
- * Backend endpoint: /products/freepik/image-proxy/
+ * Backend endpoint: /products/freepik/image-proxy/ (proxies Pexels API)
  */
 
 import api from '@/api';
@@ -10,8 +10,8 @@ import api from '@/api';
 // Cache for images to avoid repeated API calls
 const imageCache: Record<string, string> = {};
 
-// Backend proxy URL for Freepik API
-const FREEPIK_PROXY_URL = '/products/freepik/image-proxy/';
+// Backend proxy URL for Pexels API (endpoint name kept as freepik for backward compatibility)
+const PEXELS_PROXY_URL = '/products/freepik/image-proxy/';
 
 /**
  * Map TikTok category names to image search queries
@@ -142,7 +142,7 @@ const getCategorySearchQuery = (categoryName: string): string => {
 };
 
 /**
- * Fetch a random image from Freepik API via backend proxy for a given search query
+ * Fetch a random image from Pexels API via backend proxy for a given search query
  * @param searchQuery - The search query (can be product title, url_title, or category)
  * @param cacheKey - Optional cache key (defaults to searchQuery)
  */
@@ -162,17 +162,23 @@ export const fetchPexelsFallbackImage = async (searchQuery: string, cacheKey?: s
       .replace(/\s+/g, ' ')       // Replace multiple spaces with single space
       .trim();
 
-    console.log('🔍 Fetching Freepik image via backend proxy with query:', cleanQuery);
+    console.log('🔍 Fetching Pexels image via backend proxy with query:', cleanQuery);
 
     // Call backend proxy endpoint using axios (backend will append "product" to the query)
-    const response = await api.get(FREEPIK_PROXY_URL, {
+    const response = await api.get(PEXELS_PROXY_URL, {
       params: {
         term: cleanQuery
       }
     });
 
     const data = response.data;
-    console.log('Freepik proxy response:', data);
+
+    // Check if image fallback is disabled
+    if (data.message && data.message.includes('Image fallback disabled')) {
+      // Silently return empty string - feature is disabled on backend
+      console.log('⚠️ Image fallback disabled on backend:', data.message);
+      return '';
+    }
 
     // Extract image URL from proxy response
     // Backend returns: { success: true, images: [...], total: number }
@@ -185,21 +191,23 @@ export const fetchPexelsFallbackImage = async (searchQuery: string, cacheKey?: s
       if (imageUrl) {
         // Cache the image URL
         imageCache[key] = imageUrl;
-        console.log('✅ Freepik image URL fetched via proxy:', imageUrl);
+        console.log('✅ Pexels image URL fetched via proxy:', imageUrl);
         return imageUrl;
       }
     }
 
-    console.warn('⚠️ No images found for query:', cleanQuery);
+    // Only warn if feature is enabled but no images found
+    console.log('⚠️ No images found for query:', cleanQuery);
     return '';
   } catch (error) {
-    console.error('❌ Error fetching image from Freepik proxy:', error);
+    // Silently handle errors - image fallback is optional
+    console.log('⚠️ Error fetching Pexels image:', error);
     return '';
   }
 };
 
 /**
- * Get product image URL with Freepik fallback
+ * Get product image URL with Pexels fallback
  * Uses product's url_title for more relevant images
  */
 export const getProductImageWithFallback = async (product: any): Promise<string> => {
@@ -216,7 +224,7 @@ export const getProductImageWithFallback = async (product: any): Promise<string>
     return originalImage;
   }
 
-  // Otherwise, fetch fallback from Freepik API using url_title or title
+  // Otherwise, fetch fallback from Pexels API using url_title or title
   // Priority: url_title > title > category
   const searchQuery = product.url_title || product.title || extractCategoryName(product);
   const cacheKey = `${product.id || ''}_${searchQuery}`;

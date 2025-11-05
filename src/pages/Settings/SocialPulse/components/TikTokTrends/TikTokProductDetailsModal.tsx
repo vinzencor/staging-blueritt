@@ -28,6 +28,7 @@ interface TikTokProductDetailsModalProps {
   product: TikTokTrendingProduct;
   isOpen: boolean;
   onClose: () => void;
+  autoStartSupplierDiscovery?: boolean; // ✅ EXACT COPY from Amazon ProductExplorer
 }
 
 type TabType = 'overview' | 'engagement' | 'suppliers';
@@ -53,7 +54,7 @@ const TrendingHashtagsCarousel: React.FC<{ hashtags: string[] }> = ({ hashtags }
   );
 };
 
-const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ product, isOpen, onClose }) => {
+const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery }) => {
   // Quota management for supplier discovery
   const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
 
@@ -79,6 +80,16 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
       setShowSaveModal(false);
     }
   }, [isOpen, product.id]);
+
+  // ✅ Auto-start supplier discovery when modal opens with autoStartSupplierDiscovery flag - EXACT COPY from Amazon ProductExplorer
+  useEffect(() => {
+    if (isOpen && autoStartSupplierDiscovery && !isSupplierDiscoveryLoading && suppliers.length === 0) {
+      console.log('🚀 Auto-starting supplier discovery for TikTok product:', product.title);
+      setTimeout(() => {
+        handleDiscoverSuppliers();
+      }, 500);
+    }
+  }, [isOpen, autoStartSupplierDiscovery, product.id]);
 
   // Product Details Query - Fetch detailed product info including audience data
   const {
@@ -862,18 +873,14 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
               <div>
-                <div className="text-xs text-gray-500">MOQ</div>
-                <div className="font-medium">{supplier.moq || supplier.min_order_quantity || 'Contact supplier'}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">MOQ</div>
+                <div className="font-medium text-gray-900 dark:text-white">{supplier.moq || supplier.min_order_quantity || 'Contact supplier'}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">Lead Time</div>
-                <div className="font-medium">{supplier.lead_time || 'Contact supplier'}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500">Verification</div>
-                <div className="font-medium text-blue-600">{supplier.verification_status || (supplier.verified_supplier ? 'Verified' : 'Unverified')}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Lead Time</div>
+                <div className="font-medium text-gray-900 dark:text-white">{supplier.lead_time || 'Contact supplier'}</div>
               </div>
 
               <div className="flex items-center justify-end gap-[8px]">
@@ -911,143 +918,138 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
                   {/* Content in center */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-[10px] rounded-full">
-                    <div className="text-xs text-gray-500">AI Match</div>
-                    <div className="font-medium text-purple-600">
-                      {supplier.ai_match_score || 0}%
+                    <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
+                    <div className="font-medium text-purple-600 dark:text-purple-400">
+                      {(supplier.ai_match_score || 0).toFixed(2)}%
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Additional supplier details */}
-            <div className="mb-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Years in Business:</span>
-                  <span className="font-medium ml-2">{supplier.years_in_business || 'N/A'} years</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Response Rate:</span>
-                  <span className="font-medium ml-2">{supplier.response_rate || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Rating:</span>
-                  <span className="font-medium ml-2">{supplier.rating || 'N/A'}/5.0</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Transactions:</span>
-                  <span className="font-medium ml-2">{supplier.total_transactions || 'N/A'}</span>
-                </div>
-              </div>
-
-              {supplier.main_products && (
-                <div className="mt-3">
-                  <span className="text-gray-600 text-sm">Main Products:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {Array.isArray(supplier.main_products)
-                      ? supplier.main_products.map((product: string, idx: number) => (
-                          <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                            {product}
-                          </span>
-                        ))
-                      : (
-                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
-                            {supplier.main_products}
-                          </span>
-                        )
-                    }
-                  </div>
-                </div>
+            {/* ✅ Verification Badges Section - Same as spkbgcards.tsx */}
+            <div className="flex flex-wrap gap-3 mt-2">
+              {/* Gold Supplier Badge */}
+              {(supplier.verification_badge === 'Gold Supplier' || supplier.verification_status === 'Gold Supplier') && (
+                <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded-full text-xs font-medium">
+                  Gold
+                </span>
               )}
 
-              {supplier.certifications && supplier.certifications.length > 0 && (
-                <div className="mt-3">
-                  <span className="text-gray-600 text-sm">Certifications:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {supplier.certifications.map((cert, idx) => (
-                      <span key={idx} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
-                        {cert}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+              {/* Verified Pro Badge */}
+              {(supplier.verification_badge === 'Verified Pro' || supplier.verified_supplier) && (
+                <span className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 px-3 py-1 rounded-full text-xs font-medium">
+                  Verified Pro
+                </span>
               )}
-            </div>
 
-            {/* Verification Badges Section */}
-            <div className="flex flex-wrap gap-2 mb-4">
+              {/* Verified Supplier Badge */}
+              {(supplier.verification_badge === 'Verified Supplier' || supplier.verification_status === 'Verified') && (
+                <span className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-3 py-1 rounded-full text-xs font-medium">
+                  Verified
+                </span>
+              )}
+
+              {/* Trade Assurance Badge */}
+              {supplier.trade_assurance && (
+                <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
+                  Trade Assurance
+                </span>
+              )}
+
+              {/* Store Age Badge */}
+              {supplier.years_in_business && supplier.years_in_business > 0 && (
+                <span className="bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200 px-3 py-1 rounded-full text-xs font-medium">
+                  Store Age: {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
+                </span>
+              )}
+
+              {/* Rating Badge */}
+              {supplier.rating && supplier.rating > 0 && (
+                <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-current" />
+                  {supplier.rating.toFixed(1)}
+                </span>
+              )}
+
               {/* AI Match Level Badge */}
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                 (supplier.ai_match_score || 0) >= 80
                   ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                   : (supplier.ai_match_score || 0) >= 60
                   ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                   : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
               }`}>
-                {(supplier.ai_match_score || 0) >= 80 ? 'Excellent Match' :
-                 (supplier.ai_match_score || 0) >= 60 ? 'Good Match' : 'Fair Match'}
+                AI Match: {(supplier.ai_match_score || 0).toFixed(2)}%
               </span>
+            </div>
 
-              {/* Display all verification badges from backend */}
-              {supplier.verification_badges && supplier.verification_badges.length > 0 ? (
-                supplier.verification_badges.map((badge, idx) => (
-                  <span
-                    key={idx}
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      badge === 'Gold Supplier' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                      badge === 'Verified Pro' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                      badge === 'Verified Supplier' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                      badge === 'Trade Assurance' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                      badge === 'Alibaba Guaranteed' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200' :
-                      badge === 'Assessed Supplier' ? 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200' :
-                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                    }`}
-                  >
-                    {badge}
-                  </span>
-                ))
-              ) : (
-                // Fallback to individual badge checks if verification_badges array not available
-                <>
-                  {supplier.is_gold && (
-                    <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-2 py-1 rounded-full text-xs font-medium">
-                      Gold Supplier
-                    </span>
-                  )}
-                  {supplier.verified_pro && (
-                    <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-2 py-1 rounded-full text-xs font-medium">
-                      Verified Pro
-                    </span>
-                  )}
-                  {supplier.verified_supplier && !supplier.verified_pro && !supplier.is_gold && (
-                    <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
-                      Verified Supplier
-                    </span>
-                  )}
-                  {supplier.trade_assurance && (
-                    <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded-full text-xs font-medium">
-                      Trade Assurance
-                    </span>
-                  )}
-                  {supplier.alibaba_guaranteed && (
-                    <span className="bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-1 rounded-full text-xs font-medium">
-                      Alibaba Guaranteed
-                    </span>
-                  )}
-                  {supplier.is_assessed && (
-                    <span className="bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200 px-2 py-1 rounded-full text-xs font-medium">
-                      Assessed Supplier
-                    </span>
-                  )}
-                </>
+            {/* Additional Info Section */}
+            <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">Response Rate:</span>
+                <span className="font-medium ml-2 text-gray-900 dark:text-white">{supplier.response_rate || 'N/A'}</span>
+              </div>
+              {supplier.total_transactions && supplier.total_transactions > 0 && (
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">Transactions:</span>
+                  <span className="font-medium ml-2 text-gray-900 dark:text-white">{supplier.total_transactions.toLocaleString()}</span>
+                </div>
               )}
             </div>
 
-            <div className="flex justify-between items-center">
+            {/* Main Products Section */}
+            {supplier.main_products && (
+              <div className="mt-3">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Main Products:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {Array.isArray(supplier.main_products)
+                    ? supplier.main_products.map((product: string, idx: number) => (
+                        <span key={idx} className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                          {product}
+                        </span>
+                      ))
+                    : (
+                        <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                          {supplier.main_products}
+                        </span>
+                      )
+                  }
+                </div>
+              </div>
+            )}
+
+            {/* Certifications Section */}
+            {supplier.certifications && supplier.certifications.length > 0 && (
+              <div className="mt-3">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Certifications:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {supplier.certifications.map((cert, idx) => (
+                    <span key={idx} className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs">
+                      {cert}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contact Button */}
+            <div className="mt-4">
+              <a
+                href={supplier.contact_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block w-full text-center px-4 py-2 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-sm font-medium transition-colors"
+              >
+                Contact Supplier →
+              </a>
+            </div>
+
+            {/* Select Supplier Button */}
+            <div className="mt-4">
               <button
                 onClick={() => onSelectSupplier && onSelectSupplier(supplier)}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center gap-2"
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Calculator className="w-4 h-4" />
                 Select Supplier

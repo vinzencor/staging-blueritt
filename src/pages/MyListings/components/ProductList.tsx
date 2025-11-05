@@ -144,7 +144,7 @@ const ProductList: React.FC<ProductListProps> = ({
       itemId: alibabaProduct.item.itemId || "",
       companyName: alibabaProduct.item.company.companyName || "",
       Country: alibabaProduct.item.company_details?.companyAddress?.country || "",
-            TradeAssurance:alibabaProduct.item.company_details.status.tradeAssurance,
+      TradeAssurance: alibabaProduct.item.company_details.status.tradeAssurance,
 
       contactName: alibabaProduct.item.company.companyContact?.name || "",
       storeAge: alibabaProduct.item.seller_store?.storeAge || "",
@@ -193,9 +193,9 @@ const ProductList: React.FC<ProductListProps> = ({
     if (amazonProduct?.data) {
       // New format with data wrapper (Amazon Trends, TikTok Trends)
       const country = amazonProduct.parameters?.country ||
-                     amazonProduct.parameters?.searchCountry ||
-                     amazonProduct.data?.country ||
-                     'US';
+        amazonProduct.parameters?.searchCountry ||
+        amazonProduct.data?.country ||
+        'US';
 
       console.log('✅ ProductList - Using new format with data wrapper:', {
         hasData: !!amazonProduct.data,
@@ -279,9 +279,9 @@ const ProductList: React.FC<ProductListProps> = ({
       });
 
       const country = amazonProduct.parameters?.country ||
-                     amazonProduct.parameters?.searchCountry ||
-                     amazonProduct.country ||
-                     'US';
+        amazonProduct.parameters?.searchCountry ||
+        amazonProduct.country ||
+        'US';
 
       return getProcessedProductData(
         { data: amazonProduct } as TAmazonProduct,
@@ -443,14 +443,14 @@ const ProductList: React.FC<ProductListProps> = ({
 
                   // Try to get data from simple_profit_pro_data first (TikTok/Amazon Trends), then fallback to other sources
                   const totalRevenue = product.total_revenue ||
-                                      (typeof simpleProfitData === 'object' ? simpleProfitData?.pi_totalRevenue : null) ||
-                                      calcData?.pi_totalRevenue;
+                    (typeof simpleProfitData === 'object' ? simpleProfitData?.pi_totalRevenue : null) ||
+                    calcData?.pi_totalRevenue;
                   const grossProfit = product.gross_profit ||
-                                     (typeof simpleProfitData === 'object' ? simpleProfitData?.grossProfitMargin : null) ||
-                                     calcData?.grossProfit;
+                    (typeof simpleProfitData === 'object' ? simpleProfitData?.grossProfitMargin : null) ||
+                    calcData?.grossProfit;
                   const netProfit = product.net_profit ||
-                                   (typeof simpleProfitData === 'object' ? simpleProfitData?.netProfitAfterTaxesMargin : null) ||
-                                   calcData?.netProfit;
+                    (typeof simpleProfitData === 'object' ? simpleProfitData?.netProfitAfterTaxesMargin : null) ||
+                    calcData?.netProfit;
 
                   return (totalRevenue || grossProfit || netProfit) ? (
                     <div>
@@ -497,229 +497,231 @@ const ProductList: React.FC<ProductListProps> = ({
                 {/* Show Alibaba supplier if available */}
                 {product.alibaba_product &&
                   Object.keys(product.alibaba_product).length > 0 ? (
-                    <SpkbgCards
-                      key={`alibaba-${product.id}`}
-                      showAIScore={false}
-                      {...mapToAlibabaProps(product.alibaba_product)}
-                    />
-                  ) : (
-                    /* Show seller/supplier info for Amazon/TikTok products */
-                    <div className="p-4">
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                          {product.supplier_info ? 'Supplier Information' : 'Seller Details'}
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                          {/* Display supplier info if available (from TikTok/Amazon calculator) */}
-                          {product.supplier_info ? (
-                            <>
-                              {/* Supplier Name with Verification Badge */}
-                              <div className="col-span-2">
-                                <span className="text-gray-600 dark:text-gray-400">Supplier Name:</span>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="font-bold text-gray-900 dark:text-white text-lg">
-                                    {product.supplier_info.name || 'N/A'}
-                                  </span>
-                                  {product.supplier_info.verification_status && (
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                      product.supplier_info.verification_status === 'Gold Verified'
-                                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
-                                        : product.supplier_info.verification_status === 'Verified'
+                  <SpkbgCards
+                    key={`alibaba-${product.id}`}
+                    showAIScore={false}
+                    {...mapToAlibabaProps(product.alibaba_product)}
+                  />
+                ) : (
+                  /* Show seller/supplier info for Amazon/TikTok products */
+                  <div className="p-4">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                        {product.supplier_info ? 'Supplier Information' : 'Seller Details'}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        {/* Display supplier info if available (from TikTok/Amazon calculator) */}
+                        {product.supplier_info ? (
+                          <>
+                            {/* Supplier Name with Verification Badge */}
+                            <div className="col-span-2">
+                              <span className="text-gray-600 dark:text-gray-400">Supplier Name:</span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="font-bold text-gray-900 dark:text-white text-lg">
+                                  {product.supplier_info.name || 'N/A'}
+                                </span>
+                                {product.supplier_info.verification_status && (
+                                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${product.supplier_info.verification_status === 'Gold Verified'
+                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                                      : product.supplier_info.verification_status === 'Verified'
                                         ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
                                         : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                                     }`}>
-                                      {product.supplier_info.verification_status}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Location */}
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">Location:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                  {product.supplier_info.location || 'N/A'}
-                                </span>
-                              </div>
-
-                              {/* AI Match Score */}
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">AI Match Score:</span>
-                                <span className="ml-2 font-bold text-purple-600 dark:text-purple-400">
-                                  {product.supplier_info.ai_match_score || 'N/A'}%
-                                </span>
-                              </div>
-
-                              {/* MOQ */}
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">MOQ:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                  {product.supplier_info.moq || product.supplier_info.minimum_order || 'N/A'}
-                                </span>
-                              </div>
-
-                              {/* Lead Time */}
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">Lead Time:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                  {product.supplier_info.lead_time || 'N/A'}
-                                </span>
-                              </div>
-
-                              {/* Estimated Price */}
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">Est. Price:</span>
-                                <span className="ml-2 font-bold text-green-600 dark:text-green-400">
-                                  {product.supplier_info.estimated_price || 'N/A'}
-                                </span>
-                              </div>
-
-                              {/* Response Rate */}
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">Response Rate:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                  {product.supplier_info.response_rate || 'N/A'}
-                                </span>
-                              </div>
-
-                              {/* Rating */}
-                              {product.supplier_info.rating !== undefined && (
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Rating:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                    {product.supplier_info.rating}/5
+                                    {product.supplier_info.verification_status}
                                   </span>
-                                </div>
-                              )}
-
-                              {/* Total Transactions */}
-                              {product.supplier_info.total_transactions !== undefined && (
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Total Transactions:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                    {product.supplier_info.total_transactions.toLocaleString()}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Years in Business */}
-                              {product.supplier_info.years_in_business !== undefined && product.supplier_info.years_in_business > 0 && (
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Years in Business:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                    {product.supplier_info.years_in_business} years
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Trade Assurance */}
-                              {product.supplier_info.trade_assurance && (
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Trade Assurance:</span>
-                                  <span className="ml-2 font-medium text-green-600 dark:text-green-400">
-                                    ✓ Available
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Main Products */}
-                              {product.supplier_info.main_products && (
-                                <div className="col-span-2">
-                                  <span className="text-gray-600 dark:text-gray-400">Main Products:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                    {Array.isArray(product.supplier_info.main_products)
-                                      ? product.supplier_info.main_products.join(', ')
-                                      : product.supplier_info.main_products}
-                                  </span>
-                                </div>
-                              )}
-
-                              {/* Certifications */}
-                              {product.supplier_info.certifications && product.supplier_info.certifications.length > 0 && (
-                                <div className="col-span-2">
-                                  <span className="text-gray-600 dark:text-gray-400">Certifications:</span>
-                                  <div className="flex flex-wrap gap-2 mt-2">
-                                    {product.supplier_info.certifications.map((cert: string, idx: number) => (
-                                      <span key={idx} className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-medium">
-                                        {cert}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Match Explanation */}
-                              {product.supplier_info.match_explanation && (
-                                <div className="col-span-2">
-                                  <span className="text-gray-600 dark:text-gray-400">Match Explanation:</span>
-                                  <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 italic">
-                                    {product.supplier_info.match_explanation}
-                                  </p>
-                                </div>
-                              )}
-
-                              {/* Product Source */}
-                              <div className="col-span-2">
-                                <span className="text-gray-600 dark:text-gray-400">Product Source:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                  {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' :
-                                   product.amazon_product?.source === 'amazon_trends' ? 'Amazon Trends' :
-                                   'TikTok Trends'}
-                                </span>
-                              </div>
-                            </>
-                          ) : (
-                            /* Display Amazon seller info */
-                            hasAmazonData && (
-                              <>
-                                <div>
-                                  <span className="text-gray-600">Seller Name:</span>
-                                  <span className="ml-2 font-medium">{amazonData.sellerName || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Seller Rating:</span>
-                                  <span className="ml-2 font-medium">
-                                    {amazonData.sellerRating ? `${amazonData.sellerRating}/5` : 'N/A'}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Ships From:</span>
-                                  <span className="ml-2 font-medium">{amazonData.sellerShipsFrom || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Country:</span>
-                                  <span className="ml-2 font-medium">{amazonData.sellerCountry || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Delivery:</span>
-                                  <span className="ml-2 font-medium">{amazonData.deliveryPrice || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Delivery Time:</span>
-                                  <span className="ml-2 font-medium">{amazonData.sellerDeliveryTime || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Product Source:</span>
-                                  <span className="ml-2 font-medium">
-                                    {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' : 'Amazon Trends'}
-                                  </span>
-                                </div>
-                                {product.amazon_product?.source === 'tiktok_trends' && (
-                                  <div className="col-span-2">
-                                    <span className="text-gray-600">TikTok Metrics:</span>
-                                    <span className="ml-2 font-medium">
-                                      {product.amazon_product?.data?.likes_count ? `${product.amazon_product.data.likes_count.toLocaleString()} likes` : ''}
-                                      {product.amazon_product?.data?.sales_count ? ` • ${product.amazon_product.data.sales_count.toLocaleString()} sales` : ''}
-                                    </span>
-                                  </div>
                                 )}
-                              </>
-                            )
-                          )}
-                        </div>
+                              </div>
+                            </div>
+
+                            {/* Location */}
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Location:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                {product.supplier_info.location || 'N/A'}
+                              </span>
+                            </div>
+
+                            {/* AI Match Score */}
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">AI Match Score:</span>
+                              <span className="ml-2 font-bold text-purple-600 dark:text-purple-400">
+                                {product?.supplier_info?.ai_match_score !== undefined
+                                  ? Number(product.supplier_info.ai_match_score).toFixed(2)
+                                  : 'N/A'
+                                }%
+                              </span>
+                            </div>
+
+                            {/* MOQ */}
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">MOQ:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                {product.supplier_info.moq || product.supplier_info.minimum_order || 'N/A'}
+                              </span>
+                            </div>
+
+                            {/* Lead Time */}
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Lead Time:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                {product.supplier_info.lead_time || 'N/A'}
+                              </span>
+                            </div>
+
+                            {/* Estimated Price */}
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Est. Price:</span>
+                              <span className="ml-2 font-bold text-green-600 dark:text-green-400">
+                                {product.supplier_info.estimated_price || 'N/A'}
+                              </span>
+                            </div>
+
+                            {/* Response Rate */}
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Response Rate:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                {product.supplier_info.response_rate || 'N/A'}
+                              </span>
+                            </div>
+
+                            {/* Rating */}
+                            {product.supplier_info.rating !== undefined && (
+                              <div>
+                                <span className="text-gray-600 dark:text-gray-400">Rating:</span>
+                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                  {product.supplier_info.rating}/5
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Total Transactions */}
+                            {product.supplier_info.total_transactions !== undefined && (
+                              <div>
+                                <span className="text-gray-600 dark:text-gray-400">Total Transactions:</span>
+                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                  {product.supplier_info.total_transactions.toLocaleString()}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Years in Business */}
+                            {product.supplier_info.years_in_business !== undefined && product.supplier_info.years_in_business > 0 && (
+                              <div>
+                                <span className="text-gray-600 dark:text-gray-400">Years in Business:</span>
+                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                  {product.supplier_info.years_in_business} years
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Trade Assurance */}
+                            {product.supplier_info.trade_assurance && (
+                              <div>
+                                <span className="text-gray-600 dark:text-gray-400">Trade Assurance:</span>
+                                <span className="ml-2 font-medium text-green-600 dark:text-green-400">
+                                  ✓ Available
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Main Products */}
+                            {product.supplier_info.main_products && (
+                              <div className="col-span-2">
+                                <span className="text-gray-600 dark:text-gray-400">Main Products:</span>
+                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                  {Array.isArray(product.supplier_info.main_products)
+                                    ? product.supplier_info.main_products.join(', ')
+                                    : product.supplier_info.main_products}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Certifications */}
+                            {product.supplier_info.certifications && product.supplier_info.certifications.length > 0 && (
+                              <div className="col-span-2">
+                                <span className="text-gray-600 dark:text-gray-400">Certifications:</span>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {product.supplier_info.certifications.map((cert: string, idx: number) => (
+                                    <span key={idx} className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-medium">
+                                      {cert}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Match Explanation */}
+                            {product.supplier_info.match_explanation && (
+                              <div className="col-span-2">
+                                <span className="text-gray-600 dark:text-gray-400">Match Explanation:</span>
+                                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 italic">
+                                  {product.supplier_info.match_explanation}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Product Source */}
+                            <div className="col-span-2">
+                              <span className="text-gray-600 dark:text-gray-400">Product Source:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' :
+                                  product.amazon_product?.source === 'amazon_trends' ? 'Amazon Trends' :
+                                    'TikTok Trends'}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          /* Display Amazon seller info */
+                          hasAmazonData && (
+                            <>
+                              <div>
+                                <span className="text-gray-600">Seller Name:</span>
+                                <span className="ml-2 font-medium">{amazonData.sellerName || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Seller Rating:</span>
+                                <span className="ml-2 font-medium">
+                                  {amazonData.sellerRating ? `${amazonData.sellerRating}/5` : 'N/A'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Ships From:</span>
+                                <span className="ml-2 font-medium">{amazonData.sellerShipsFrom || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Country:</span>
+                                <span className="ml-2 font-medium">{amazonData.sellerCountry || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Delivery:</span>
+                                <span className="ml-2 font-medium">{amazonData.deliveryPrice || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Delivery Time:</span>
+                                <span className="ml-2 font-medium">{amazonData.sellerDeliveryTime || 'N/A'}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-600">Product Source:</span>
+                                <span className="ml-2 font-medium">
+                                  {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' : 'Amazon Trends'}
+                                </span>
+                              </div>
+                              {product.amazon_product?.source === 'tiktok_trends' && (
+                                <div className="col-span-2">
+                                  <span className="text-gray-600">TikTok Metrics:</span>
+                                  <span className="ml-2 font-medium">
+                                    {product.amazon_product?.data?.likes_count ? `${product.amazon_product.data.likes_count.toLocaleString()} likes` : ''}
+                                    {product.amazon_product?.data?.sales_count ? ` • ${product.amazon_product.data.sales_count.toLocaleString()} sales` : ''}
+                                  </span>
+                                </div>
+                              )}
+                            </>
+                          )
+                        )}
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
                 <div className="col-span-1 lg:col-span-2 flex justify-end p-2">
                   <button

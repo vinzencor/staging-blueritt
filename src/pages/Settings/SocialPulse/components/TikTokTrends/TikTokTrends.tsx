@@ -649,7 +649,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
           TikTok Trends
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
-          Discover trending products from TikTok Creative Center API
+          Discover trending products and hashtags on TikTok with BlueRitt SocialPulse
         </p>
 
         {/* Subscription Quota Alert - Enhanced Premium Plan Section */}
@@ -1761,24 +1761,53 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                     </span>
                   )}
                 </div>
-                {supplier.years_in_business && (
-                  <p className="text-gray-600 dark:text-gray-300 text-xs mb-2">
-                    Store Age: {supplier.years_in_business} years
-                  </p>
-                )}
                 <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{supplier.location}</p>
                 <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
                   {supplier.match_explanation}
                 </p>
               </div>
 
-              {/* AI Match Score */}
-              <div className="text-center bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg p-3 border border-purple-200 dark:border-purple-700">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {supplier.ai_match_score}%
-                </div>
-                <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">
-                  AI Match
+              {/* AI Match Score - Circular Progress (Same as Amazon Trends) */}
+              <div className="flex items-center justify-end">
+                <div className="relative h-[90px] w-[90px]">
+                  {/* Circular Progress Bar */}
+                  <svg className="transform -rotate-90" width="90" height="90">
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke="#e5e7eb"
+                      strokeWidth="8"
+                      fill="none"
+                    />
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke={
+                        (supplier.ai_match_score || 0) >= 80
+                          ? '#22c55e'
+                          : (supplier.ai_match_score || 0) >= 60
+                          ? '#eab308'
+                          : '#ef4444'
+                      }
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 40}
+                      strokeDashoffset={
+                        2 * Math.PI * 40 * (1 - (supplier.ai_match_score || 0) / 100)
+                      }
+                    />
+                  </svg>
+
+                  {/* Content in center */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
+                    <div className="font-bold text-purple-600 dark:text-purple-400">
+                      {(supplier.ai_match_score || 0).toFixed(2)}%
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1813,10 +1842,6 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
             {/* Additional Info */}
             <div className="space-y-2 mb-4">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-600 dark:text-gray-300">Years in Business:</span>
-                <span className="font-medium text-gray-900 dark:text-white">{supplier.years_in_business}</span>
-              </div>
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-gray-600 dark:text-gray-300">Main Products:</span>
                 <span className="font-medium text-gray-900 dark:text-white">

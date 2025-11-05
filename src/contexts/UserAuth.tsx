@@ -223,7 +223,8 @@ const UserAuthContextProvider: React.FC<TUserAuthContextProviderProps> = ({
         const isRefreshTokenEndpoint =
           originalRequest.url?.includes("auth/refresh")
         // if refresh token endpoint is giving 401, then do not try to refresh the token
-        if (!isRefreshTokenEndpoint && (error.response.status === 403 || error.response.status === 401)) {
+        // ✅ Check if error.response exists before accessing .status
+        if (!isRefreshTokenEndpoint && error.response && (error.response.status === 403 || error.response.status === 401)) {
           try {
             const response = await refreshToken();
             
