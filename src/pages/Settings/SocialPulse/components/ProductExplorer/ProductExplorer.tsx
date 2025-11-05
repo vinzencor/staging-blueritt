@@ -63,7 +63,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [country, setCountry] = useState('GB'); // ✅ Default to UK (but always fetch from US)
+  const [country, setCountry] = useState('US'); // ✅ Default to US
   const [page, setPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -113,7 +113,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     console.log('🌍 Country changed to:', country, '- Resetting category selection');
   }, [country]);
 
-  // Countries list - Only 13 countries from BlueRitt Explorer
+  // ✅ Countries list - All 19 countries supported by Amazon API
   const countries = [
     { code: 'US', name: 'United States' },
     { code: 'CA', name: 'Canada' },
@@ -128,6 +128,12 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     { code: 'TR', name: 'Turkey' },
     { code: 'AE', name: 'UAE' },
     { code: 'IN', name: 'India' },
+    { code: 'IT', name: 'Italy' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'SG', name: 'Singapore' },
+    { code: 'SA', name: 'Saudi Arabia' },
+    { code: 'NL', name: 'Netherlands' },
   ];
 
   // Amazon Trends Types
@@ -139,15 +145,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     { value: 'NEW_RELEASES', name: 'New Releases', description: 'Latest product releases' },
   ];
 
-  // Helper function to shuffle array (Fisher-Yates algorithm)
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
+
 
   // Best Sellers Query
   const {
@@ -159,12 +157,12 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     queryKey: ['amazon-explorer-best-sellers', country, page, selectedType],
     queryFn: async () => {
       console.log('=== FRONTEND BESTSELLERS DEBUG ===');
-      console.log('Fetching best sellers with params (ALWAYS US):', { displayCountry: country, actualCountry: 'US', page, type: selectedType });
+      console.log('Fetching best sellers with params:', { country, page, type: selectedType });
 
       try {
-        // ✅ ALWAYS fetch from US, regardless of selected country
+        // ✅ Fetch from selected country
         const result = await getAmazonExplorerBestSellers({
-          country: 'US', // ✅ Always use US
+          country: country, // ✅ Use selected country
           page: 1,
           type: selectedType
         });
@@ -177,16 +175,9 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        // ✅ Shuffle products to make them appear different for each country
-        if (result?.data?.products && Array.isArray(result.data.products)) {
-          result.data.products = shuffleArray(result.data.products);
-          console.log('🔀 Products shuffled for country:', country);
-        }
-
         console.log('Best sellers products fetched:', result?.data?.products?.length || 0);
         console.log('=== END FRONTEND BESTSELLERS DEBUG ===');
 
-        // Return the result with shuffled products
         return result;
       } catch (error) {
         console.error('❌ Error fetching best sellers:', error);
@@ -213,12 +204,12 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     queryKey: ['amazon-explorer-search', searchQuery, country, page],
     queryFn: async () => {
       try {
-        console.log('🔍 Fetching search results (ALWAYS US):', { displayCountry: country, actualCountry: 'US', query: searchQuery });
+        console.log('🔍 Fetching search results:', { country, query: searchQuery });
 
-        // ✅ ALWAYS fetch from US, regardless of selected country
+        // ✅ Fetch from selected country
         const result = await searchAmazonExplorerProducts({
           query: searchQuery,
-          country: 'US', // ✅ Always use US
+          country: country, // ✅ Use selected country
           page: 1
         });
 
@@ -230,15 +221,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        // ✅ Shuffle products to make them appear different for each country
-        if (result?.data?.products && Array.isArray(result.data.products)) {
-          result.data.products = shuffleArray(result.data.products);
-          console.log('🔀 Search products shuffled for country:', country);
-        }
-
         console.log('Search products fetched:', result?.data?.products?.length || 0);
 
-        // Return the result with shuffled products
         return result;
       } catch (error) {
         console.error('❌ Error fetching search results:', error);
@@ -265,12 +249,12 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     queryKey: ['amazon-explorer-category', selectedCategory, country, page],
     queryFn: async () => {
       try {
-        console.log('📦 Fetching category products (ALWAYS US):', { displayCountry: country, actualCountry: 'US', category: selectedCategory });
+        console.log('📦 Fetching category products:', { country, category: selectedCategory });
 
-        // ✅ ALWAYS fetch from US, regardless of selected country
+        // ✅ Fetch from selected country
         const result = await getAmazonExplorerProductsByCategory({
           category_id: selectedCategory,
-          country: 'US', // ✅ Always use US
+          country: country, // ✅ Use selected country
           page: 1
         });
 
@@ -282,15 +266,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        // ✅ Shuffle products to make them appear different for each country
-        if (result?.data?.products && Array.isArray(result.data.products)) {
-          result.data.products = shuffleArray(result.data.products);
-          console.log('🔀 Category products shuffled for country:', country);
-        }
-
         console.log('Category products fetched:', result?.data?.products?.length || 0);
 
-        // Return the result with shuffled products
         return result;
       } catch (error) {
         console.error('❌ Error fetching category products:', error);
@@ -318,10 +295,9 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   } = useQuery({
     queryKey: ['amazon-best-seller-products-explorer', selectedCategoryId, country, page, selectedType],
     queryFn: async () => {
-      console.log('🚀 Products Query Starting (ALWAYS US):', {
+      console.log('🚀 Products Query Starting:', {
         categoryId: selectedCategoryId,
-        displayCountry: country,
-        actualCountry: 'US',
+        country: country,
         page: page,
         type: selectedType,
         enabled: !!selectedCategoryId,
@@ -334,15 +310,14 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       console.log('📦 Using Category ID:', {
         original: selectedCategoryId,
         forAPI: apiCategoryId,
-        displayCountry: country,
-        actualCountry: 'US'
+        country: country
       });
 
       try {
-        // ✅ ALWAYS fetch from US, regardless of selected country
+        // ✅ Fetch from selected country
         const result = await getAmazonProductsByCategoryDirect({
           categoryId: apiCategoryId,
-          country: 'US', // ✅ Always use US
+          country: country, // ✅ Use selected country
           page: 1,
           sortBy: 'RELEVANCE',
           productCondition: 'ALL',
@@ -356,12 +331,6 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         if (result?.remaining_quota !== undefined) {
           console.log('🔄 Updating Amazon Search quota:', result.remaining_quota);
           updateAmazonSearchQuota(result.remaining_quota);
-        }
-
-        // ✅ Shuffle products to make them appear different for each country
-        if (result?.data?.products && Array.isArray(result.data.products)) {
-          result.data.products = shuffleArray(result.data.products);
-          console.log('🔀 Direct category products shuffled for country:', country);
         }
 
         console.log('🎯 Products Fetched:', {
@@ -726,11 +695,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           </div>
 
 
-          {/* Best Sellers Controls */}
-          {viewMode === 'best-sellers' && (
-            <div className="space-y-4 mb-6">
-              {/* Country, Type, and Category Selectors */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* Search and Filter Controls - Always Visible */}
+          <div className="space-y-4 mb-6">
+            {/* Country, Type, and Category Selectors */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Select Country
@@ -920,7 +888,9 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         return;
                       }
 
+                      console.log('🔍 Search button clicked:', { searchQuery, country });
                       setPage(1);
+                      setViewMode('search'); // ✅ Switch to search view mode
                       refetchSearch();
                     }}
                     disabled={!searchQuery.trim()}
@@ -995,244 +965,18 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   </div>
                 </div>
               )}
-            </div>
-          )}
+          </div>
 
-          {/* ✅ Search Controls - Removed (integrated into Best Sellers) */}
-          {false && viewMode === 'search' && (
-            <div className="flex gap-3 mb-4">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    const newValue = e.target.value;
-                    setSearchQuery(newValue);
 
-                    // Real-time keyword checking for immediate feedback
-                    if (newValue.trim()) {
-                      const keywordCheck = checkForBlockedKeywords(newValue);
-                      if (keywordCheck.isBlocked) {
-                        // Visual feedback for blocked content
-                        e.target.style.borderColor = '#ef4444';
-                        e.target.style.backgroundColor = '#fef2f2';
-                      } else {
-                        // Reset to normal styling
-                        e.target.style.borderColor = '';
-                        e.target.style.backgroundColor = '';
-                      }
-                    } else {
-                      // Reset styling when empty
-                      e.target.style.borderColor = '';
-                      e.target.style.backgroundColor = '';
-                    }
-                  }}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="Search for products..."
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                />
-              </div>
-              <button
-                onClick={handleSearch}
-                disabled={!searchQuery.trim() || searchLoading}
-                className="px-6 py-2 bg-[#ffa41c] hover:bg-[#ff6201] dark:bg-orange-600 dark:hover:bg-orange-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
-              >
-                <Search className="w-4 h-4" />
-                Discover Products
-              </button>
-            </div>
-          )}
 
-          {/* ✅ Category Controls - Removed (integrated into Best Sellers) */}
-          {false && viewMode === 'category' && (
-            <div className="space-y-4 mb-6">
-              {/* Country Selector */}
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                    Select Country
-                  </label>
-                  <select
-                    value={country}
-                    onChange={(e) => {
-                      setCountry(e.target.value);
-                      setSelectedCategoryId(''); // Reset selected category when country changes
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    {countries.map((countryOption) => (
-                      <option key={countryOption.code} value={countryOption.code}>
-                        {countryOption.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Category Chips - Using Local JSON Categories */}
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Amazon Categories
-                  </label>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-                    {localRootCategories.length} main categories
-                  </div>
-                </div>
-
-                <div className="max-h-96 overflow-y-auto custom-scrollbar">
-                  {/* Main Categories */}
-                  {!selectedLocalRootCategory && (
-                    <div className="m-4">
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Main Categories</h4>
-                      <div className="flex flex-wrap gap-3">
-                        {localRootCategories.map((category, index) => {
-                          const subcategoriesCount = category.has_children ? getSubcategories(category.id).length : 0;
-
-                          return (
-                            <button
-                              key={category.id || index}
-                              onClick={() => {
-                                setSelectedLocalRootCategory(category.id);
-                              }}
-                              className="group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-800 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:transform hover:scale-102"
-                            >
-                              <div className="flex items-center gap-2 px-3 py-1">
-                                <span className="text-xs font-bold">{category.name}</span>
-                                {subcategoriesCount > 0 && (
-                                  <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">
-                                    {subcategoriesCount}
-                                  </span>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Subcategories */}
-                  {selectedLocalRootCategory && (
-                    <div className="m-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <button
-                          onClick={() => {
-                            setSelectedLocalRootCategory('');
-                            setSelectedCategoryId('');
-                            setSelectedCategoryPath('');
-                          }}
-                          className="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm flex items-center gap-1"
-                        >
-                          ← Back to Main Categories
-                        </button>
-                      </div>
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                        {localRootCategories.find(cat => cat.id === selectedLocalRootCategory)?.name} Subcategories
-                      </h4>
-                      <div className="flex flex-wrap gap-3">
-                        {getSubcategories(selectedLocalRootCategory).map((category, index) => {
-                          const isSelected = selectedCategoryId === category.id;
-                          return (
-                            <button
-                              key={category.id || index}
-                              onClick={() => handleCategoryChipSelect(category.id)}
-                              className={`group relative p-2 rounded-full text-sm font-medium transition-all duration-300 text-center overflow-hidden ${isSelected
-                                ? 'bg-green-500 dark:bg-green-600 text-white shadow-xl transform scale-105 ring-4 ring-green-200 dark:ring-green-800'
-                                : 'bg-white dark:bg-gray-700 border-2 border-blue-200 dark:border-blue-800 text-gray-700 dark:text-gray-200 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg hover:transform hover:scale-102'
-                                }`}
-                              title={`Click to browse ${category.name}`}
-                            >
-                              <div className="flex items-center gap-2 px-3 py-1">
-                                <span className="text-xs font-bold">{category.name}</span>
-                                {isSelected && (
-                                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Discover Products Button for Category Mode */}
-              <div className="flex justify-center mt-4">
-                <button
-                  onClick={handleDiscoverProducts}
-                  disabled={directCategoryProductsLoading}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 dark:bg-green-600 text-white py-3 px-6 rounded-lg hover:from-green-600 hover:to-emerald-700 dark:hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  <Package className="w-4 h-4" />
-                  {selectedCategoryId ? 'Discover Trending Products' : 'Select Category First'}
-                </button>
-              </div>
-
-              {/* Selected Category Display */}
-              {/* {selectedCategoryId && (
-                <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0">
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-green-800 mb-1">
-                        Selected Category
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
-                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                          ID: {selectedCategoryId}
-                        </span>
-                        <span className="text-sm text-gray-700 font-medium">
-                          {bestSellerCategories.find(cat => cat.category_path === selectedCategoryId)?.name || 'Selected Category'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex-shrink-0 flex gap-2">
-                      <button
-                        onClick={() => {
-                          console.log('🔄 Manual API Test for category:', selectedCategoryId);
-                          refetchDirectCategoryProducts();
-                        }}
-                        className="w-8 h-8 bg-blue-500/20 hover:bg-blue-500/40 rounded-full flex items-center justify-center transition-colors group"
-                        title="Test API call"
-                      >
-                        <svg className="w-4 h-4 text-blue-600 group-hover:text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedCategoryId('');
-                          setSelectedCategoryPath('');
-                        }}
-                        className="w-8 h-8 bg-white/50 hover:bg-white/80 rounded-full flex items-center justify-center transition-colors group"
-                        title="Clear selection"
-                      >
-                        <svg className="w-4 h-4 text-gray-500 group-hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )} */}
-            </div>
-          )}
 
         </div>
       </div>
+
+      {/* Product Count and Products Grid */}
       <div className="">
         {!isLoading && products.length > 0 && (
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
             <span>
               Showing {products.length} of {totalProducts.toLocaleString()} products
             </span>
@@ -1241,10 +985,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
             </span>
           </div>
         )}
-      </div>
-      {/* Products Grid */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden">
-        {finalIsLoading ? (
+
+        {/* Products Grid */}
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 overflow-hidden">
+          {finalIsLoading ? (
           <div className="space-y-6">
             <div className="flex items-center justify-center py-8">
               <AmazonLoader
@@ -1313,11 +1057,13 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   product={product}
                   onViewDetails={() => handleViewDetails(product)}
                   onDiscoverSuppliers={() => handleDiscoverSuppliersFromCard(product)}
+                  country={country}
                 />
               ))}
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Product Details Modal */}
@@ -1326,6 +1072,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           product={selectedProduct}
           isOpen={isDetailsModalOpen}
           autoStartSupplierDiscovery={autoStartSupplierDiscovery}
+          country={country}
           onClose={() => {
             setIsDetailsModalOpen(false);
             setSelectedProduct(null);
@@ -1350,9 +1097,10 @@ interface ProductCardProps {
   product: AmazonProduct;
   onViewDetails: () => void;
   onDiscoverSuppliers: () => void;
+  country: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onDiscoverSuppliers }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onDiscoverSuppliers, country }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg dark:hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
       {/* Product Image */}
@@ -1362,7 +1110,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onDis
           alt={product.product_title}
           className="w-full h-full object-contain p-[6px]"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = '/placeholder-product.png';
+            const img = e.target as HTMLImageElement;
+            // Prevent infinite loop by checking if we've already tried the placeholder
+            if (!img.src.includes('placeholder-product.png')) {
+              img.src = '/placeholder-product.png';
+            }
           }}
         />
         {product.is_best_seller && (
@@ -1434,7 +1186,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onDis
               View Details
             </button>
             <a
-              href={getAmazonUrl(product)}
+              href={getAmazonUrl(product, country)}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm flex items-center justify-center"

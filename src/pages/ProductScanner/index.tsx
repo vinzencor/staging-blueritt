@@ -99,8 +99,9 @@ const ProductScannerPage = () => {
     isLoading: isQuotaLoading,
     checkAccess,
   } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonSearch);
+  // ✅ Use SupplierDiscovery quota (shared across BlueRitt Explorer, TikTok Trends, and Amazon Trends)
   const { quotaDetails: quotaDetailsAliBaba } =
-    useUserSubscriptionAndSearchQuota(QuotaNames.AlibabaMatchPerProduct);
+    useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
 
   const [searchType, setSearchType] = useState<Options>(
     location.state?.searchASIN ? Options.ASIN : Options.Product

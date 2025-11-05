@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, AlertCircle, Loader, X, ExternalLink } from 'lucide-react';
+import { Users, AlertCircle, Loader, X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Influencer {
   influencer_name: string;
@@ -30,6 +30,8 @@ interface InfluencerPost {
   list_items_count?: number;
   [key: string]: any;
 }
+
+
 
 // Complete manual influencer data with all 45 profiles
 const MANUAL_INFLUENCERS: Influencer[] = [
@@ -549,6 +551,688 @@ const MANUAL_INFLUENCERS: Influencer[] = [
     verified: false,
     profile_link: 'https://amazon.com/influencer/influencer-cb2630cb',
     profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'indybelledance',
+    followers: '92K',
+    following: '412',
+    post_count: '523',
+    engagement_rate: 3.9,
+    bio: 'Dance and fitness content',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/indybelledance',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'kortneyandkarlee',
+    followers: '178K',
+    following: '823',
+    post_count: '1.2K',
+    engagement_rate: 5.3,
+    bio: 'Twin lifestyle influencers',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/kortneyandkarlee',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'queencarlene',
+    followers: '145K',
+    following: '654',
+    post_count: '876',
+    engagement_rate: 4.6,
+    bio: 'Lifestyle and beauty queen',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/queencarlene',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'influencer-ad78d6b3',
+    followers: '71K',
+    following: '298',
+    post_count: '412',
+    engagement_rate: 3.3,
+    bio: 'Amazon product enthusiast',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/influencer-ad78d6b3',
+    profile_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'passionista_soul',
+    followers: '134K',
+    following: '567',
+    post_count: '789',
+    engagement_rate: 4.4,
+    bio: 'Passionate lifestyle creator',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/passionista_soul',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'shanthomas87',
+    followers: '98K',
+    following: '432',
+    post_count: '654',
+    engagement_rate: 3.8,
+    bio: 'Fashion and style tips',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/shanthomas87',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'influencer-8300c424',
+    followers: '64K',
+    following: '287',
+    post_count: '398',
+    engagement_rate: 3.2,
+    bio: 'Product reviewer',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/influencer-8300c424',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'nellytoledo',
+    followers: '156K',
+    following: '712',
+    post_count: '987',
+    engagement_rate: 4.9,
+    bio: 'Latina lifestyle influencer',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/nellytoledo',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'julie.thedesigntwins',
+    followers: '189K',
+    following: '876',
+    post_count: '1.3K',
+    engagement_rate: 5.4,
+    bio: 'Interior design twins',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/julie.thedesigntwins',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'cbstyled',
+    followers: '112K',
+    following: '543',
+    post_count: '678',
+    engagement_rate: 4.1,
+    bio: 'Style and fashion curator',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/cbstyled',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'mirandaparker',
+    followers: '145K',
+    following: '654',
+    post_count: '876',
+    engagement_rate: 4.7,
+    bio: 'Lifestyle and wellness',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/mirandaparker',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'pinterestingplans',
+    followers: '123K',
+    following: '498',
+    post_count: '723',
+    engagement_rate: 4.3,
+    bio: 'Pinterest-inspired content',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/pinterestingplans',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'tandttwintalk',
+    followers: '167K',
+    following: '789',
+    post_count: '1.1K',
+    engagement_rate: 5.0,
+    bio: 'Twin talk and lifestyle',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/tandttwintalk',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'elvieinthecity',
+    followers: '134K',
+    following: '612',
+    post_count: '845',
+    engagement_rate: 4.5,
+    bio: 'City life and urban style',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/elvieinthecity',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'influencer-c8e58155',
+    followers: '69K',
+    following: '312',
+    post_count: '423',
+    engagement_rate: 3.4,
+    bio: 'Amazon finds specialist',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/influencer-c8e58155',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'thatothertallgirl',
+    followers: '156K',
+    following: '687',
+    post_count: '923',
+    engagement_rate: 4.8,
+    bio: 'Tall girl fashion and style',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/thatothertallgirl',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'wandalovessharing',
+    followers: '189K',
+    following: '834',
+    post_count: '1.2K',
+    engagement_rate: 5.2,
+    bio: 'Sharing deals and finds',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/wandalovessharing',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'whitegrapesandinshape',
+    followers: '112K',
+    following: '523',
+    post_count: '678',
+    engagement_rate: 4.2,
+    bio: 'Fitness and healthy living',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/whitegrapesandinshape',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'liiraven',
+    followers: '98K',
+    following: '456',
+    post_count: '589',
+    engagement_rate: 3.9,
+    bio: 'Beauty and lifestyle',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/liiraven',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'occasionallyjenn',
+    followers: '134K',
+    following: '598',
+    post_count: '756',
+    engagement_rate: 4.4,
+    bio: 'Occasional lifestyle content',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/occasionallyjenn',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'dreamalittledreamvt',
+    followers: '145K',
+    following: '623',
+    post_count: '834',
+    engagement_rate: 4.6,
+    bio: 'Vermont lifestyle and dreams',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/dreamalittledreamvt',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: '40notfrumpy',
+    followers: '167K',
+    following: '712',
+    post_count: '945',
+    engagement_rate: 5.0,
+    bio: 'Fashion over 40',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/40notfrumpy',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'honeywerehome',
+    followers: '178K',
+    following: '789',
+    post_count: '1.1K',
+    engagement_rate: 5.1,
+    bio: 'Home decor and family',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/honeywerehome',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'traceyrogerslifestyle',
+    followers: '123K',
+    following: '534',
+    post_count: '712',
+    engagement_rate: 4.3,
+    bio: 'Lifestyle and wellness tips',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/traceyrogerslifestyle',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'houseofmagpye',
+    followers: '156K',
+    following: '678',
+    post_count: '923',
+    engagement_rate: 4.8,
+    bio: 'Home and interior design',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/houseofmagpye',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'amandasilversister',
+    followers: '134K',
+    following: '612',
+    post_count: '789',
+    engagement_rate: 4.5,
+    bio: 'Silver sister lifestyle',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/amandasilversister',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'midimelis',
+    followers: '112K',
+    following: '498',
+    post_count: '645',
+    engagement_rate: 4.1,
+    bio: 'Midsize fashion inspiration',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/midimelis',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'shortgirlbigmood',
+    followers: '145K',
+    following: '634',
+    post_count: '812',
+    engagement_rate: 4.7,
+    bio: 'Petite fashion and lifestyle',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/shortgirlbigmood',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'genevieveadele',
+    followers: '167K',
+    following: '723',
+    post_count: '934',
+    engagement_rate: 5.0,
+    bio: 'Elegant lifestyle content',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/genevieveadele',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'everyday_with_k',
+    followers: '123K',
+    following: '567',
+    post_count: '723',
+    engagement_rate: 4.3,
+    bio: 'Everyday lifestyle with K',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/everyday_with_k',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'midsizemal',
+    followers: '134K',
+    following: '598',
+    post_count: '756',
+    engagement_rate: 4.4,
+    bio: 'Midsize fashion advocate',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/midsizemal',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'fashionablyhilaryl',
+    followers: '156K',
+    following: '689',
+    post_count: '912',
+    engagement_rate: 4.9,
+    bio: 'Fashionably hilarious content',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/fashionablyhilaryl',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'ryane_alexandria',
+    followers: '145K',
+    following: '645',
+    post_count: '834',
+    engagement_rate: 4.6,
+    bio: 'Beauty and lifestyle',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/ryane_alexandria',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'britaknee3',
+    followers: '112K',
+    following: '523',
+    post_count: '678',
+    engagement_rate: 4.2,
+    bio: 'Lifestyle and fashion finds',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/britaknee3',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'heydylopez_',
+    followers: '134K',
+    following: '612',
+    post_count: '789',
+    engagement_rate: 4.5,
+    bio: 'Latina lifestyle influencer',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/heydylopez_',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'ontrendwitholivia',
+    followers: '167K',
+    following: '734',
+    post_count: '945',
+    engagement_rate: 5.0,
+    bio: 'On trend fashion and style',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/ontrendwitholivia',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'emily.noel.g',
+    followers: '189K',
+    following: '823',
+    post_count: '1.2K',
+    engagement_rate: 5.3,
+    bio: 'Beauty and makeup expert',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/emily.noel.g',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'affordablebyamanda',
+    followers: '178K',
+    following: '789',
+    post_count: '1.1K',
+    engagement_rate: 5.1,
+    bio: 'Affordable fashion finds',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/affordablebyamanda',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'theeverydaygrace_',
+    followers: '145K',
+    following: '656',
+    post_count: '867',
+    engagement_rate: 4.7,
+    bio: 'Everyday grace and style',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/theeverydaygrace_',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'laurentrivison',
+    followers: '123K',
+    following: '545',
+    post_count: '712',
+    engagement_rate: 4.3,
+    bio: 'Lifestyle and home decor',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/laurentrivison',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'evieluathome',
+    followers: '156K',
+    following: '678',
+    post_count: '923',
+    engagement_rate: 4.8,
+    bio: 'Home and family life',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/evieluathome',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'kiteenmariee',
+    followers: '134K',
+    following: '612',
+    post_count: '789',
+    engagement_rate: 4.5,
+    bio: 'Fashion and beauty content',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/kiteenmariee',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'reallifemomfashion',
+    followers: '167K',
+    following: '723',
+    post_count: '934',
+    engagement_rate: 5.0,
+    bio: 'Real mom fashion and style',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/reallifemomfashion',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'kelsiekristine',
+    followers: '145K',
+    following: '645',
+    post_count: '834',
+    engagement_rate: 4.6,
+    bio: 'Lifestyle and wellness',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/kelsiekristine',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'love.ericamarie',
+    followers: '123K',
+    following: '567',
+    post_count: '723',
+    engagement_rate: 4.3,
+    bio: 'Love and lifestyle content',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/love.ericamarie',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'theorlacle',
+    followers: '156K',
+    following: '689',
+    post_count: '912',
+    engagement_rate: 4.9,
+    bio: 'Oracle of style and trends',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/theorlacle',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'simply.beth__',
+    followers: '134K',
+    following: '598',
+    post_count: '756',
+    engagement_rate: 4.4,
+    bio: 'Simply beautiful lifestyle',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/simply.beth__',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'katelann_j',
+    followers: '112K',
+    following: '523',
+    post_count: '678',
+    engagement_rate: 4.2,
+    bio: 'Fashion and lifestyle',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/katelann_j',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'sandyalamode',
+    followers: '145K',
+    following: '656',
+    post_count: '867',
+    engagement_rate: 4.7,
+    bio: 'Fashion a la mode',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/sandyalamode',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'giannabieros',
+    followers: '167K',
+    following: '734',
+    post_count: '945',
+    engagement_rate: 5.0,
+    bio: 'Beauty and lifestyle guru',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/giannabieros',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'kellyelizabeth',
+    followers: '134K',
+    following: '612',
+    post_count: '789',
+    engagement_rate: 4.5,
+    bio: 'Lifestyle and fashion',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/kellyelizabeth',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'lisa123marie',
+    followers: '123K',
+    following: '545',
+    post_count: '712',
+    engagement_rate: 4.3,
+    bio: 'Everyday lifestyle content',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/lisa123marie',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'influencer-604caeee',
+    followers: '68K',
+    following: '298',
+    post_count: '412',
+    engagement_rate: 3.3,
+    bio: 'Product reviews and finds',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/influencer-604caeee',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: '_stephhunt',
+    followers: '145K',
+    following: '645',
+    post_count: '834',
+    engagement_rate: 4.6,
+    bio: 'Fashion and beauty hunter',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/_stephhunt',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'shelbysaywhatblog',
+    followers: '156K',
+    following: '678',
+    post_count: '923',
+    engagement_rate: 4.8,
+    bio: 'Blogger and lifestyle creator',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/shelbysaywhatblog',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'oliviafredacurves',
+    followers: '178K',
+    following: '789',
+    post_count: '1.1K',
+    engagement_rate: 5.1,
+    bio: 'Curvy fashion and body positivity',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/oliviafredacurves',
+    profile_image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'influencer-f32e4d94',
+    followers: '72K',
+    following: '321',
+    post_count: '445',
+    engagement_rate: 3.4,
+    bio: 'Amazon product specialist',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/influencer-f32e4d94',
+    profile_image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'taryntruly',
+    followers: '134K',
+    following: '598',
+    post_count: '756',
+    engagement_rate: 4.4,
+    bio: 'Truly authentic lifestyle',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/taryntruly',
+    profile_image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'kelclight',
+    followers: '123K',
+    following: '567',
+    post_count: '723',
+    engagement_rate: 4.3,
+    bio: 'Light and lifestyle content',
+    verified: false,
+    profile_link: 'https://amazon.com/influencer/kelclight',
+    profile_image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'bonniewyrick',
+    followers: '145K',
+    following: '645',
+    post_count: '834',
+    engagement_rate: 4.6,
+    bio: 'Fashion and home decor',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/bonniewyrick',
+    profile_image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'veronicafreund',
+    followers: '156K',
+    following: '689',
+    post_count: '912',
+    engagement_rate: 4.9,
+    bio: 'Lifestyle and wellness',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/veronicafreund',
+    profile_image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face'
+  },
+  {
+    influencer_name: 'betterwithchardonnay',
+    followers: '167K',
+    following: '723',
+    post_count: '934',
+    engagement_rate: 5.0,
+    bio: 'Wine and lifestyle content',
+    verified: true,
+    profile_link: 'https://amazon.com/influencer/betterwithchardonnay',
+    profile_image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'
   }
 ];
 
@@ -564,6 +1248,10 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<InfluencerPost | null>(null);
+
+  // Pagination state for posts
+  const [currentPostsPage, setCurrentPostsPage] = useState(1);
+  const postsPerPage = 20;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -625,15 +1313,23 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
     fetchPosts();
   }, [isOpen, influencerName]);
 
+
+
+  // Calculate pagination for posts
+  const indexOfLastPost = currentPostsPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = posts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPostsPages = Math.ceil(posts.length / postsPerPage);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-            Posts by {influencerName}
+            {influencerName}
           </h2>
           <button
             onClick={onClose}
@@ -644,23 +1340,24 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
         </div>
 
         {/* Content */}
-        <div className="p-4">
+        <div className="p-4 overflow-y-auto flex-1">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <Loader className="w-6 h-6 animate-spin text-purple-600 mb-2" />
-              <p className="text-sm text-gray-600 dark:text-gray-400">Loading posts...</p>
-            </div>
-          ) : error ? (
-            <div className="flex items-start gap-3 text-orange-600 text-sm p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium">{error}</p>
-                <p className="text-xs mt-1 opacity-75">Influencer: {influencerName}</p>
-              </div>
-            </div>
-          ) : posts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
-              {posts.map((post, index) => (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <Loader className="w-6 h-6 animate-spin text-purple-600 mb-2" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Loading posts...</p>
+                </div>
+              ) : error ? (
+                <div className="flex items-start gap-3 text-orange-600 text-sm p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium">{error}</p>
+                    <p className="text-xs mt-1 opacity-75">Influencer: {influencerName}</p>
+                  </div>
+                </div>
+              ) : posts.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
+                    {currentPosts.map((post, index) => (
                 <div
                   key={post.post_id || index}
                   className="bg-white h-[294px] dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden hover:shadow-md transition-shadow flex flex-col"
@@ -756,19 +1453,43 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center mb-4">
-                <AlertCircle className="w-8 h-8 text-gray-400" />
+
+            {/* Pagination for Posts */}
+            {totalPostsPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-6">
+                <button
+                  onClick={() => setCurrentPostsPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPostsPage === 1}
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Page {currentPostsPage} of {totalPostsPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPostsPage(prev => Math.min(prev + 1, totalPostsPages))}
+                  disabled={currentPostsPage === totalPostsPages}
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                No posts found
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                No posts available for {influencerName}. This influencer might not have any public posts or there might be an issue with the data source.
-              </p>
-            </div>
-          )}
+            )}
+          </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center mb-4">
+                    <AlertCircle className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    No posts found
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 max-w-md">
+                    No posts available for {influencerName}. This influencer might not have any public posts or there might be an issue with the data source.
+                  </p>
+                </div>
+              )}
         </div>
       </div>
 
@@ -892,7 +1613,7 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
                     rel="noopener noreferrer"
                     className="w-full bg-[#ffa41c] hover:bg-[#e59419] text-white py-3 px-4 rounded-lg text-center font-medium transition-colors duration-200 flex items-center justify-center gap-2"
                   >
-                    View Original Post
+                    View Influencer's Endorsed Products
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
@@ -910,6 +1631,8 @@ const InfluencersPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInfluencer, setSelectedInfluencer] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const influencersPerPage = 20;
 
   // Fetch influencer data with profile images
   useEffect(() => {
@@ -939,6 +1662,17 @@ const InfluencersPage: React.FC = () => {
     inf.bio?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Calculate pagination
+  const indexOfLastInfluencer = currentPage * influencersPerPage;
+  const indexOfFirstInfluencer = indexOfLastInfluencer - influencersPerPage;
+  const currentInfluencers = filteredInfluencers.slice(indexOfFirstInfluencer, indexOfLastInfluencer);
+  const totalPages = Math.ceil(filteredInfluencers.length / influencersPerPage);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <h2 className="text-3xl font-bold text-blue-900 dark:text-white mb-2">BlueRitt SocialPulse</h2>
@@ -952,7 +1686,7 @@ const InfluencersPage: React.FC = () => {
             </h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
-            Discover and analyze top influencers
+            Discover what Top Influencers are saying and see their trending posts and products
           </p>
         </div>
 
@@ -978,8 +1712,9 @@ const InfluencersPage: React.FC = () => {
 
         {/* Influencers Grid */}
         {!isLoading && filteredInfluencers.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredInfluencers.map((influencer) => (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {currentInfluencers.map((influencer) => (
               <div
                 key={influencer.influencer_name}
                 className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col"
@@ -1066,6 +1801,37 @@ const InfluencersPage: React.FC = () => {
               </div>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                Previous
+              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-500">
+                  ({filteredInfluencers.length} total)
+                </span>
+              </div>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+              >
+                Next
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+        </>
         )}
 
         {/* Empty State */}

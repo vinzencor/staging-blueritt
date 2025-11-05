@@ -832,6 +832,42 @@ export const getProductImageUrl = (product: AmazonProduct): string => {
   return imageUrl;
 };
 
-export const getAmazonUrl = (product: AmazonProduct): string => {
-  return product.product_url || `https://amazon.com/dp/${product.asin}`;
+/**
+ * Map country codes to Amazon domain extensions
+ */
+const getAmazonDomain = (countryCode: string): string => {
+  const domainMap: { [key: string]: string } = {
+    'US': 'com',
+    'CA': 'ca',
+    'MX': 'com.mx',
+    'BR': 'com.br',
+    'GB': 'co.uk',
+    'AU': 'com.au',
+    'FR': 'fr',
+    'DE': 'de',
+    'SE': 'se',
+    'PL': 'pl',
+    'TR': 'com.tr',
+    'AE': 'ae',
+    'IN': 'in',
+    'IT': 'it',
+    'ES': 'es',
+    'JP': 'co.jp',
+    'SG': 'sg',
+    'SA': 'sa',
+    'NL': 'nl',
+  };
+
+  return domainMap[countryCode.toUpperCase()] || 'com';
+};
+
+export const getAmazonUrl = (product: AmazonProduct, countryCode: string = 'US'): string => {
+  // If product already has a valid product_url, use it
+  if (product.product_url && product.product_url.includes('amazon')) {
+    return product.product_url;
+  }
+
+  // Otherwise, construct URL with correct country domain
+  const domain = getAmazonDomain(countryCode);
+  return `https://amazon.${domain}/dp/${product.asin}`;
 };

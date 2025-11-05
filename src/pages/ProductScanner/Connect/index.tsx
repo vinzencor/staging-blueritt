@@ -21,10 +21,11 @@ const Connect = () => {
   const scannerProductDetails = useSelector(
     (state: any) => state.scannerProductDetails
   );
+  // ✅ Use SupplierDiscovery quota (shared across BlueRitt Explorer, TikTok Trends, and Amazon Trends)
   const {
     quotaDetails: alibabaMatchQuotaDetails,
     updateQuota: updateAlibabaMatchQuota,
-  } = useUserSubscriptionAndSearchQuota(QuotaNames.AlibabaMatchPerProduct);
+  } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
   const dispatch = useDispatch();
   const selectedAsinProducts = useSelector(
     (state: any) => state.selectedAsinProducts
@@ -32,8 +33,9 @@ const Connect = () => {
   const scannerActiveComponent = useSelector(
     (state: any) => state.scannerActiveComponent
   );
+  // ✅ Use SupplierDiscovery quota (shared across BlueRitt Explorer, TikTok Trends, and Amazon Trends)
   const { updateQuota: updateQuotaAliBaba } = useUserSubscriptionAndSearchQuota(
-    QuotaNames.AlibabaMatchPerProduct
+    QuotaNames.SupplierDiscovery
   );
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [amazonProduct, setAmazonProduct] = useState<{

@@ -37,6 +37,7 @@ interface ProductDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   autoStartSupplierDiscovery?: boolean;
+  country?: string;
 }
 
 interface ProfitCalculation {
@@ -77,7 +78,7 @@ interface ProfitCalculation {
 
 type TabType = 'overview' | 'reviews' | 'offers' | 'suppliers';
 
-const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery = false }) => {
+const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery = false, country = 'US' }) => {
   // Quota management for supplier discovery
   const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
 
@@ -161,8 +162,8 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
     isLoading: detailsLoading,
     error: detailsError
   } = useQuery({
-    queryKey: ['amazon-product-details', product.asin],
-    queryFn: () => getAmazonExplorerProductDetails({ asin: product.asin }),
+    queryKey: ['amazon-product-details', product.asin, country],
+    queryFn: () => getAmazonExplorerProductDetails({ asin: product.asin, country }),
     enabled: isOpen,
     staleTime: 1000 * 60 * 30, // 30 minutes
   });
@@ -591,7 +592,11 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
                   alt={product.product_title}
                   className="w-full max-w-xs mx-auto rounded-lg shadow-md"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/api/placeholder/300/300';
+                    const img = e.target as HTMLImageElement;
+                    // Prevent infinite loop by checking if we've already tried the placeholder
+                    if (!img.src.includes('placeholder')) {
+                      img.src = '/api/placeholder/300/300';
+                    }
                   }}
                 />
 
@@ -639,7 +644,7 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
               {/* Action Buttons */}
               <div className="space-y-3">
                 <a
-                  href={getAmazonUrl(product)}
+                  href={getAmazonUrl(product, country)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full bg-[#ffa41c] text-white py-3 px-4 rounded-lg hover:bg-[#ff6201] transition-colors flex items-center justify-center gap-2"
@@ -783,49 +788,184 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, isLoading, 
   return (
     <div className="space-y-6">
       {/* Product Description */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Product Description</h3>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-gray-700 leading-relaxed">
-            {details?.product_description || product.product_title || 'No description available'}
-          </p>
+      {(details?.product_description || details?.product_title) && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Product Description</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+              {details?.product_description || details?.product_title || product.product_title}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Product Features */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Features</h3>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-gray-700">
-            Product features will be displayed here when available from the API.
-          </p>
+      {/* About This Product / Key Features */}
+      {details?.about_product && details.about_product.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Features</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <ul className="space-y-2">
+              {details.about_product.map((feature, index) => (
+                <li key={index} className="flex items-start gap-2 text-gray-700">
+                  <span className="text-green-600 mt-1">✓</span>
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Product Specifications */}
+      {/* Product Information / Specifications */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Product Information</h3>
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <span className="font-medium text-gray-600">ASIN:</span>
-              <span className="ml-2 text-gray-900">{product.asin}</span>
+              <span className="ml-2 text-gray-900">{details?.asin || product.asin}</span>
             </div>
-            {product.brand && (
+            {(details?.brand || product.brand) && (
               <div>
                 <span className="font-medium text-gray-600">Brand:</span>
-                <span className="ml-2 text-gray-900">{product.brand}</span>
+                <span className="ml-2 text-gray-900">{details?.brand || product.brand}</span>
               </div>
             )}
-            {product.category_path && (
+            {(details?.category_path || product.category_path) && (
               <div className="md:col-span-2">
                 <span className="font-medium text-gray-600">Category:</span>
-                <span className="ml-2 text-gray-900">{product.category_path}</span>
+                <span className="ml-2 text-gray-900">{details?.category_path || product.category_path}</span>
+              </div>
+            )}
+            {details?.availability && (
+              <div className="md:col-span-2">
+                <span className="font-medium text-gray-600">Availability:</span>
+                <span className="ml-2 text-gray-900">{details.availability}</span>
+              </div>
+            )}
+            {details?.delivery_message && (
+              <div className="md:col-span-2">
+                <span className="font-medium text-gray-600">Delivery:</span>
+                <span className="ml-2 text-gray-900">{details.delivery_message}</span>
+              </div>
+            )}
+            {details?.climate_pledge_friendly && (
+              <div className="md:col-span-2">
+                <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                  <Shield className="w-4 h-4" />
+                  Climate Pledge Friendly
+                </span>
               </div>
             )}
           </div>
+
+          {/* Additional Product Information from product_information object */}
+          {details?.product_information && typeof details.product_information === 'object' && (() => {
+            const renderedFields = Object.entries(details.product_information).map(([key, value]) => {
+              // Skip if value is null or undefined
+              if (value === null || value === undefined) return null;
+
+              // Handle object values (like {id, name, link})
+              if (typeof value === 'object' && value !== null) {
+                // If it's an array, join the elements
+                if (Array.isArray(value)) {
+                  // Filter out any non-primitive values from array
+                  const primitiveValues = value.filter(item =>
+                    typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean'
+                  );
+                  if (primitiveValues.length === 0) return null;
+
+                  return (
+                    <div key={key} className="col-span-1">
+                      <span className="font-medium text-gray-600 capitalize">
+                        {key.replace(/_/g, ' ')}:
+                      </span>
+                      <span className="ml-2 text-gray-900">{primitiveValues.join(', ')}</span>
+                    </div>
+                  );
+                }
+                // If it's an object with 'name' property, display the name
+                if ('name' in value && value.name) {
+                  return (
+                    <div key={key} className="col-span-1">
+                      <span className="font-medium text-gray-600 capitalize">
+                        {key.replace(/_/g, ' ')}:
+                      </span>
+                      <span className="ml-2 text-gray-900">{String(value.name)}</span>
+                    </div>
+                  );
+                }
+                // If it's an object with other properties, try to extract meaningful text
+                if ('id' in value || 'link' in value) {
+                  // Skip objects that only have id/link without name
+                  return null;
+                }
+                // Otherwise, stringify the object
+                return (
+                  <div key={key} className="col-span-1">
+                    <span className="font-medium text-gray-600 capitalize">
+                      {key.replace(/_/g, ' ')}:
+                    </span>
+                    <span className="ml-2 text-gray-900">{JSON.stringify(value)}</span>
+                  </div>
+                );
+              }
+
+              // Handle primitive values (string, number, boolean)
+              return (
+                <div key={key} className="col-span-1">
+                  <span className="font-medium text-gray-600 capitalize">
+                    {key.replace(/_/g, ' ')}:
+                  </span>
+                  <span className="ml-2 text-gray-900">{String(value)}</span>
+                </div>
+              );
+            }).filter(Boolean);
+
+            // Only render the section if there are fields to display
+            if (renderedFields.length === 0) return null;
+
+            return (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Additional Specifications</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {renderedFields}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
+
+      {/* Ingredients (if available) */}
+      {details?.ingredients && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Ingredients</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-gray-700 leading-relaxed">{details.ingredients}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Directions (if available) */}
+      {details?.directions && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Directions</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-gray-700 leading-relaxed">{details.directions}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Legal Disclaimer (if available) */}
+      {details?.legal_disclaimer && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Legal Disclaimer</h3>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-gray-600 text-sm italic">{details.legal_disclaimer}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
