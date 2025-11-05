@@ -612,7 +612,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
               <Calculator className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Amazon Profit Calculator</h2>
+              <h2 className="text-xl font-bold text-gray-900">BlueRitt MarginMax</h2>
               <p className="text-sm text-gray-600">Enhanced calculator with 8 cost categories</p>
             </div>
           </div>

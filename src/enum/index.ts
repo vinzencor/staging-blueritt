@@ -1,6 +1,6 @@
 export enum QuotaNames {
     AmazonSearch = "amazon_search",
-    TikTokSearches = "tiktok_searches",
+    TikTokSearches = "tiktok_search",  // ✅ Fixed: Match add-on type (singular, no 's')
     SupplierDiscovery = "supplier_discovery",
     NoOfGrossProfitCalculations = "no_of_gross_profit_calculations",
     NoOfNetProfitCalculations = "no_of_net_profit_calculations",
