@@ -10,7 +10,7 @@ import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserD
 import { QuotaNames } from '../../../../../enum';
 import { getTikTokTrendingProducts, discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse } from '../../../../../api/tiktokTrends';
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
-import { fetchPexelsFallbackImage, extractCategoryName } from '../../../../../utils/pexelsImageFallback';
+import { fetchPexelsFallbackImage, extractCategoryName } from '../../../../../utils/pexelsImageFallback'; // Now uses Freepik API
 import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
 import AddOnsChoiceModal from '../AddOnsChoiceModal';
 import api from '../../../../../api';
