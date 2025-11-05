@@ -413,7 +413,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     });
   };
 
-  // Fetch trending hashtags with quota deduction
+  // Fetch trending hashtags with quota deduction and 7-day caching
   const handleFetchTrendingHashtags = async () => {
     // Check backend quota before making API call
     if (tiktokSearchQuotaDetails.quotaValue <= 0) {
@@ -433,26 +433,23 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
         ...(hashtagIndustry && { industry_id: hashtagIndustry })
       };
 
-      // ✅ Call backend endpoint instead of RapidAPI directly
+      // ✅ Call backend endpoint with 7-day caching and quota deduction
       const response = await api.get('/products/tiktok-trends/hashtags/', { params });
       const data = response.data;
       console.log('✅ Trending Hashtags API response:', data);
 
+      // ✅ Update quota from backend response (handles cache hit/miss automatically)
+      if (data.remaining_quota !== undefined) {
+        console.log('🔄 Hashtag Discovery - Updating quota from backend:', data.remaining_quota);
+        console.log('📊 Cache hit:', data.cache_hit ? 'YES (no quota deducted)' : 'NO (quota deducted)');
+        updateTikTokSearchQuota(data.remaining_quota);
+      }
+
       // Handle the API response structure: data.data.list
       if (data.data && data.data.list && Array.isArray(data.data.list)) {
         setTrendingHashtags(data.data.list);
-
-        // Deduct quota after successful fetch
-        const newQuota = tiktokSearchQuotaDetails.quotaValue - 1;
-        updateTikTokSearchQuota(newQuota);
-        console.log('🔄 Hashtag Discovery - Quota reduced:', tiktokSearchQuotaDetails.quotaValue, '→', newQuota);
       } else if (Array.isArray(data)) {
         setTrendingHashtags(data);
-
-        // Deduct quota after successful fetch
-        const newQuota = tiktokSearchQuotaDetails.quotaValue - 1;
-        updateTikTokSearchQuota(newQuota);
-        console.log('🔄 Hashtag Discovery - Quota reduced:', tiktokSearchQuotaDetails.quotaValue, '→', newQuota);
       } else {
         setTrendingHashtags([]);
         setHashtagsError('No hashtags found in response');

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { X, ShoppingCart, CreditCard } from 'lucide-react';
 
 interface AddOnsChoiceModalProps {
@@ -9,21 +9,55 @@ interface AddOnsChoiceModalProps {
 
 const AddOnsChoiceModal: React.FC<AddOnsChoiceModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (!isOpen) return null;
 
   const handlePurchaseAddOns = () => {
-    // Close modal first
+    console.log('🔔 Purchase Add-ons clicked (TikTok), current path:', location.pathname);
+
+    // Check if we're already on the settings/subscription page
+    const isOnSettingsPage = location.pathname === '/settings/subscription';
+    console.log('📍 Is on settings page?', isOnSettingsPage);
+
+    if (isOnSettingsPage) {
+      // If already on settings page, trigger a custom event to change tab
+      console.log('🎯 Dispatching custom event to change tab to: Purchase Add-ons');
+      window.dispatchEvent(new CustomEvent('changeSubscriptionTab', {
+        detail: { activeTab: 'Purchase Add-ons' }
+      }));
+    } else {
+      // Navigate to Subscription page with "Purchase Add-ons" tab active
+      console.log('🚀 Navigating to /settings/subscription with state: Purchase Add-ons');
+      navigate('/settings/subscription', {
+        state: { activeTab: 'Purchase Add-ons' },
+        replace: false
+      });
+    }
+
+    // Close modal after navigation/event
     onClose();
-    // Navigate to Subscription page with "Purchase Add-ons" tab active
-    navigate('/settings/subscription', { state: { activeTab: 'Purchase Add-ons' } });
   };
 
   const handleUpdateSubscription = () => {
     // Close modal first
     onClose();
-    // Navigate to Subscription page with "Plans" tab active
-    navigate('/settings/subscription', { state: { activeTab: 'Plans' } });
+
+    // Check if we're already on the settings/subscription page
+    const isOnSettingsPage = location.pathname === '/settings/subscription';
+
+    if (isOnSettingsPage) {
+      // If already on settings page, trigger a custom event to change tab
+      window.dispatchEvent(new CustomEvent('changeSubscriptionTab', {
+        detail: { activeTab: 'Plans' }
+      }));
+    } else {
+      // Navigate to Subscription page with "Plans" tab active
+      navigate('/settings/subscription', {
+        state: { activeTab: 'Plans' },
+        replace: false
+      });
+    }
   };
 
   return (

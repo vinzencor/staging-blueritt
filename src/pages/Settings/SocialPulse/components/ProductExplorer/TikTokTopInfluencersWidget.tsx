@@ -153,7 +153,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileOpen]);
 
-  // Handle fetching trending hashtags with filters and quota deduction
+  // Handle fetching trending hashtags with filters, quota deduction, and 7-day caching
   const handleFetchTrendingHashtags = async () => {
     // Check quota before making API call
     if (hashtagQuotaDetails.quotaValue <= 0) {
@@ -172,17 +172,19 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         sort_by: 'popular',
       };
 
-      // ✅ Call backend endpoint instead of RapidAPI directly
+      // ✅ Call backend endpoint with 7-day caching and quota deduction
       const response = await api.get('/products/tiktok-trends/hashtags/', { params });
       const data = response.data;
 
+      // ✅ Update quota from backend response (handles cache hit/miss automatically)
+      if (data.remaining_quota !== undefined) {
+        console.log('🔄 Hashtag Discovery - Updating quota from backend:', data.remaining_quota);
+        console.log('📊 Cache hit:', data.cache_hit ? 'YES (no quota deducted)' : 'NO (quota deducted)');
+        updateHashtagQuota(data.remaining_quota);
+      }
+
       if (data.data && data.data.list && Array.isArray(data.data.list)) {
         setTrendingHashtags(data.data.list);
-
-        // Deduct quota after successful fetch
-        const newQuota = hashtagQuotaDetails.quotaValue - 1;
-        updateHashtagQuota(newQuota);
-        console.log('🔄 Hashtag Discovery - Quota reduced:', hashtagQuotaDetails.quotaValue, '→', newQuota);
       } else {
         setHashtagsError('No hashtags found');
       }

@@ -66,6 +66,11 @@ const Subscription = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Debug: Log when activeTab changes
+  useEffect(() => {
+    console.log('🔄 Active tab changed to:', activeTab);
+  }, [activeTab]);
+
   // Fetch subscription data
   const getAccountSummary = async () => {
     try {
@@ -106,12 +111,33 @@ const Subscription = () => {
 
   // From your Subscription component
   useEffect(() => {
-    if (location.state) {
-      if (location.state.activeTab) {
-        setActiveTab(location.state.activeTab);
-      }
+    console.log('📍 Location state changed:', location.state);
+    if (location.state?.activeTab) {
+      console.log('✅ Setting active tab from location state to:', location.state.activeTab);
+      setActiveTab(location.state.activeTab);
+      // Clear the state after setting the tab to prevent issues with back/forward navigation
+      window.history.replaceState({}, document.title);
     }
-  }, [location]);
+  }, [location.state]);
+
+  // Listen for custom event to change tab (when already on settings page)
+  useEffect(() => {
+    const handleTabChange = (event: CustomEvent) => {
+      console.log('🎉 Received changeSubscriptionTab event:', event.detail);
+      if (event.detail?.activeTab) {
+        console.log('✅ Setting active tab to:', event.detail.activeTab);
+        setActiveTab(event.detail.activeTab);
+      }
+    };
+
+    console.log('👂 Settings page: Listening for changeSubscriptionTab events');
+    window.addEventListener('changeSubscriptionTab', handleTabChange as EventListener);
+
+    return () => {
+      console.log('🔇 Settings page: Removing changeSubscriptionTab listener');
+      window.removeEventListener('changeSubscriptionTab', handleTabChange as EventListener);
+    };
+  }, []);
 
   const [subscriptionType, setSubscriptionType] = useState("trial");
   const [trialEnabled, setTrialEnabled] = useState(false);
