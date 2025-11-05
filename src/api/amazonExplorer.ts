@@ -146,19 +146,28 @@ export const getAmazonExplorerBestSellers = async ({
   type = 'BEST_SELLERS',
   country = 'US',
   page = 1,
+  language,
 }: {
   category?: string;
   type?: string;
   country?: string;
   page?: number;
+  language?: string;
 } = {}): Promise<AmazonExplorerResponse> => {
+  const params: any = {
+    category,
+    type,
+    country,
+    page,
+  };
+
+  // Add language if provided
+  if (language && language.trim()) {
+    params.language = language.trim();
+  }
+
   const response = await api.get('/products/amazon/best-sellers/', {
-    params: {
-      category,
-      type,
-      country,
-      page,
-    },
+    params,
   });
   return response.data;
 };

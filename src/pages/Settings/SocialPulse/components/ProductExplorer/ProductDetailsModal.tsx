@@ -80,7 +80,7 @@ type TabType = 'overview' | 'reviews' | 'offers' | 'suppliers';
 
 const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery = false, country = 'US' }) => {
   // Quota management for supplier discovery
-  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AlibabaMatchPerProduct);
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
@@ -246,12 +246,17 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
     setActiveTab('suppliers');
 
     try {
+      // Handle category_path - it might be an object {id, name, link} or a string
+      const categoryValue = typeof product.category_path === 'object' && product.category_path !== null
+        ? (product.category_path as any).name || (product.category_path as any).id || ''
+        : product.category_path || '';
+
       const response = await discoverSuppliers({
         title: product.product_title,
         asin: product.asin,
         brand: product.brand,
         price: product.product_price,
-        category: product.category_path
+        category: categoryValue
       });
 
       console.log('🔍 Supplier Discovery Response:', response);
@@ -834,7 +839,17 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, isLoading, 
             {(details?.category_path || product.category_path) && (
               <div className="md:col-span-2">
                 <span className="font-medium text-gray-600">Category:</span>
-                <span className="ml-2 text-gray-900">{details?.category_path || product.category_path}</span>
+                <span className="ml-2 text-gray-900">
+                  {(() => {
+                    const categoryPath = details?.category_path || product.category_path;
+                    // Handle if category_path is an object with {id, name, link}
+                    if (typeof categoryPath === 'object' && categoryPath !== null) {
+                      return (categoryPath as any).name || (categoryPath as any).id || JSON.stringify(categoryPath);
+                    }
+                    // Handle if it's a string
+                    return categoryPath;
+                  })()}
+                </span>
               </div>
             )}
             {details?.availability && (

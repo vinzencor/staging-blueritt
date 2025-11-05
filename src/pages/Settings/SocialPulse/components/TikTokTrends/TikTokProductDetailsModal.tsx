@@ -56,7 +56,7 @@ const TrendingHashtagsCarousel: React.FC<{ hashtags: string[] }> = ({ hashtags }
 
 const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery }) => {
   // Quota management for supplier discovery
-  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AlibabaMatchPerProduct);
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
@@ -858,7 +858,26 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
       {/* ✅ Suppliers List - EXACT COPY from BlueRitt Explorer */}
       <div className="space-y-4">
-        {displaySuppliers.map((supplier, index) => (
+        {displaySuppliers.map((supplier, index) => {
+          // Debug log to check supplier badge data with scoring bonuses
+          console.log(`🏷️ TikTok Supplier ${index + 1} Badge Data:`, {
+            name: supplier.name,
+            verification_badge: supplier.verification_badge,
+            verification_status: supplier.verification_status,
+            // Verification bonuses (score points)
+            is_gold: supplier.is_gold, // +15 points
+            verified_pro: supplier.verified_pro, // +12 points
+            verified_supplier: supplier.verified_supplier, // +10 points
+            alibaba_guaranteed: supplier.alibaba_guaranteed, // +8 points
+            trade_assurance: supplier.trade_assurance, // +8 points
+            is_assessed: supplier.is_assessed, // +5 points
+            // Other data
+            years_in_business: supplier.years_in_business,
+            rating: supplier.rating,
+            ai_match_score: supplier.ai_match_score
+          });
+
+          return (
           <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
               <div>
@@ -927,60 +946,88 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               </div>
             </div>
 
-            {/* ✅ Verification Badges Section - Same as spkbgcards.tsx */}
-            <div className="flex flex-wrap gap-3 mt-2">
-              {/* Gold Supplier Badge */}
-              {(supplier.verification_badge === 'Gold Supplier' || supplier.verification_status === 'Gold Supplier') && (
-                <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded-full text-xs font-medium">
+            {/* ✅ Verification Badges Section - All 6 verification types with scoring bonuses */}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {/* 1. Gold Supplier Badge - Score +15 (Highest bonus) */}
+              {(supplier.verification_badge === 'Gold Supplier' ||
+                supplier.verification_status === 'Gold Supplier' ||
+                supplier.is_gold) && (
+                <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
                   Gold
                 </span>
               )}
 
-              {/* Verified Pro Badge */}
-              {(supplier.verification_badge === 'Verified Pro' || supplier.verified_supplier) && (
-                <span className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 px-3 py-1 rounded-full text-xs font-medium">
+              {/* 2. Verified Pro Badge - Score +12 */}
+              {(supplier.verification_badge === 'Verified Pro' ||
+                supplier.verified_pro) && (
+                <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
                   Verified Pro
                 </span>
               )}
 
-              {/* Verified Supplier Badge */}
-              {(supplier.verification_badge === 'Verified Supplier' || supplier.verification_status === 'Verified') && (
-                <span className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-3 py-1 rounded-full text-xs font-medium">
+              {/* 3. Verified Supplier Badge - Score +10 */}
+              {!supplier.verified_pro &&
+               (supplier.verification_badge === 'Verified Supplier' ||
+                supplier.verification_status === 'Verified' ||
+                supplier.verified_supplier) && (
+                <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
                   Verified
                 </span>
               )}
 
-              {/* Trade Assurance Badge */}
+              {/* 4. Alibaba Guaranteed Badge - Score +8 */}
+              {supplier.alibaba_guaranteed && (
+                <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Alibaba Guaranteed
+                </span>
+              )}
+
+              {/* 5. Trade Assurance Badge - Score +8 */}
               {supplier.trade_assurance && (
-                <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full text-xs font-medium">
+                <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
                   Trade Assurance
+                </span>
+              )}
+
+              {/* 6. Assessed Supplier Badge - Score +5 */}
+              {!supplier.verified_pro &&
+               !supplier.verified_supplier &&
+               supplier.is_assessed && (
+                <span className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Assessed
                 </span>
               )}
 
               {/* Store Age Badge */}
               {supplier.years_in_business && supplier.years_in_business > 0 && (
-                <span className="bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200 px-3 py-1 rounded-full text-xs font-medium">
+                <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
                   Store Age: {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
                 </span>
               )}
 
               {/* Rating Badge */}
               {supplier.rating && supplier.rating > 0 && (
-                <span className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
                   <Star className="w-3 h-3 fill-current" />
-                  {supplier.rating.toFixed(1)}
+                  {supplier.rating.toFixed(1)} Rating
                 </span>
               )}
 
               {/* AI Match Level Badge */}
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+              <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm text-white ${
                 (supplier.ai_match_score || 0) >= 80
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                  ? 'bg-gradient-to-r from-green-500 to-green-700'
                   : (supplier.ai_match_score || 0) >= 60
-                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-700'
+                  : 'bg-gradient-to-r from-red-500 to-red-700'
               }`}>
-                AI Match: {(supplier.ai_match_score || 0).toFixed(2)}%
+                AI Match: {(supplier.ai_match_score || 0).toFixed(0)}%
               </span>
             </div>
 
@@ -1056,7 +1103,8 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               </button>
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
     </div>
   );

@@ -46,6 +46,38 @@ interface ProductExplorerProps { }
 
 type ViewMode = 'best-sellers' | 'search' | 'category';
 
+// ✅ Amazon Trends - 22 Countries with Language Support
+const AMAZON_COUNTRIES = [
+  { value: 'US', label: 'United States', languages: ['en_US', 'es_US'] },
+  { value: 'AU', label: 'Australia', languages: ['en_AU'] },
+  { value: 'BR', label: 'Brazil', languages: ['pt_BR'] },
+  { value: 'CA', label: 'Canada', languages: ['en_CA', 'fr_CA'] },
+  { value: 'FR', label: 'France', languages: ['fr_FR', 'en_GB'] },
+  { value: 'DE', label: 'Germany', languages: ['de_DE', 'en_GB', 'cs_CZ', 'nl_NL', 'pl_PL', 'tr_TR', 'da_DK'] },
+  { value: 'IN', label: 'India', languages: ['en_IN', 'hi_IN', 'ta_IN', 'te_IN', 'kn_IN', 'ml_IN', 'bn_IN', 'mr_IN'] },
+  { value: 'IT', label: 'Italy', languages: ['it_IT', 'en_GB'] },
+  { value: 'MX', label: 'Mexico', languages: ['es_MX'] },
+  { value: 'NL', label: 'Netherlands', languages: ['nl_NL', 'en_GB'] },
+  { value: 'SG', label: 'Singapore', languages: ['en_SG'] },
+  { value: 'ES', label: 'Spain', languages: ['es_ES', 'pt_PT', 'en_GB'] },
+  { value: 'TR', label: 'Turkey', languages: ['tr_TR'] },
+  { value: 'AE', label: 'United Arab Emirates', languages: ['en_AE', 'ar_AE'] },
+  { value: 'GB', label: 'United Kingdom', languages: ['en_GB'] },
+  { value: 'JP', label: 'Japan', languages: ['ja_JP', 'en_US', 'zh_CN'] },
+  { value: 'SA', label: 'Saudi Arabia', languages: ['ar_AE', 'en_AE'] },
+  { value: 'PL', label: 'Poland', languages: ['pl_PL'] },
+  { value: 'SE', label: 'Sweden', languages: ['sv_SE', 'en_GB'] },
+  { value: 'BE', label: 'Belgium', languages: ['fr_BE', 'nl_BE', 'en_GB'] },
+  { value: 'EG', label: 'Egypt', languages: ['ar_AE', 'en_AE'] },
+  { value: 'CN', label: 'China', languages: ['zh_CN'] },
+];
+
+// Helper function to get default language for a country
+const getDefaultLanguage = (countryCode: string): string => {
+  const country = AMAZON_COUNTRIES.find(c => c.value === countryCode);
+  return country?.languages[0] || 'en_US';
+};
+
 // Dynamic categories are now fetched from the API
 
 const ProductExplorer: React.FC<ProductExplorerProps> = () => {
@@ -53,7 +85,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const { quotaDetails: amazonSearchQuotaDetails, updateQuota: updateAmazonSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonSearch);
 
   // Backend quota management for supplier discovery
-  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AlibabaMatchPerProduct);
 
   // For displaying plan name (use amazonSearchQuotaDetails as the main quota details)
   const quotaDetails = amazonSearchQuotaDetails;
@@ -64,6 +96,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [country, setCountry] = useState('US'); // ✅ Default to US
+  const [language, setLanguage] = useState('en_US'); // ✅ Default language
   const [page, setPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -110,31 +143,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     setSelectedLocalSubcategory('');
     setSelectedCategoryId('');
     setSelectedCategoryPath('');
-    console.log('🌍 Country changed to:', country, '- Resetting category selection');
+    // Update language to default for the new country
+    const defaultLang = getDefaultLanguage(country);
+    setLanguage(defaultLang);
+    console.log('🌍 Country changed to:', country, '- Language:', defaultLang, '- Resetting category selection');
   }, [country]);
-
-  // ✅ Countries list - All 19 countries supported by Amazon API
-  const countries = [
-    { code: 'US', name: 'United States' },
-    { code: 'CA', name: 'Canada' },
-    { code: 'MX', name: 'Mexico' },
-    { code: 'BR', name: 'Brazil' },
-    { code: 'GB', name: 'United Kingdom' },
-    { code: 'AU', name: 'Australia' },
-    { code: 'FR', name: 'France' },
-    { code: 'DE', name: 'Germany' },
-    { code: 'SE', name: 'Sweden' },
-    { code: 'PL', name: 'Poland' },
-    { code: 'TR', name: 'Turkey' },
-    { code: 'AE', name: 'UAE' },
-    { code: 'IN', name: 'India' },
-    { code: 'IT', name: 'Italy' },
-    { code: 'ES', name: 'Spain' },
-    { code: 'JP', name: 'Japan' },
-    { code: 'SG', name: 'Singapore' },
-    { code: 'SA', name: 'Saudi Arabia' },
-    { code: 'NL', name: 'Netherlands' },
-  ];
 
   // Amazon Trends Types
   const amazonTrendsTypes = [
@@ -154,15 +167,16 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     error: bestSellersError,
     refetch: refetchBestSellers
   } = useQuery({
-    queryKey: ['amazon-explorer-best-sellers', country, page, selectedType],
+    queryKey: ['amazon-explorer-best-sellers', country, language, page, selectedType],
     queryFn: async () => {
       console.log('=== FRONTEND BESTSELLERS DEBUG ===');
-      console.log('Fetching best sellers with params:', { country, page, type: selectedType });
+      console.log('Fetching best sellers with params:', { country, language, page, type: selectedType });
 
       try {
-        // ✅ Fetch from selected country
+        // ✅ Fetch from selected country with language
         const result = await getAmazonExplorerBestSellers({
           country: country, // ✅ Use selected country
+          language: language, // ✅ Use selected language
           page: 1,
           type: selectedType
         });
@@ -711,9 +725,9 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                     }}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
-                    {countries.map((countryOption) => (
-                      <option key={countryOption.code} value={countryOption.code}>
-                        {countryOption.name}
+                    {AMAZON_COUNTRIES.map((countryOption) => (
+                      <option key={countryOption.value} value={countryOption.value}>
+                        {countryOption.label}
                       </option>
                     ))}
                   </select>
@@ -942,7 +956,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         {selectedCategoryPath || bestSellerCategories.find(cat => cat.category_path === selectedCategoryId)?.name || 'Selected Category'}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                        {countries.find(c => c.code === country)?.name || country}
+                        {AMAZON_COUNTRIES.find(c => c.value === country)?.label || country}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                         {amazonTrendsTypes.find(type => type.value === selectedType)?.name}

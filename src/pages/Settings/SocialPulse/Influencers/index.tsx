@@ -1446,7 +1446,7 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
                         onClick={() => setSelectedPost(post)}
                         className="w-full bg-[#ffa41c] hover:bg-[#e59419] text-white text-center py-3 px-4 text-sm font-medium transition-colors duration-200"
                       >
-                        View Post
+                        View Influencer's Endorsed Products
                       </button>
                     </div>
                   )}
@@ -1795,7 +1795,7 @@ const InfluencersPage: React.FC = () => {
                     onClick={() => setSelectedInfluencer(influencer.influencer_name)}
                     className="w-full bg-[#ffa41c] hover:bg-[#e59419] text-white py-3 px-4 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm"
                   >
-                    View Posts
+                    View Influencer's Endorsed Products
                   </button>
                 </div>
               </div>

@@ -69,27 +69,73 @@ const SORT_OPTIONS = [
   { value: 'play_six_rate', label: '6s view rate' },
 ];
 
-// Country options
+// Country options - 60 TikTok supported countries
 const COUNTRY_OPTIONS = [
+  // Americas
   { value: 'US', label: 'United States' },
-  { value: 'GB', label: 'United Kingdom' },
   { value: 'CA', label: 'Canada' },
-  { value: 'AU', label: 'Australia' },
+  { value: 'BR', label: 'Brazil' },
+  { value: 'MX', label: 'Mexico' },
+  { value: 'AR', label: 'Argentina' },
+  { value: 'CL', label: 'Chile' },
+  { value: 'CO', label: 'Colombia' },
+  { value: 'PE', label: 'Peru' },
+
+  // Europe
+  { value: 'GB', label: 'United Kingdom' },
   { value: 'DE', label: 'Germany' },
   { value: 'FR', label: 'France' },
   { value: 'IT', label: 'Italy' },
   { value: 'ES', label: 'Spain' },
+  { value: 'NL', label: 'Netherlands' },
+  { value: 'PL', label: 'Poland' },
+  { value: 'SE', label: 'Sweden' },
+  { value: 'NO', label: 'Norway' },
+  { value: 'DK', label: 'Denmark' },
+  { value: 'FI', label: 'Finland' },
+  { value: 'BE', label: 'Belgium' },
+  { value: 'AT', label: 'Austria' },
+  { value: 'CH', label: 'Switzerland' },
+  { value: 'IE', label: 'Ireland' },
+  { value: 'PT', label: 'Portugal' },
+  { value: 'GR', label: 'Greece' },
+  { value: 'CZ', label: 'Czech Republic' },
+  { value: 'RO', label: 'Romania' },
+  { value: 'HU', label: 'Hungary' },
+
+  // Asia Pacific
   { value: 'JP', label: 'Japan' },
   { value: 'KR', label: 'South Korea' },
-  { value: 'IN', label: 'India' },
-  { value: 'BR', label: 'Brazil' },
-  { value: 'MX', label: 'Mexico' },
   { value: 'SG', label: 'Singapore' },
   { value: 'MY', label: 'Malaysia' },
   { value: 'TH', label: 'Thailand' },
   { value: 'VN', label: 'Vietnam' },
   { value: 'PH', label: 'Philippines' },
   { value: 'ID', label: 'Indonesia' },
+  { value: 'AU', label: 'Australia' },
+  { value: 'NZ', label: 'New Zealand' },
+  { value: 'TW', label: 'Taiwan' },
+  { value: 'HK', label: 'Hong Kong' },
+  { value: 'PK', label: 'Pakistan' },
+  { value: 'BD', label: 'Bangladesh' },
+
+  // Middle East & Africa
+  { value: 'AE', label: 'United Arab Emirates' },
+  { value: 'SA', label: 'Saudi Arabia' },
+  { value: 'EG', label: 'Egypt' },
+  { value: 'ZA', label: 'South Africa' },
+  { value: 'IL', label: 'Israel' },
+  { value: 'TR', label: 'Turkey' },
+  { value: 'QA', label: 'Qatar' },
+  { value: 'KW', label: 'Kuwait' },
+  { value: 'OM', label: 'Oman' },
+  { value: 'BH', label: 'Bahrain' },
+  { value: 'JO', label: 'Jordan' },
+  { value: 'LB', label: 'Lebanon' },
+  { value: 'MA', label: 'Morocco' },
+  { value: 'NG', label: 'Nigeria' },
+  { value: 'KE', label: 'Kenya' },
+  { value: 'GH', label: 'Ghana' },
 ];
 
 // Period options for Trending Hashtags

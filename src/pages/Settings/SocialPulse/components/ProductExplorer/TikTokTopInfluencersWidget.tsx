@@ -60,7 +60,7 @@ const MobileToggle: React.FC<MobileToggleProps> = ({ isOpen, onClick, hashtagCou
   >
     <div className="flex items-center gap-2">
       <Flame className="w-5 h-5" />
-      <span className="text-sm font-medium">Trending ({hashtagCount})</span>
+      <span className="text-sm font-medium">TikTok Trending Hashtags ({hashtagCount})</span>
       {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
     </div>
   </button>
@@ -73,26 +73,73 @@ const HASHTAG_PERIOD_OPTIONS = [
   { value: '120', label: 'Last 120 Days' },
 ];
 
+// Country options - 60 TikTok supported countries (same as TikTokTrends)
 const COUNTRY_OPTIONS = [
+  // Americas
   { value: 'US', label: 'United States' },
-  { value: 'GB', label: 'United Kingdom' },
   { value: 'CA', label: 'Canada' },
-  { value: 'AU', label: 'Australia' },
+  { value: 'BR', label: 'Brazil' },
+  { value: 'MX', label: 'Mexico' },
+  { value: 'AR', label: 'Argentina' },
+  { value: 'CL', label: 'Chile' },
+  { value: 'CO', label: 'Colombia' },
+  { value: 'PE', label: 'Peru' },
+
+  // Europe
+  { value: 'GB', label: 'United Kingdom' },
   { value: 'DE', label: 'Germany' },
   { value: 'FR', label: 'France' },
   { value: 'IT', label: 'Italy' },
   { value: 'ES', label: 'Spain' },
+  { value: 'NL', label: 'Netherlands' },
+  { value: 'PL', label: 'Poland' },
+  { value: 'SE', label: 'Sweden' },
+  { value: 'NO', label: 'Norway' },
+  { value: 'DK', label: 'Denmark' },
+  { value: 'FI', label: 'Finland' },
+  { value: 'BE', label: 'Belgium' },
+  { value: 'AT', label: 'Austria' },
+  { value: 'CH', label: 'Switzerland' },
+  { value: 'IE', label: 'Ireland' },
+  { value: 'PT', label: 'Portugal' },
+  { value: 'GR', label: 'Greece' },
+  { value: 'CZ', label: 'Czech Republic' },
+  { value: 'RO', label: 'Romania' },
+  { value: 'HU', label: 'Hungary' },
+
+  // Asia Pacific
   { value: 'JP', label: 'Japan' },
   { value: 'KR', label: 'South Korea' },
-  { value: 'IN', label: 'India' },
-  { value: 'BR', label: 'Brazil' },
-  { value: 'MX', label: 'Mexico' },
   { value: 'SG', label: 'Singapore' },
   { value: 'MY', label: 'Malaysia' },
   { value: 'TH', label: 'Thailand' },
   { value: 'VN', label: 'Vietnam' },
   { value: 'PH', label: 'Philippines' },
   { value: 'ID', label: 'Indonesia' },
+  { value: 'AU', label: 'Australia' },
+  { value: 'NZ', label: 'New Zealand' },
+  { value: 'TW', label: 'Taiwan' },
+  { value: 'HK', label: 'Hong Kong' },
+  { value: 'PK', label: 'Pakistan' },
+  { value: 'BD', label: 'Bangladesh' },
+
+  // Middle East & Africa
+  { value: 'AE', label: 'United Arab Emirates' },
+  { value: 'SA', label: 'Saudi Arabia' },
+  { value: 'EG', label: 'Egypt' },
+  { value: 'ZA', label: 'South Africa' },
+  { value: 'IL', label: 'Israel' },
+  { value: 'TR', label: 'Turkey' },
+  { value: 'QA', label: 'Qatar' },
+  { value: 'KW', label: 'Kuwait' },
+  { value: 'OM', label: 'Oman' },
+  { value: 'BH', label: 'Bahrain' },
+  { value: 'JO', label: 'Jordan' },
+  { value: 'LB', label: 'Lebanon' },
+  { value: 'MA', label: 'Morocco' },
+  { value: 'NG', label: 'Nigeria' },
+  { value: 'KE', label: 'Kenya' },
+  { value: 'GH', label: 'Ghana' },
 ];
 
 const INDUSTRY_OPTIONS = [
@@ -208,7 +255,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <Hash className="w-5 h-5 text-pink-600" />
-            Trending Hashtags
+            TikTok Trending Hashtags
           </h2>
           {/* Close button - only visible on mobile */}
           <button
