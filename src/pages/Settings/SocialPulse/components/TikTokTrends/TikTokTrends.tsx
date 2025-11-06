@@ -4,6 +4,7 @@ import {
   MousePointer, Users, Hash,
   DollarSign,
   CreditCard,
+  Star,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
@@ -1810,31 +1811,61 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             {/* Header with Name, Verification, and AI Score */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1 min-w-0 pr-4">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <h5 className="font-bold text-gray-900 dark:text-white text-lg">{supplier.name}</h5>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${supplier.verification_status === 'Gold Verified'
-                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
-                    : supplier.verification_status === 'Verified'
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                      : 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300'
-                    }`}>
-                    {supplier.verification_status}
-                  </span>
+                <h5 className="font-bold text-gray-900 dark:text-white text-lg mb-2">{supplier.name}</h5>
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{supplier.location}</p>
+
+                {/* ✅ Verification Badges - Same design as Amazon Trends */}
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {/* Gold Supplier Badge */}
+                  {(supplier.verification_badge === 'Gold Supplier' ||
+                    supplier.verification_status === 'Gold Supplier' ||
+                    supplier.verification_badge === 'Gold' ||
+                    supplier.is_gold) && (
+                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      Gold Supplier
+                    </span>
+                  )}
+
+                  {/* Verified Pro Badge */}
+                  {(supplier.verification_badge === 'Verified Pro' ||
+                    supplier.verified_pro) && (
+                    <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      Verified Pro
+                    </span>
+                  )}
+
+                  {/* Verified Supplier Badge */}
+                  {!supplier.verified_pro &&
+                   (supplier.verification_badge === 'Verified Supplier' ||
+                    supplier.verification_status === 'Verified' ||
+                    supplier.verified_supplier) && (
+                    <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      Verified
+                    </span>
+                  )}
+
+                  {/* Trade Assurance Badge */}
                   {supplier.trade_assurance && (
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 whitespace-nowrap">
+                    <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
                       Trade Assurance
                     </span>
                   )}
-                  {supplier.verification_badge === 'Gold' && (
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 whitespace-nowrap">
-                      Gold
+
+                  {/* Store Age Badge */}
+                  {supplier.years_in_business && supplier.years_in_business > 0 && (
+                    <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
+                    </span>
+                  )}
+
+                  {/* Rating Badge */}
+                  {supplier.rating && supplier.rating > 0 && (
+                    <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-current" />
+                      {supplier.rating.toFixed(1)}
                     </span>
                   )}
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{supplier.location}</p>
-                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                  {supplier.match_explanation}
-                </p>
               </div>
 
               {/* AI Match Score - Circular Progress (Same as Amazon Trends) */}

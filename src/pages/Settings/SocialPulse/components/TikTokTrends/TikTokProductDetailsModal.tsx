@@ -880,11 +880,56 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
           return (
           <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
-              <div>
+              <div className="flex-1">
                 <h4 className="font-semibold text-gray-900">{supplier.name || supplier.supplier_name || 'Unknown Supplier'}</h4>
-                <p className="text-gray-600 text-sm">{supplier.location || 'Location not specified'}</p>
+                <p className="text-gray-600 text-sm mb-2">{supplier.location || 'Location not specified'}</p>
+
+                {/* ✅ Verification Badges - Moved to top near supplier name */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {/* Gold Supplier Badge */}
+                  {(supplier.verification_badge === 'Gold Supplier' ||
+                    supplier.verification_status === 'Gold Supplier' ||
+                    supplier.is_gold) && (
+                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      Gold Supplier
+                    </span>
+                  )}
+
+                  {/* Verified Pro Badge */}
+                  {(supplier.verification_badge === 'Verified Pro' ||
+                    supplier.verified_pro) && (
+                    <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      Verified Pro
+                    </span>
+                  )}
+
+                  {/* Verified Supplier Badge */}
+                  {!supplier.verified_pro &&
+                   (supplier.verification_badge === 'Verified Supplier' ||
+                    supplier.verification_status === 'Verified' ||
+                    supplier.verified_supplier) && (
+                    <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      Verified
+                    </span>
+                  )}
+
+                  {/* Trade Assurance Badge */}
+                  {supplier.trade_assurance && (
+                    <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                      Trade Assurance
+                    </span>
+                  )}
+
+                  {/* Rating Badge */}
+                  {supplier.rating && supplier.rating > 0 && (
+                    <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-current" />
+                      {supplier.rating.toFixed(1)}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="text-right">
+              <div className="text-right ml-4">
                 <div className="text-lg font-bold text-green-600">
                   {supplier.estimated_price || 'Price on request'}
                 </div>
@@ -946,90 +991,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               </div>
             </div>
 
-            {/* ✅ Verification Badges Section - All 6 verification types with scoring bonuses */}
-            <div className="flex flex-wrap gap-2 mt-3">
-              {/* 1. Gold Supplier Badge - Score +15 (Highest bonus) */}
-              {(supplier.verification_badge === 'Gold Supplier' ||
-                supplier.verification_status === 'Gold Supplier' ||
-                supplier.is_gold) && (
-                <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                  <Shield className="w-3 h-3 fill-current" />
-                  Gold
-                </span>
-              )}
 
-              {/* 2. Verified Pro Badge - Score +12 */}
-              {(supplier.verification_badge === 'Verified Pro' ||
-                supplier.verified_pro) && (
-                <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                  <Shield className="w-3 h-3 fill-current" />
-                  Verified Pro
-                </span>
-              )}
-
-              {/* 3. Verified Supplier Badge - Score +10 */}
-              {!supplier.verified_pro &&
-               (supplier.verification_badge === 'Verified Supplier' ||
-                supplier.verification_status === 'Verified' ||
-                supplier.verified_supplier) && (
-                <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                  <Shield className="w-3 h-3 fill-current" />
-                  Verified
-                </span>
-              )}
-
-              {/* 4. Alibaba Guaranteed Badge - Score +8 */}
-              {supplier.alibaba_guaranteed && (
-                <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                  <Shield className="w-3 h-3 fill-current" />
-                  Alibaba Guaranteed
-                </span>
-              )}
-
-              {/* 5. Trade Assurance Badge - Score +8 */}
-              {supplier.trade_assurance && (
-                <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                  <Shield className="w-3 h-3 fill-current" />
-                  Trade Assurance
-                </span>
-              )}
-
-              {/* 6. Assessed Supplier Badge - Score +5 */}
-              {!supplier.verified_pro &&
-               !supplier.verified_supplier &&
-               supplier.is_assessed && (
-                <span className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                  <Shield className="w-3 h-3 fill-current" />
-                  Assessed
-                </span>
-              )}
-
-              {/* Store Age Badge */}
-              {supplier.years_in_business && supplier.years_in_business > 0 && (
-                <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
-                  Store Age: {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
-                </span>
-              )}
-
-              {/* Rating Badge */}
-              {supplier.rating && supplier.rating > 0 && (
-                <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-current" />
-                  {supplier.rating.toFixed(1)} Rating
-                </span>
-              )}
-
-              {/* AI Match Level Badge */}
-              <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm text-white ${
-                (supplier.ai_match_score || 0) >= 80
-                  ? 'bg-gradient-to-r from-green-500 to-green-700'
-                  : (supplier.ai_match_score || 0) >= 60
-                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-700'
-                  : 'bg-gradient-to-r from-red-500 to-red-700'
-              }`}>
-                AI Match: {(supplier.ai_match_score || 0).toFixed(0)}%
-              </span>
-            </div>
 
             {/* Additional Info Section */}
             <div className="mt-4 grid grid-cols-2 gap-4 text-sm">

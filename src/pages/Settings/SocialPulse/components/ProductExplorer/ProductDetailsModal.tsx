@@ -1286,7 +1286,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                 supplier.is_gold) && (
                 <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
                   <Shield className="w-3 h-3 fill-current" />
-                  Gold
+                  Gold Supplier
                 </span>
               )}
 
@@ -1359,7 +1359,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   ? 'bg-gradient-to-r from-yellow-500 to-yellow-700'
                   : 'bg-gradient-to-r from-red-500 to-red-700'
               }`}>
-                AI Match: {(supplier.ai_match_score || 0).toFixed(0)}%
+                AI Match: {(supplier.ai_match_score || 0).toFixed(2)}%
               </span>
             </div>
 
@@ -1412,23 +1412,19 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               </div>
             )}
 
-            {/* Contact Button */}
-            <div className="mt-4">
+            {/* Action Buttons - Aligned to Right */}
+            <div className="mt-4 flex justify-end gap-3">
               <a
                 href={supplier.contact_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block w-full text-center px-4 py-2 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-sm font-medium transition-colors"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-sm font-medium transition-colors"
               >
                 Contact Supplier →
               </a>
-            </div>
-
-            {/* Select Supplier Button */}
-            <div className="mt-4">
               <button
                 onClick={() => onSelectSupplier(supplier)}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Calculator className="w-4 h-4" />
                 Select Supplier

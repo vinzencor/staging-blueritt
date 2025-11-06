@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import type { TAlibabaProduct, TAmazonProduct } from "@/types/product";
 import { getProcessedProductData } from "@/api/product";
 import { toast } from "react-toastify";
-import { Trash2 } from "lucide-react";
+import { Trash2, Shield } from "lucide-react";
 import { useState } from "react";
 
 type TProduct = {
@@ -542,21 +542,89 @@ const ProductList: React.FC<ProductListProps> = ({
                         {/* Display supplier info if available (from TikTok/Amazon calculator) */}
                         {product.supplier_info ? (
                           <>
-                            {/* Supplier Name with Verification Badge */}
+                            {/* Supplier Name */}
                             <div className="col-span-2">
                               <span className="text-gray-600 dark:text-gray-400">Supplier Name:</span>
-                              <div className="flex items-center gap-2 mt-1">
+                              <div className="mt-1">
                                 <span className="font-bold text-gray-900 dark:text-white text-lg">
-                                  {product.supplier_info.name || 'N/A'}
+                                  {product.supplier_info.name || product.supplier_info.supplier_name || 'N/A'}
                                 </span>
-                                {product.supplier_info.verification_status && (
-                                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${product.supplier_info.verification_status === 'Gold Verified'
-                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
-                                      : product.supplier_info.verification_status === 'Verified'
-                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
-                                    }`}>
-                                    {product.supplier_info.verification_status}
+                              </div>
+                            </div>
+
+                            {/* ✅ Colorful Verification Badges Section - EXACT COPY from BlueRitt Explorer */}
+                            <div className="col-span-2">
+                              <span className="text-gray-600 dark:text-gray-400 mb-2 block">Verification Badges:</span>
+                              <div className="flex flex-wrap gap-2">
+                                {/* 1. Gold Supplier Badge - Score +15 (Highest bonus) */}
+                                {(product.supplier_info.verification_badge === 'Gold Supplier' ||
+                                  product.supplier_info.verification_status === 'Gold Supplier' ||
+                                  product.supplier_info.is_gold) && (
+                                  <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Gold Supplier
+                                  </span>
+                                )}
+
+                                {/* 2. Verified Pro Badge - Score +12 */}
+                                {(product.supplier_info.verification_badge === 'Verified Pro' ||
+                                  product.supplier_info.verified_pro) && (
+                                  <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Verified Pro
+                                  </span>
+                                )}
+
+                                {/* 3. Verified Supplier Badge - Score +10 */}
+                                {!product.supplier_info.verified_pro &&
+                                 (product.supplier_info.verification_badge === 'Verified Supplier' ||
+                                  product.supplier_info.verification_status === 'Verified' ||
+                                  product.supplier_info.verified_supplier) && (
+                                  <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Verified
+                                  </span>
+                                )}
+
+                                {/* 4. Alibaba Guaranteed Badge - Score +8 */}
+                                {product.supplier_info.alibaba_guaranteed && (
+                                  <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Alibaba Guaranteed
+                                  </span>
+                                )}
+
+                                {/* 5. Trade Assurance Badge - Score +8 */}
+                                {product.supplier_info.trade_assurance && (
+                                  <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Trade Assurance
+                                  </span>
+                                )}
+
+                                {/* 6. Assessed Supplier Badge - Score +5 */}
+                                {!product.supplier_info.verified_pro &&
+                                 !product.supplier_info.verified_supplier &&
+                                 product.supplier_info.is_assessed && (
+                                  <span className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Assessed
+                                  </span>
+                                )}
+
+                                {/* Store Age Badge */}
+                                {product.supplier_info.years_in_business !== undefined && product.supplier_info.years_in_business > 0 && (
+                                  <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    {product.supplier_info.years_in_business} {product.supplier_info.years_in_business === 1 ? 'Year' : 'Years'}
+                                  </span>
+                                )}
+
+                                {/* Rating Badge */}
+                                {product.supplier_info.rating !== undefined && product.supplier_info.rating > 0 && (
+                                  <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    {product.supplier_info.rating}/5 ⭐
                                   </span>
                                 )}
                               </div>
@@ -613,42 +681,12 @@ const ProductList: React.FC<ProductListProps> = ({
                               </span>
                             </div>
 
-                            {/* Rating */}
-                            {product.supplier_info.rating !== undefined && (
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">Rating:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                  {product.supplier_info.rating}/5
-                                </span>
-                              </div>
-                            )}
-
                             {/* Total Transactions */}
                             {product.supplier_info.total_transactions !== undefined && (
                               <div>
                                 <span className="text-gray-600 dark:text-gray-400">Total Transactions:</span>
                                 <span className="ml-2 font-medium text-gray-900 dark:text-white">
                                   {product.supplier_info.total_transactions.toLocaleString()}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Years in Business */}
-                            {product.supplier_info.years_in_business !== undefined && product.supplier_info.years_in_business > 0 && (
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">Years in Business:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                  {product.supplier_info.years_in_business} years
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Trade Assurance */}
-                            {product.supplier_info.trade_assurance && (
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">Trade Assurance:</span>
-                                <span className="ml-2 font-medium text-green-600 dark:text-green-400">
-                                  ✓ Available
                                 </span>
                               </div>
                             )}

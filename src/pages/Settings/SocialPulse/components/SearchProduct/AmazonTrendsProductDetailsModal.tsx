@@ -529,7 +529,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               {/* Gold Supplier Badge */}
               {(supplier.verification_badge === 'Gold Supplier' || supplier.verification_status === 'Gold Supplier') && (
                 <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 px-3 py-1 rounded-full text-xs font-medium">
-                  Gold
+                  Gold Supplier
                 </span>
               )}
 

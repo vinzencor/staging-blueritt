@@ -560,7 +560,7 @@ export const discoverSuppliers = async (productData: {
       certifications: item.description?.certifications || [],
       contact_method: item.itemUrl || '',
       ai_match_score: supplierData.score || 0,
-      match_explanation: `AI Match Score: ${supplierData.score}% (Absolute: ${supplierData.absolute_score}%)`,
+      match_explanation: `AI Match Score: ${(supplierData.score || 0).toFixed(2)}%`,
       moq: minOrder.quantity || 0,
       min_order_quantity: minOrder.quantityFormatted || `${minOrder.quantity || 0} ${minOrder.unit || 'Pieces'}`,
       lead_time: 'Contact supplier', // Not available in API response
