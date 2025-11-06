@@ -22,6 +22,7 @@ interface SearchQuota {
   calculator_searches: number;
   pintrest_searches: number;
   tiktok_searches: number;
+  tiktok_search: number; // ✅ Added singular version for TikTok Trends
   seasonal_product_searches: number;
   // Amazon Trends search types
   amazon_trends_search: number;

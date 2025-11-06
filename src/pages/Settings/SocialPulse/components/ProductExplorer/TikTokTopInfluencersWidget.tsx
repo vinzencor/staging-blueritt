@@ -172,7 +172,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Hashtag quota management - 100 hashtags quota
-  const { quotaDetails: hashtagQuotaDetails, updateQuota: updateHashtagQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokSearches);
+  const { quotaDetails: hashtagQuotaDetails, updateQuota: updateHashtagQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokSearch);
 
   // New state for hashtag filters
   const [trendingHashtags, setTrendingHashtags] = useState<any[]>([]);

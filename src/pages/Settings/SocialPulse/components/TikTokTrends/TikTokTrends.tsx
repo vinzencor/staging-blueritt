@@ -284,7 +284,7 @@ interface TikTokTrendsProps {
 
 const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   // Backend quota management for TikTok search
-  const { quotaDetails: tiktokSearchQuotaDetails, updateQuota: updateTikTokSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokSearches);
+  const { quotaDetails: tiktokSearchQuotaDetails, updateQuota: updateTikTokSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokSearch);
 
   // Subscription quota management for supplier discovery
   const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);

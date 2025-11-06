@@ -145,8 +145,7 @@ const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ p
     try {
       const response = await discoverSuppliers({
         title: product.title,
-        asin: product.id || '',
-        brand: product.brand || '',
+        id: product.id || '',
         price: product.price || '',
         category: 'TikTok Product'
       });

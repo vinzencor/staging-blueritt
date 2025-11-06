@@ -80,8 +80,7 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
     try {
       const response = await discoverSuppliers({
         title: product.product_title,
-        asin: product.asin || '',
-        brand: product.product_brand || '',
+        id: product.asin || '',
         price: product.product_price || '',
         category: product.category_path || product.category || 'General'
       });
