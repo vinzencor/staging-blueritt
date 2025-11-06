@@ -91,6 +91,7 @@ export interface TikTokProductTrendsResponse {
 export interface TikTokTrendingResponse {
   data: {
     products: TikTokTrendingProduct[];
+    list?: any[];  // TikTok Creative Center API returns 'list' instead of 'products'
     total: number;
     trending_count: number;
     api_count: number;
@@ -101,6 +102,7 @@ export interface TikTokTrendingResponse {
   };
   country: string;
   remaining_quota: number;
+  cache_hit?: boolean;  // ✅ Indicates if data was loaded from 7-day cache (no quota deduction)
 }
 
 // Supplier interfaces (reuse from Amazon)
@@ -565,12 +567,17 @@ export const discoverSuppliers = async (productData: {
       estimated_price: firstPrice.priceFormatted || skuListingPrice.priceFormatted || priceModule.priceFormatted || 'Contact supplier',
       contact_url: item.itemUrl || '',
       response_rate: responseRate,
-      trade_assurance: company.status?.assessed || false,
+      trade_assurance: company.status?.tradeAssurance || company.status?.assessed || false,
       verified_supplier: company.status?.verified || false,
       rating: rating,
       total_transactions: totalTransactions,
       price_per_unit: firstPrice.priceFormatted || priceModule.priceFormatted,
       minimum_order: minOrder.quantity,
+      // ✅ Colorful Badge Properties - EXACT COPY from BlueRitt Explorer
+      is_gold: company.status?.gold || false,
+      verified_pro: false, // Not available in Alibaba API
+      alibaba_guaranteed: false, // Not available in Alibaba API
+      is_assessed: company.status?.assessed || false,
       // Keep raw item data for reference
       _raw_item: item,
       _raw_seller: seller,

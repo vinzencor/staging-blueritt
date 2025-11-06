@@ -189,7 +189,7 @@ export const TopInfluencersWidget: React.FC<{ className?: string }> = ({ classNa
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState('US');
+  const [selectedCountry, setSelectedCountry] = useState('GB'); // ✅ Default to UK
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Determine if we're on Amazon page

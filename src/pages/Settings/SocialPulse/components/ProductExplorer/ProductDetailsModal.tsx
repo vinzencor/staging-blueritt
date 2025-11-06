@@ -79,8 +79,8 @@ interface ProfitCalculation {
 type TabType = 'overview' | 'reviews' | 'offers' | 'suppliers';
 
 const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery = false, country = 'US' }) => {
-  // Quota management for supplier discovery
-  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AlibabaMatchPerProduct);
+  // Quota management for supplier discovery (shared with BlueRitt Explorer and TikTok Trends)
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);
@@ -1207,48 +1207,42 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
         </div>
       </div>
 
-      {/* Suppliers List */}
+      {/* Suppliers List - EXACT COPY from BlueRitt Explorer with Colorful Badges */}
       <div className="space-y-4">
         {displaySuppliers.map((supplier, index) => (
-          <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
             <div className="flex justify-between items-start mb-3">
               <div>
-                <h4 className="font-semibold text-gray-900">{supplier.name || supplier.supplier_name || 'Unknown Supplier'}</h4>
-                <p className="text-gray-600 text-sm">{supplier.location || 'Location not specified'}</p>
+                <h4 className="font-semibold text-gray-900 dark:text-white">{supplier.name || supplier.supplier_name || 'Unknown Supplier'}</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{supplier.location || 'Location not specified'}</p>
               </div>
               <div className="text-right">
-                <div className="text-lg font-bold text-green-600">
+                <div className="text-lg font-bold text-green-600 dark:text-green-400">
                   {supplier.estimated_price || 'Price on request'}
                 </div>
-                <div className="text-xs text-gray-500">Est. Price</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Est. Price</div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div>
-                <div className="text-xs text-gray-500">MOQ</div>
-                <div className="font-medium">{supplier.moq || supplier.min_order_quantity || 'Contact supplier'}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">MOQ</div>
+                <div className="font-medium text-gray-900 dark:text-white">{supplier.moq || supplier.min_order_quantity || 'Contact supplier'}</div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">Lead Time</div>
-                <div className="font-medium">{supplier.lead_time || 'Contact supplier'}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500">Verification</div>
-                <div className="font-medium text-blue-600">{supplier.verification_status || (supplier.verified_supplier ? 'Verified' : 'Unverified')}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Lead Time</div>
+                <div className="font-medium text-gray-900 dark:text-white">{supplier.lead_time || 'Contact supplier'}</div>
               </div>
 
-
-
-              <div className="flex items-center justify-end gap-[8px]">
+              <div className="flex items-center justify-end gap-[8px] col-span-2">
                 <div className="relative h-[90px] w-[90px]">
-                  {/* Circular Progress Bar */}
+                  {/* Circular Progress Bar - AI Match Score */}
                   <svg className="transform -rotate-90" width="90" height="90">
                     <circle
                       cx="45"
                       cy="45"
                       r="40"
-                      stroke="#e5e7eb"  // Tailwind's gray-200
+                      stroke="#e5e7eb"
                       strokeWidth="8"
                       fill="none"
                     />
@@ -1258,10 +1252,10 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                       r="40"
                       stroke={
                         (supplier.ai_match_score || 0) >= 80
-                          ? '#22c55e' // green-500
+                          ? '#22c55e'
                           : (supplier.ai_match_score || 0) >= 60
-                            ? '#eab308' // yellow-500
-                            : '#ef4444' // red-500
+                          ? '#eab308'
+                          : '#ef4444'
                       }
                       strokeWidth="8"
                       strokeLinecap="round"
@@ -1274,106 +1268,167 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   </svg>
 
                   {/* Content in center */}
-
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-[10px] rounded-full">
-                    <div className="text-xs text-gray-500">AI Match</div>
-                    <div className="font-medium text-purple-600">
-                      {supplier?.ai_match_score !== undefined
-                        ? Number(supplier.ai_match_score).toFixed(2)
-                        : 0
-                      }%
+                    <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
+                    <div className="font-medium text-purple-600 dark:text-purple-400">
+                      {(supplier.ai_match_score || 0).toFixed(2)}%
                     </div>
                   </div>
-
                 </div>
-
-                {/* price */}
-                {/* <div className="text-right">
-                    <div className="text-lg font-bold text-green-600">
-                      {supplier.estimated_price}
-                    </div>
-                    <div className="text-xs text-gray-500">Est. Price</div>
-                  </div> */}
               </div>
-
             </div>
 
-            {/* Additional supplier details */}
-            <div className="mb-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Years in Business:</span>
-                  <span className="font-medium ml-2">{supplier.years_in_business || 'N/A'} years</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Response Rate:</span>
-                  <span className="font-medium ml-2">{supplier.response_rate || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Rating:</span>
-                  <span className="font-medium ml-2">{supplier.rating || 'N/A'}/5.0</span>
-                </div>
-                <div>
-                  <span className="text-gray-600">Transactions:</span>
-                  <span className="font-medium ml-2">{supplier.total_transactions || 'N/A'}</span>
-                </div>
-              </div>
+            {/* ✅ Colorful Verification Badges Section - EXACT COPY from BlueRitt Explorer */}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {/* 1. Gold Supplier Badge - Score +15 (Highest bonus) */}
+              {(supplier.verification_badge === 'Gold Supplier' ||
+                supplier.verification_status === 'Gold Supplier' ||
+                supplier.is_gold) && (
+                <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Gold
+                </span>
+              )}
 
-              {supplier.main_products && (
-                <div className="mt-3">
-                  <span className="text-gray-600 text-sm">Main Products:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {Array.isArray(supplier.main_products)
-                      ? supplier.main_products.map((product: string, idx: number) => (
-                        <span key={idx} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+              {/* 2. Verified Pro Badge - Score +12 */}
+              {(supplier.verification_badge === 'Verified Pro' ||
+                supplier.verified_pro) && (
+                <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Verified Pro
+                </span>
+              )}
+
+              {/* 3. Verified Supplier Badge - Score +10 */}
+              {!supplier.verified_pro &&
+               (supplier.verification_badge === 'Verified Supplier' ||
+                supplier.verification_status === 'Verified' ||
+                supplier.verified_supplier) && (
+                <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Verified
+                </span>
+              )}
+
+              {/* 4. Alibaba Guaranteed Badge - Score +8 */}
+              {supplier.alibaba_guaranteed && (
+                <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Alibaba Guaranteed
+                </span>
+              )}
+
+              {/* 5. Trade Assurance Badge - Score +8 */}
+              {supplier.trade_assurance && (
+                <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Trade Assurance
+                </span>
+              )}
+
+              {/* 6. Assessed Supplier Badge - Score +5 */}
+              {!supplier.verified_pro &&
+               !supplier.verified_supplier &&
+               supplier.is_assessed && (
+                <span className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Assessed
+                </span>
+              )}
+
+              {/* Store Age Badge */}
+              {supplier.years_in_business && supplier.years_in_business > 0 && (
+                <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
+                  Store Age: {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
+                </span>
+              )}
+
+              {/* Rating Badge */}
+              {supplier.rating && supplier.rating > 0 && (
+                <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-current" />
+                  {supplier.rating.toFixed(1)} Rating
+                </span>
+              )}
+
+              {/* AI Match Level Badge */}
+              <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm text-white ${
+                (supplier.ai_match_score || 0) >= 80
+                  ? 'bg-gradient-to-r from-green-500 to-green-700'
+                  : (supplier.ai_match_score || 0) >= 60
+                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-700'
+                  : 'bg-gradient-to-r from-red-500 to-red-700'
+              }`}>
+                AI Match: {(supplier.ai_match_score || 0).toFixed(0)}%
+              </span>
+            </div>
+
+            {/* Additional Info Section */}
+            <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">Response Rate:</span>
+                <span className="font-medium ml-2 text-gray-900 dark:text-white">{supplier.response_rate || 'N/A'}</span>
+              </div>
+              {supplier.total_transactions && supplier.total_transactions > 0 && (
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">Transactions:</span>
+                  <span className="font-medium ml-2 text-gray-900 dark:text-white">{supplier.total_transactions.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Main Products Section */}
+            {supplier.main_products && (
+              <div className="mt-3">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Main Products:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {Array.isArray(supplier.main_products)
+                    ? supplier.main_products.map((product: string, idx: number) => (
+                        <span key={idx} className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
                           {product}
                         </span>
                       ))
-                      : (
-                        <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                    : (
+                        <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
                           {supplier.main_products}
                         </span>
                       )
-                    }
-                  </div>
+                  }
                 </div>
-              )}
+              </div>
+            )}
 
-              {supplier.certifications && supplier.certifications.length > 0 && (
-                <div className="mt-3">
-                  <span className="text-gray-600 text-sm">Certifications:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {supplier.certifications.map((cert, idx) => (
-                      <span key={idx} className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
-                        {cert}
-                      </span>
-                    ))}
-                  </div>
+            {/* Certifications Section */}
+            {supplier.certifications && supplier.certifications.length > 0 && (
+              <div className="mt-3">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Certifications:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {supplier.certifications.map((cert, idx) => (
+                    <span key={idx} className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs">
+                      {cert}
+                    </span>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
+
+            {/* Contact Button */}
+            <div className="mt-4">
+              <a
+                href={supplier.contact_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block w-full text-center px-4 py-2 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-sm font-medium transition-colors"
+              >
+                Contact Supplier →
+              </a>
             </div>
 
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${(supplier.ai_match_score || 0) >= 80
-                    ? 'bg-green-100 text-green-800'
-                    : (supplier.ai_match_score || 0) >= 60
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                  {(supplier.ai_match_score || 0) >= 80 ? 'Excellent Match' :
-                    (supplier.ai_match_score || 0) >= 60 ? 'Good Match' : 'Fair Match'}
-                </span>
-                {supplier.trade_assurance && (
-                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                    Trade Assurance
-                  </span>
-                )}
-              </div>
-
+            {/* Select Supplier Button */}
+            <div className="mt-4">
               <button
                 onClick={() => onSelectSupplier(supplier)}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center gap-2"
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Calculator className="w-4 h-4" />
                 Select Supplier

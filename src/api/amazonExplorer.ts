@@ -37,6 +37,7 @@ export interface AmazonExplorerResponse {
   };
   status: string;
   remaining_quota?: number;
+  cache_hit?: boolean;  // ✅ Indicates if data was loaded from 7-day cache (no quota deduction)
 }
 
 export interface ProductDetails {
@@ -113,6 +114,11 @@ export interface SupplierInfo {
   // Additional optional properties
   price_per_unit?: string;
   minimum_order?: number;
+  // ✅ Colorful Badge Properties - EXACT COPY from BlueRitt Explorer
+  is_gold?: boolean; // Gold Supplier badge
+  verified_pro?: boolean; // Verified Pro badge
+  alibaba_guaranteed?: boolean; // Alibaba Guaranteed badge
+  is_assessed?: boolean; // Assessed Supplier badge
 }
 
 export interface SupplierDiscoveryResponse {
@@ -761,12 +767,17 @@ export const discoverSuppliers = async (productData: {
       estimated_price: firstPrice.priceFormatted || skuListingPrice.priceFormatted || priceModule.priceFormatted || 'Contact supplier',
       contact_url: item.itemUrl || '',
       response_rate: responseRate,
-      trade_assurance: company.status?.assessed || false,
+      trade_assurance: company.status?.tradeAssurance || company.status?.assessed || false,
       verified_supplier: company.status?.verified || false,
       rating: rating,
       total_transactions: totalTransactions,
       price_per_unit: firstPrice.priceFormatted || priceModule.priceFormatted,
       minimum_order: minOrder.quantity,
+      // ✅ Colorful Badge Properties - EXACT COPY from BlueRitt Explorer
+      is_gold: company.status?.gold || false,
+      verified_pro: false, // Not available in Alibaba API
+      alibaba_guaranteed: false, // Not available in Alibaba API
+      is_assessed: company.status?.assessed || false,
       // Keep raw item data for reference
       _raw_item: item,
       _raw_seller: seller,

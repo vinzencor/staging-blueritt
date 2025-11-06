@@ -51,6 +51,7 @@ export interface AmazonTrendingResponse {
     country?: string;
   };
   remaining_quota?: number;
+  cache_hit?: boolean;  // ✅ Indicates if data was loaded from 7-day cache (no quota deduction)
 }
 
 export interface AmazonBestSeller {

@@ -505,7 +505,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
 
       {/* Large Desktop Widget (1024px - 1279px) */}
       <div className={`
-        hidden xl:block 2xl:hidden fixed top-20 right-[3rem] w-80 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
+        hidden xl:block 2xl:hidden fixed top-20 right-[3rem] w-72 max-h-[calc(100vh-6rem)] overflow-y-auto z-30
         transition-all duration-300 ease-in-out
         ${className}
       `}>

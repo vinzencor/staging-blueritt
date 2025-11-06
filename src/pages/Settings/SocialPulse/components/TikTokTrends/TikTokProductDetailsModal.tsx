@@ -55,8 +55,8 @@ const TrendingHashtagsCarousel: React.FC<{ hashtags: string[] }> = ({ hashtags }
 };
 
 const TikTokProductDetailsModal: React.FC<TikTokProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery }) => {
-  // Quota management for supplier discovery
-  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AlibabaMatchPerProduct);
+  // Quota management for supplier discovery (shared with BlueRitt Explorer and Amazon Trends)
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isSupplierDiscoveryLoading, setIsSupplierDiscoveryLoading] = useState(false);

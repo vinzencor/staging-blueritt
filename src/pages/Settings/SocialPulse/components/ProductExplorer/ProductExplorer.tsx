@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Filter, Grid, List, Star, ShoppingCart, ExternalLink, Eye, Package, TrendingUp, Zap, X } from 'lucide-react';
+import { Search, Filter, Grid, List, Star, ShoppingCart, ExternalLink, Eye, Package, TrendingUp, Zap, X, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import AmazonLoader from '../../../../../components/AmazonLoader';
@@ -84,8 +84,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   // Backend quota management for Amazon search
   const { quotaDetails: amazonSearchQuotaDetails, updateQuota: updateAmazonSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonSearch);
 
-  // Backend quota management for supplier discovery
-  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AlibabaMatchPerProduct);
+  // Backend quota management for supplier discovery (shared with BlueRitt Explorer and TikTok Trends)
+  const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
 
   // For displaying plan name (use amazonSearchQuotaDetails as the main quota details)
   const quotaDetails = amazonSearchQuotaDetails;
@@ -630,10 +630,34 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     return error;
   };
 
+  // ✅ Get cache hit status from current data source
+  const getCacheHitStatus = (): boolean | undefined => {
+    // Check direct category products first (when category is selected)
+    if (selectedCategoryId && directCategoryProductsData) {
+      return directCategoryProductsData.cache_hit;
+    }
+
+    // Otherwise check current data based on view mode
+    return currentData?.cache_hit;
+  };
+
+  // ✅ Get remaining quota from current data source
+  const getRemainingQuota = (): number | undefined => {
+    // Check direct category products first (when category is selected)
+    if (selectedCategoryId && directCategoryProductsData) {
+      return directCategoryProductsData.remaining_quota;
+    }
+
+    // Otherwise check current data based on view mode
+    return currentData?.remaining_quota;
+  };
+
   const products = getProducts();
   const totalProducts = getTotalProducts();
   const finalIsLoading = getIsLoading();
   const finalError = getError();
+  const cacheHit = getCacheHitStatus();
+  const remainingQuota = getRemainingQuota();
 
   return (
     <div className="space-y-6">
@@ -997,6 +1021,46 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
             <span>
               Page {page}
             </span>
+          </div>
+        )}
+
+        {/* ✅ Cache Hit Indicator - Shows when data is from 7-day cache */}
+        {!finalIsLoading && products.length > 0 && cacheHit && (
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-4 border border-green-200 dark:border-green-700 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
+                  <Zap className="w-4 h-4" />
+                  Loaded from Cache - No Quota Deducted
+                </h3>
+                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                  These results were cached from your previous search. Your quota was not deducted. Cache expires in 7 days from first search.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ✅ Fresh Data Indicator - Shows when data is from API (quota deducted) */}
+        {!finalIsLoading && products.length > 0 && !cacheHit && remainingQuota !== undefined && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-700 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                  <Zap className="w-4 h-4" />
+                  Fresh Data from Amazon API - Quota Deducted
+                </h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  New data fetched from Amazon. Results cached for 7 days. Remaining searches: {remainingQuota}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 

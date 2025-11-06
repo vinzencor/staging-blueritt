@@ -941,18 +941,45 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             {/* Products Grid */}
             {tiktokData && ((tiktokData.data?.list && tiktokData.data.list.length > 0) || (tiktokData.data?.products && tiktokData.data.products.length > 0)) && !tiktokLoading && (
               <div className="space-y-6">
-                {/* Results Summary */}
-                {/* <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg p-4 border border-pink-100 dark:border-pink-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                Found {tiktokData.data.list.length} trending products
-              </h3>
-              <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                <p>Category: {selectedCategory ? TIKTOK_CATEGORIES.find(c => c.id === selectedCategory)?.name : 'All Categories'}</p>
-                <p>Time Range: {TIME_RANGES.find(t => t.value === selectedTimeRange)?.label}</p>
-                <p>Sort: {SORT_OPTIONS.find(s => s.value === selectedSortBy)?.label} ({selectedSortOrder})</p>
-                {searchKeyword && <p>Keyword: {searchKeyword}</p>}
-              </div>
-            </div> */}
+                {/* ✅ Cache Hit Indicator - Shows when data is from 7-day cache */}
+                {tiktokData.cache_hit && (
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-4 border border-green-200 dark:border-green-700">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0">
+                        <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
+                          <Zap className="w-4 h-4" />
+                          Loaded from Cache - No Quota Deducted
+                        </h3>
+                        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                          These results were cached from your previous search. Your quota was not deducted. Cache expires in 7 days from first search.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ✅ Fresh Data Indicator - Shows when data is from API (quota deducted) */}
+                {!tiktokData.cache_hit && tiktokData.remaining_quota !== undefined && (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0">
+                        <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                          <Zap className="w-4 h-4" />
+                          Fresh Data from TikTok API - Quota Deducted
+                        </h3>
+                        <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                          New data fetched from TikTok Creative Center. Results cached for 7 days. Remaining searches: {tiktokData.remaining_quota}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Products Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

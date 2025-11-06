@@ -82,6 +82,36 @@ const ProductList: React.FC<ProductListProps> = ({
 
   const products = categoryDetail?.products || [];
 
+  // ✅ Group products by source
+  const groupProductsBySource = (products: TProduct[]) => {
+    const grouped: {
+      blueritt_explorer: TProduct[];
+      tiktok_trends: TProduct[];
+      amazon_trends: TProduct[];
+    } = {
+      blueritt_explorer: [],
+      tiktok_trends: [],
+      amazon_trends: [],
+    };
+
+    products.forEach((product) => {
+      const source = product.amazon_product?.source;
+
+      if (source === 'tiktok_trends') {
+        grouped.tiktok_trends.push(product);
+      } else if (source === 'amazon_trends') {
+        grouped.amazon_trends.push(product);
+      } else {
+        // Default to BlueRitt Explorer if no source or unknown source
+        grouped.blueritt_explorer.push(product);
+      }
+    });
+
+    return grouped;
+  };
+
+  const groupedProducts = groupProductsBySource(products);
+
   const formatDate = (dateString: any) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -342,12 +372,11 @@ const ProductList: React.FC<ProductListProps> = ({
     );
   }
 
-  return (
-    <div className="w-full mt-4">
-      {products.length > 0 ? (
-        products.map((product) => {
-          const amazonData = getAmazonData(product);
-          const hasAmazonData = !!amazonData;
+  // ✅ Helper function to render products for a specific source
+  const renderProductsForSource = (sourceProducts: TProduct[]) => {
+    return sourceProducts.map((product) => {
+      const amazonData = getAmazonData(product);
+      const hasAmazonData = !!amazonData;
 
           // Debug logging for SimpleProfitPro products
           if (product.simple_profit_pro) {
@@ -737,7 +766,61 @@ const ProductList: React.FC<ProductListProps> = ({
               </div>
             </div>
           );
-        })
+        });
+  };
+
+  return (
+    <div className="w-full mt-4">
+      {products.length > 0 ? (
+        <>
+          {/* ✅ BlueRitt Explorer Products */}
+          {groupedProducts.blueritt_explorer.length > 0 && (
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700 rounded-lg p-4 mb-4 shadow-md">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  BlueRitt Explorer
+                </h2>
+                <p className="text-blue-100 mt-1 text-sm">Products discovered through BlueRitt Explorer</p>
+              </div>
+              {renderProductsForSource(groupedProducts.blueritt_explorer)}
+            </div>
+          )}
+
+          {/* ✅ TikTok Trends Products */}
+          {groupedProducts.tiktok_trends.length > 0 && (
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-pink-600 to-purple-600 dark:from-pink-700 dark:to-purple-700 rounded-lg p-4 mb-4 shadow-md">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  BlueRitt SocialPulse (TikTok Trends)
+                </h2>
+                <p className="text-pink-100 mt-1 text-sm">Products discovered through TikTok Trends</p>
+              </div>
+              {renderProductsForSource(groupedProducts.tiktok_trends)}
+            </div>
+          )}
+
+          {/* ✅ Amazon Trends Products */}
+          {groupedProducts.amazon_trends.length > 0 && (
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-700 dark:to-amber-700 rounded-lg p-4 mb-4 shadow-md">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  BlueRitt SocialPulse (Amazon Trends)
+                </h2>
+                <p className="text-orange-100 mt-1 text-sm">Products discovered through Amazon Trends</p>
+              </div>
+              {renderProductsForSource(groupedProducts.amazon_trends)}
+            </div>
+          )}
+        </>
       ) : (
         <p className="text-center text-gray-500">
           No products available in this category.
