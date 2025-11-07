@@ -54,20 +54,19 @@ const SocialPage = () => {
   if (isAmazonPage) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
-  {/* Fixed Top Influencers Widget - True Overlay */}
-  <TopInfluencersWidget />
+        {/* Fixed Top Influencers Widget - Hidden on mobile/tablet, visible on large screens */}
+        <div className="hidden xl:block">
+          <TopInfluencersWidget />
+        </div>
 
-  {/* Main Content - Responsive with proper spacing for best deals widget */}
-  <div className="p-3 sm:p-5 space-y-8 mx-auto w-full 
-                  max-w-[1400px]
-                  lg:max-w-[calc(100%-320px)] lg:mr-[320px]
-                  xl:max-w-[calc(100%-340px)] xl:mr-[340px]
-                  2xl:max-w-[calc(100%-384px)] 2xl:mr-[384px]">
-                    
-    {/* Amazon Content */}
-    <ProductExplorer />
-  </div>
-</div>
+        {/* Main Content - Fully responsive layout */}
+        <div className="w-full px-3 sm:px-5 py-3 sm:py-5 space-y-8
+                        xl:max-w-[calc(100%-320px)] xl:mr-[320px]
+                        2xl:max-w-[calc(100%-384px)] 2xl:mr-[384px]">
+          {/* Amazon Content */}
+          <ProductExplorer />
+        </div>
+      </div>
     );
   }
 
@@ -75,15 +74,15 @@ const SocialPage = () => {
   if (isTikTokPage) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
-        {/* Fixed Top Creators Widget */}
-        <TikTokTopInfluencersWidget />
+        {/* Fixed Top Creators Widget - Hidden on mobile/tablet, visible on large screens */}
+        <div className="hidden xl:block">
+          <TikTokTopInfluencersWidget />
+        </div>
 
-        {/* Main Content - Responsive with proper spacing for best deals widget */}
-        <div className="p-3 sm:p-5 space-y-8 mx-auto w-full 
-                  max-w-[1400px]
-                  lg:max-w-[calc(100%-320px)] lg:mr-[320px]
-                  xl:max-w-[calc(100%-340px)] xl:mr-[340px]
-                  2xl:max-w-[calc(100%-384px)] 2xl:mr-[384px]">
+        {/* Main Content - Fully responsive layout */}
+        <div className="w-full px-3 sm:px-5 py-3 sm:py-5 space-y-8
+                        xl:max-w-[calc(100%-320px)] xl:mr-[320px]
+                        2xl:max-w-[calc(100%-384px)] 2xl:mr-[384px]">
           {/* TikTok Content */}
           <TikTokTrends />
         </div>

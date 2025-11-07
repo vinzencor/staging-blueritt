@@ -5,6 +5,8 @@ import {
   DollarSign,
   CreditCard,
   Star,
+  ChevronDown,
+  Shield,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
@@ -283,8 +285,8 @@ interface TikTokTrendsProps {
 }
 
 const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
-  // Backend quota management for TikTok search
-  const { quotaDetails: tiktokSearchQuotaDetails, updateQuota: updateTikTokSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokSearch);
+  // Backend quota management for TikTok search (using TikTokSearches to match backend field name)
+  const { quotaDetails: tiktokSearchQuotaDetails, updateQuota: updateTikTokSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.TikTokSearches);
 
   // Subscription quota management for supplier discovery
   const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
@@ -683,8 +685,8 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-6">
-          <h2 className="text-3xl font-bold text-blue-900 dark:text-white mb-2">BlueRitt SocialPulse</h2>
+    <div className="space-y-6">
+      <h2 className="text-3xl font-bold text-blue-900 dark:text-white mb-2">BlueRitt SocialPulse</h2>
 
       {/* Header */}
       <div className="mb-8">
@@ -706,7 +708,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                     <Zap className="w-4 h-4 text-blue-600" />
                     {quotaDetails.packageName} Plan Features
                   </p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {/* TikTok Trends Searches */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
                       <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Product Searches</div>
@@ -754,18 +756,21 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Category
             </label>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="">All Categories</option>
-              {TIKTOK_CATEGORIES.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+              >
+                <option value="">All Categories</option>
+                {TIKTOK_CATEGORIES.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+            </div>
           </div>
 
           {/* Country Selection */}
@@ -773,17 +778,20 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Country
             </label>
-            <select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              {COUNTRY_OPTIONS.map((country) => (
-                <option key={country.value} value={country.value}>
-                  {country.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+              >
+                {COUNTRY_OPTIONS.map((country) => (
+                  <option key={country.value} value={country.value}>
+                    {country.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+            </div>
           </div>
 
           {/* Time Range */}
@@ -791,17 +799,20 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Time Range
             </label>
-            <select
-              value={selectedTimeRange}
-              onChange={(e) => setSelectedTimeRange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              {TIME_RANGES.map((range) => (
-                <option key={range.value} value={range.value}>
-                  {range.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedTimeRange}
+                onChange={(e) => setSelectedTimeRange(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+              >
+                {TIME_RANGES.map((range) => (
+                  <option key={range.value} value={range.value}>
+                    {range.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+            </div>
           </div>
 
           {/* Sort By */}
@@ -809,17 +820,20 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Sort By
             </label>
-            <select
-              value={selectedSortBy}
-              onChange={(e) => setSelectedSortBy(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedSortBy}
+                onChange={(e) => setSelectedSortBy(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+            </div>
           </div>
 
           {/* Sort Order */}
@@ -827,14 +841,17 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Sort Order
             </label>
-            <select
-              value={selectedSortOrder}
-              onChange={(e) => setSelectedSortOrder(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="desc">Descending</option>
-              <option value="asc">Ascending</option>
-            </select>
+            <div className="relative">
+              <select
+                value={selectedSortOrder}
+                onChange={(e) => setSelectedSortOrder(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+              >
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+            </div>
           </div>
         </div>
 
@@ -907,16 +924,90 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
               Top Tiktok Trending Products
             </h2>
 
-            {/* Loading State */}
+            {/* Loading State - Beautiful TikTok Themed Loader */}
             {tiktokLoading && (
-              <div className="text-center py-12">
-                <Loader2 className="w-16 h-16 text-[#111c43] mx-auto mb-4 animate-spin" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Loading TikTok Trending Products...
+              <div className="text-center py-16">
+                {/* Animated TikTok Icon Container */}
+                <div className="relative inline-block mb-6">
+                  {/* Outer rotating ring */}
+                  <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-pink-500 border-r-cyan-500 animate-spin w-24 h-24"></div>
+
+                  {/* Middle pulsing ring */}
+                  <div className="absolute inset-2 rounded-full border-4 border-transparent border-b-purple-500 border-l-blue-500 animate-spin w-20 h-20" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+
+                  {/* Inner TikTok Icon */}
+                  <div className="relative w-24 h-24 flex items-center justify-center">
+                    <div className="relative">
+                      {/* TikTok-style music note icon */}
+                      <svg
+                        className="w-12 h-12 animate-pulse"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        style={{ animationDuration: '2s' }}
+                      >
+                        {/* Main note stem */}
+                        <path
+                          d="M9 18V5l12-2v13"
+                          stroke="url(#tiktok-gradient)"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="animate-pulse"
+                        />
+                        {/* Bottom circle */}
+                        <circle
+                          cx="6"
+                          cy="18"
+                          r="3"
+                          fill="url(#tiktok-gradient)"
+                          className="animate-pulse"
+                          style={{ animationDelay: '0.3s' }}
+                        />
+                        {/* Top circle */}
+                        <circle
+                          cx="18"
+                          cy="16"
+                          r="3"
+                          fill="url(#tiktok-gradient)"
+                          className="animate-pulse"
+                          style={{ animationDelay: '0.6s' }}
+                        />
+                        <defs>
+                          <linearGradient id="tiktok-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#FF0050" />
+                            <stop offset="50%" stopColor="#00F2EA" />
+                            <stop offset="100%" stopColor="#FF0050" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Loading Text with Gradient */}
+                <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-pink-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent animate-pulse">
+                  Loading TikTok Trending Products
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Fetching data from TikTok Creative Center API
+
+                {/* Animated dots */}
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <div className="w-2 h-2 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                </div>
+
+                {/* Loading message */}
+                <p className="text-sm text-gray-600 dark:text-gray-400 animate-pulse">
+                  Discovering the hottest trends for you...
                 </p>
+
+                {/* Floating icons animation */}
+                <div className="mt-8 flex items-center justify-center gap-6">
+                  <TrendingUp className="w-6 h-6 text-pink-500 animate-bounce" style={{ animationDelay: '0s', animationDuration: '1.5s' }} />
+                  <Heart className="w-6 h-6 text-red-500 animate-bounce" style={{ animationDelay: '0.3s', animationDuration: '1.5s' }} />
+                  <Play className="w-6 h-6 text-cyan-500 animate-bounce" style={{ animationDelay: '0.6s', animationDuration: '1.5s' }} />
+                  <Star className="w-6 h-6 text-yellow-500 animate-bounce" style={{ animationDelay: '0.9s', animationDuration: '1.5s' }} />
+                </div>
               </div>
             )}
 
@@ -952,10 +1043,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       <div className="flex-1">
                         <h3 className="font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
                           <Zap className="w-4 h-4" />
-                          Loaded from Cache - No Quota Deducted
+                          Loaded from Saved Results
                         </h3>
                         <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                          These results were cached from your previous search. Your quota was not deducted. Cache expires in 7 days from first search.
+                          Quota was not used This data will remain available for 7 days from the first search.
                         </p>
                       </div>
                     </div>
@@ -972,10 +1063,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       <div className="flex-1">
                         <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
                           <Zap className="w-4 h-4" />
-                          Fresh Data from TikTok API - Quota Deducted
+                          New Search – Quota Deducted
                         </h3>
                         <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                          New data fetched from TikTok Creative Center. Results cached for 7 days. Remaining searches: {tiktokData.remaining_quota}
+                          Fetched results cached for 7 days. Remaining searches: {tiktokData.remaining_quota}
                         </p>
                       </div>
                     </div>
@@ -983,7 +1074,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                 )}
 
                 {/* Products Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {/* Display Direct API products first (fresh data), then database products */}
                   {(() => {
                     const productsToRender = tiktokData.data?.list || tiktokData.data?.products || [];
@@ -1028,40 +1119,44 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                         )}
 
                         {/* Key Performance Metrics - CPR, CVR, CPA, Cost */}
-                        <div className="grid grid-cols-2 gap-2 text-xs mb-8 flex-grow">
+                        <div className="grid grid-cols-2 gap-2 text-xs mb-4">
                           {product.ctr !== undefined && product.ctr > 0 && (
-                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center border border-blue-200 dark:border-blue-800">
-                              <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium">CTR</div>
+                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2.5 text-center border border-blue-200 dark:border-blue-800">
+                              <div className="text-blue-600 dark:text-blue-400 mb-1 font-medium text-xs">CTR</div>
                               <div className="font-semibold text-gray-900 dark:text-white text-sm">
                                 {product.ctr.toFixed(2)}
                               </div>
                             </div>
                           )}
                           {product.cvr !== undefined && product.cvr > 0 && (
-                            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center border border-purple-200 dark:border-purple-800">
-                              <div className="text-purple-600 dark:text-purple-400 mb-1 font-medium">CVR</div>
+                            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2.5 text-center border border-purple-200 dark:border-purple-800">
+                              <div className="text-purple-600 dark:text-purple-400 mb-1 font-medium text-xs">CVR</div>
                               <div className="font-semibold text-gray-900 dark:text-white text-sm">
                                 {product.cvr.toFixed(2)}
                               </div>
                             </div>
                           )}
                           {product.cpa !== undefined && product.cpa > 0 && (
-                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center border border-green-200 dark:border-green-800">
-                              <div className="text-green-600 dark:text-green-400 mb-1 font-medium">CPA</div>
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2.5 text-center border border-green-200 dark:border-green-800">
+                              <div className="text-green-600 dark:text-green-400 mb-1 font-medium text-xs">CPA</div>
                               <div className="font-semibold text-gray-900 dark:text-white text-sm">
                                 {product.cpa.toFixed(2)}
                               </div>
                             </div>
                           )}
-                          {product.cost !== undefined && product.impression > 0 && (
-                            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center border border-orange-200 dark:border-orange-800">
-                              <div className="text-orange-600 dark:text-orange-400 mb-1 font-medium">Impressions</div>
-                              <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                                {(product.impression).toLocaleString()}
+                          {product.impression !== undefined && product.impression > 0 && (
+                            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2.5 text-center border border-orange-200 dark:border-orange-800">
+                              <div className="text-orange-600 dark:text-orange-400 mb-1 font-medium text-xs">Impression</div>
+                              <div className="font-semibold text-gray-900 dark:text-white text-xs break-words">
+                                {(() => {
+                                  const num = product.impression;
+                                  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+                                  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+                                  return num.toLocaleString();
+                                })()}
                               </div>
                             </div>
                           )}
-
                         </div>
 
 
@@ -1659,6 +1754,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       setSelectedSupplier(supplier);
                       setShowProfitCalculator(true);
                     }}
+                    product={selectedProduct}
                   />
                 </div>
               )}
@@ -1748,9 +1844,10 @@ interface SuppliersTabProps {
   isLoading: boolean;
   analysisTime: number;
   onCalculateClick: (supplier: SupplierInfo) => void;
+  product?: any; // TikTok product data
 }
 
-const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onCalculateClick }) => {
+const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onCalculateClick, product }) => {
   // ✅ Show ALL suppliers (both verified and unverified)
   const displaySuppliers = suppliers || [];
 
@@ -1814,57 +1911,58 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                 <h5 className="font-bold text-gray-900 dark:text-white text-lg mb-2">{supplier.name}</h5>
                 <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{supplier.location}</p>
 
-                {/* ✅ Verification Badges - Same design as Amazon Trends */}
+                {/* ✅ Verification Badges - Order: Verified → Trade Assurance → Gold → Store Age → Rating */}
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {/* Gold Supplier Badge */}
-                  {(supplier.verification_badge === 'Gold Supplier' ||
-                    supplier.verification_status === 'Gold Supplier' ||
-                    supplier.verification_badge === 'Gold' ||
-                    supplier.is_gold) && (
-                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
-                      Gold Supplier
-                    </span>
-                  )}
-
-                  {/* Verified Pro Badge */}
+                  {/* 1. Verified Supplier Badge (First) */}
                   {(supplier.verification_badge === 'Verified Pro' ||
                     supplier.verified_pro) && (
-                    <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                    <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                      <Shield className="w-3 h-3 fill-current" />
                       Verified Pro
                     </span>
                   )}
 
-                  {/* Verified Supplier Badge */}
                   {!supplier.verified_pro &&
                    (supplier.verification_badge === 'Verified Supplier' ||
                     supplier.verification_status === 'Verified' ||
                     supplier.verified_supplier) && (
-                    <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                    <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                      <Shield className="w-3 h-3 fill-current" />
                       Verified
                     </span>
                   )}
 
-                  {/* Trade Assurance Badge */}
+                  {/* 2. Trade Assurance Badge (Second) */}
                   {supplier.trade_assurance && (
-                    <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
+                    <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                      <Shield className="w-3 h-3 fill-current" />
                       Trade Assurance
                     </span>
                   )}
 
-                  {/* Store Age Badge */}
+                  {/* 3. Gold Supplier Badge (Third) */}
+                  {(supplier.verification_badge === 'Gold Supplier' ||
+                    supplier.verification_status === 'Gold Supplier' ||
+                    supplier.verification_badge === 'Gold' ||
+                    supplier.is_gold) && (
+                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                      <Shield className="w-3 h-3 fill-current" />
+                      Gold Supplier
+                    </span>
+                  )}
+
+                  {/* 4. Store Age Badge (Fourth) */}
                   {supplier.years_in_business && supplier.years_in_business > 0 && (
                     <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
                       {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
                     </span>
                   )}
 
-                  {/* Rating Badge */}
-                  {supplier.rating && supplier.rating > 0 && (
-                    <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-current" />
-                      {supplier.rating.toFixed(1)}
-                    </span>
-                  )}
+                  {/* 5. Star Rating Badge (Fifth) - Always show rating */}
+                  <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-current" />
+                    {supplier.rating ? supplier.rating.toFixed(1) : '0'}
+                  </span>
                 </div>
               </div>
 

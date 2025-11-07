@@ -302,19 +302,22 @@ export const getAmazonTrendsProductsByCategory = async ({
 };
 
 // Amazon Product Details with Trending
+// ✅ Using the same endpoint as BlueRitt Explorer for consistency
 export const getAmazonTrendsProductDetails = async ({
   asin,
   country = 'US',
+  source,
 }: {
   asin: string;
   country?: string;
+  source?: string;
 }) => {
-  const response = await api.get('/products/amazon-trends/product-details/', {
-    params: {
-      asin,
-      country,
-    },
-  });
+  const response = await api.get(
+    `/products/amazon-product-detail/${asin}/?country=${country}${source ? '&search_type=' + source : ''}`
+  );
+  if (!response?.data?.data?.asin) {
+    throw new Error("Product not found");
+  }
   return response.data;
 };
 
@@ -450,7 +453,7 @@ export const getAmazonCategoryListDirect = async ({
   return response.data;
 };
 
-// Products by category - Uses backend API with quota deduction
+// Products by category - Uses backend API with quota deduction and 7-day caching
 export const getAmazonProductsByCategoryDirect = async ({
   categoryId,
   country = 'US',
@@ -459,6 +462,8 @@ export const getAmazonProductsByCategoryDirect = async ({
   productCondition = 'ALL',
   isPrime = false,
   dealsAndDiscounts = 'NONE',
+  minPrice,
+  maxPrice,
 }: {
   categoryId: string;
   country?: string;
@@ -467,6 +472,8 @@ export const getAmazonProductsByCategoryDirect = async ({
   productCondition?: 'ALL' | 'NEW' | 'USED' | 'RENEWED' | 'COLLECTIBLE';
   isPrime?: boolean;
   dealsAndDiscounts?: 'NONE' | 'ALL_DISCOUNTS' | 'TODAYS_DEALS';
+  minPrice?: number;
+  maxPrice?: number;
 }): Promise<AmazonTrendingResponse> => {
   console.log('🔍 Amazon Products by Category API Call (via backend):', {
     categoryId,
@@ -478,17 +485,27 @@ export const getAmazonProductsByCategoryDirect = async ({
     dealsAndDiscounts
   });
 
-  // Call backend API instead of RapidAPI directly - this will deduct quota
+  const params: any = {
+    category_id: categoryId,
+    country,
+    page,
+    sort_by: sortBy,
+    product_condition: productCondition,
+    is_prime: isPrime,
+    deals_and_discounts: dealsAndDiscounts,
+  };
+
+  // Add optional price filters
+  if (minPrice !== undefined) {
+    params.min_price = minPrice;
+  }
+  if (maxPrice !== undefined) {
+    params.max_price = maxPrice;
+  }
+
+  // ✅ Use Amazon Trends endpoint with quota management and 7-day caching
   const response = await api.get('/products/amazon-trends/products-by-category/', {
-    params: {
-      category_id: categoryId,
-      country,
-      page,
-      sort_by: sortBy,
-      product_condition: productCondition,
-      is_prime: isPrime,
-      deals_and_discounts: dealsAndDiscounts,
-    },
+    params,
   });
 
   console.log('✅ Amazon Products by Category Response:', {

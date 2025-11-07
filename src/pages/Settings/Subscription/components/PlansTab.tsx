@@ -715,6 +715,287 @@ const PlansTab = ({
                       </td>
                     ))}
                   </tr>
+
+                   <tr className="text-center bg-light  dark:border-defaultborder/10">
+                    <td colSpan={plans.length + 1}>
+                      <span className="text-primary text-[.875rem] font-semibold">
+                        BlueRitt SocialPulse 
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr className=" text-[.875rem] font-semibold dark:border-defaultborder/10">Tiktok Trends</tr>
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">TikTok Trending Product Searches</td>
+                    {plans.map((plan: Plan) => (
+                      <td key={plan.id} className="text-center">
+                        <div className="flex justify-center">
+                          {plan.features?.access_to_gross_profit ? (
+                            <div>
+                              {plan.features
+                                ?.no_of_gross_profit_calculations === -1
+                                ? "Unlimited"
+                                : plan.features
+                                    ?.no_of_gross_profit_calculations || 0}{" "}
+                              ASINs
+                            </div>
+                          ) : (
+                            <SpkBadge
+                              variant="danger/10"
+                              customClass="text-danger !p-1 leading-none !rounded-full"
+                            >
+                              <i className="ri-close-line align-middle font-semibold"></i>
+                            </SpkBadge>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">Discover Suppliers (X Times) - Shared Limit</td>
+                    {plans.map((plan: Plan) => (
+                      <td key={plan.id} className="text-center">
+                        <div className="flex justify-center">
+                          {plan?.features?.access_to_net_profit &&
+                          typeof plan?.features
+                            ?.no_of_net_profit_calculations === "number" &&
+                          (plan.features.no_of_net_profit_calculations > 0 ||
+                            plan.features.no_of_net_profit_calculations ===
+                              -1) ? (
+                            <div>
+                              {plan.features.no_of_net_profit_calculations ===
+                              -1
+                                ? "Unlimited"
+                                : plan.features
+                                    .no_of_net_profit_calculations}{" "}
+                              ASINs
+                            </div>
+                          ) : (
+                            <SpkBadge
+                              variant="danger/10"
+                              customClass="text-danger !p-1 leading-none !rounded-full"
+                            >
+                              <i className="ri-close-line align-middle font-semibold"></i>
+                            </SpkBadge>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">Fetch Trending Hashtags</td>
+                    {plans.map((plan: Plan) => (
+                      <td key={plan.id} className="text-center">
+                        <div className="flex justify-center">
+                          {plan?.features?.access_to_net_profit &&
+                          typeof plan?.features
+                            ?.no_of_net_profit_calculations === "number" &&
+                          (plan.features.no_of_net_profit_calculations > 0 ||
+                            plan.features.no_of_net_profit_calculations ===
+                              -1) ? (
+                            <div>
+                              {plan.features.no_of_net_profit_calculations ===
+                              -1
+                                ? "Unlimited"
+                                : plan.features
+                                    .no_of_net_profit_calculations}{" "}
+                              ASINs
+                            </div>
+                          ) : (
+                            <SpkBadge
+                              variant="danger/10"
+                              customClass="text-danger !p-1 leading-none !rounded-full"
+                            >
+                              <i className="ri-close-line align-middle font-semibold"></i>
+                            </SpkBadge>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">Product Shop Analysis</td>
+                    {plans.map((plan: Plan) => (
+                      <td key={plan.id} className="text-center">
+                        <div className="flex justify-center">
+                          {plan?.features?.access_to_net_profit &&
+                          typeof plan?.features
+                            ?.no_of_net_profit_calculations === "number" &&
+                          (plan.features.no_of_net_profit_calculations > 0 ||
+                            plan.features.no_of_net_profit_calculations ===
+                              -1) ? (
+                            <div>
+                              {plan.features.no_of_net_profit_calculations ===
+                              -1
+                                ? "Unlimited"
+                                : plan.features
+                                    .no_of_net_profit_calculations}{" "}
+                              ASINs
+                            </div>
+                          ) : (
+                            <SpkBadge
+                              variant="danger/10"
+                              customClass="text-danger !p-1 leading-none !rounded-full"
+                            >
+                              <i className="ri-close-line align-middle font-semibold"></i>
+                            </SpkBadge>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className=" text-[.875rem] font-semibold dark:border-defaultborder/10">Amazon Trends</tr>
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">Amazon Trending Product Searches</td>
+                    {plans.map((plan: Plan) => (
+                      <td key={plan.id} className="text-center">
+                        <div className="flex justify-center">
+                          {plan.features?.access_to_gross_profit ? (
+                            <div>
+                              {plan.features
+                                ?.no_of_gross_profit_calculations === -1
+                                ? "Unlimited"
+                                : plan.features
+                                    ?.no_of_gross_profit_calculations || 0}{" "}
+                              ASINs
+                            </div>
+                          ) : (
+                            <SpkBadge
+                              variant="danger/10"
+                              customClass="text-danger !p-1 leading-none !rounded-full"
+                            >
+                              <i className="ri-close-line align-middle font-semibold"></i>
+                            </SpkBadge>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">Discover Suppliers (X Times)- Shared Limit</td>
+                    {plans.map((plan: Plan) => (
+                      <td key={plan.id} className="text-center">
+                        <div className="flex justify-center">
+                          {plan?.features?.access_to_net_profit &&
+                          typeof plan?.features
+                            ?.no_of_net_profit_calculations === "number" &&
+                          (plan.features.no_of_net_profit_calculations > 0 ||
+                            plan.features.no_of_net_profit_calculations ===
+                              -1) ? (
+                            <div>
+                              {plan.features.no_of_net_profit_calculations ===
+                              -1
+                                ? "Unlimited"
+                                : plan.features
+                                    .no_of_net_profit_calculations}{" "}
+                              ASINs
+                            </div>
+                          ) : (
+                            <SpkBadge
+                              variant="danger/10"
+                              customClass="text-danger !p-1 leading-none !rounded-full"
+                            >
+                              <i className="ri-close-line align-middle font-semibold"></i>
+                            </SpkBadge>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">Amazon Trending Product Description</td>
+                    {plans.map((plan: Plan) => (
+                      <td key={plan.id} className="text-center">
+                        <div className="flex justify-center">
+                          {plan?.features?.access_to_net_profit &&
+                          typeof plan?.features
+                            ?.no_of_net_profit_calculations === "number" &&
+                          (plan.features.no_of_net_profit_calculations > 0 ||
+                            plan.features.no_of_net_profit_calculations ===
+                              -1) ? (
+                            <div>
+                              {plan.features.no_of_net_profit_calculations ===
+                              -1
+                                ? "Unlimited"
+                                : plan.features
+                                    .no_of_net_profit_calculations}{" "}
+                              ASINs
+                            </div>
+                          ) : (
+                            <SpkBadge
+                              variant="danger/10"
+                              customClass="text-danger !p-1 leading-none !rounded-full"
+                            >
+                              <i className="ri-close-line align-middle font-semibold"></i>
+                            </SpkBadge>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                
+                  <tr className=" text-[.875rem] font-semibold dark:border-defaultborder/10">Influencer Link</tr>
+
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">Influencers Included</td>
+                    {plans.map((plan: Plan) => (
+                      <td key={plan.id} className="text-center">
+                        <div className="flex justify-center">
+                          {plan.features?.access_to_gross_profit ? (
+                            <div>
+                              {plan.features
+                                ?.no_of_gross_profit_calculations === -1
+                                ? "Unlimited"
+                                : plan.features
+                                    ?.no_of_gross_profit_calculations || 0}{" "}
+                              ASINs
+                            </div>
+                          ) : (
+                            <SpkBadge
+                              variant="danger/10"
+                              customClass="text-danger !p-1 leading-none !rounded-full"
+                            >
+                              <i className="ri-close-line align-middle font-semibold"></i>
+                            </SpkBadge>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">Influencer Posted Products</td>
+                    {plans.map((plan: Plan) => (
+                      <td key={plan.id} className="text-center">
+                        <div className="flex justify-center">
+                          {plan?.features?.access_to_net_profit &&
+                          typeof plan?.features
+                            ?.no_of_net_profit_calculations === "number" &&
+                          (plan.features.no_of_net_profit_calculations > 0 ||
+                            plan.features.no_of_net_profit_calculations ===
+                              -1) ? (
+                            <div>
+                              {plan.features.no_of_net_profit_calculations ===
+                              -1
+                                ? "Unlimited"
+                                : plan.features
+                                    .no_of_net_profit_calculations}{" "}
+                              ASINs
+                            </div>
+                          ) : (
+                            <SpkBadge
+                              variant="danger/10"
+                              customClass="text-danger !p-1 leading-none !rounded-full"
+                            >
+                              <i className="ri-close-line align-middle font-semibold"></i>
+                            </SpkBadge>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
                 </tbody>
               </table>
             </div>

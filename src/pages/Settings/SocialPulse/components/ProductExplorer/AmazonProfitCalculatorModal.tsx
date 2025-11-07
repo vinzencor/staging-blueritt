@@ -623,12 +623,18 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
 
     // Final profit calculations
     const totalRevenue = newCalc.pi_totalRevenue;
-    const totalCostsBeforeTax = newCalc.psc_totalCost + newCalc.fm_totalCost + newCalc.marc_totalCost + newCalc.gc_totalCost + newCalc.pfc_totalCost + newCalc.oc_totalCost;
 
-    newCalc.grossProfit = totalRevenue - newCalc.psc_totalCost;
+    // Gross Profit = Revenue - Sourcing Cost - Fulfillment Cost
+    const grossProfitCosts = newCalc.psc_totalCost + newCalc.fm_totalCost;
+    newCalc.grossProfit = totalRevenue - grossProfitCosts;
     newCalc.grossProfitMargin = totalRevenue > 0 ? (newCalc.grossProfit / totalRevenue) * 100 : 0;
-    newCalc.netProfitBeforeTaxes = totalRevenue - totalCostsBeforeTax;
+
+    // Net Profit (Before Tax) = Gross Profit - (Marketing + Graphics + Feedback + Other)
+    const netProfitCosts = newCalc.marc_totalCost + newCalc.gc_totalCost + newCalc.pfc_totalCost + newCalc.oc_totalCost;
+    newCalc.netProfitBeforeTaxes = newCalc.grossProfit - netProfitCosts;
     newCalc.netProfitBeforeTaxesMargin = totalRevenue > 0 ? (newCalc.netProfitBeforeTaxes / totalRevenue) * 100 : 0;
+
+    // Net Profit (After Tax) = Net Profit Before Tax - Taxes
     newCalc.netProfitAfterTaxes = newCalc.netProfitBeforeTaxes - newCalc.tax_totalCost;
     newCalc.netProfitAfterTaxesMargin = totalRevenue > 0 ? (newCalc.netProfitAfterTaxes / totalRevenue) * 100 : 0;
 
@@ -690,7 +696,9 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
               <Calculator className="w-6 h-6" />
               Gross Profit Section
             </h2>
-            <p className="text-green-100 mt-1 text-sm">Available in all subscriptions (Trial, Basic, Advance, Premium)</p>
+            <p className="text-green-100 mt-1 text-sm">
+              Available in all subscriptions • Includes: Product Revenue + Product Sourcing Cost + Fulfillment Cost
+            </p>
           </div>
 
           {/* Product Information Section */}
@@ -911,8 +919,8 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
             </h2>
             <p className="text-white/90 mt-1 text-sm">
               {isBasicOrTrial
-                ? 'Available in Advance & Premium subscriptions only. Upgrade to access Marketing, Taxes, Graphics, Feedback, and Other Costs.'
-                : 'Available in Advance & Premium subscriptions (Marketing, Taxes, Graphics, Feedback, Other Costs)'}
+                ? 'Available in Advance & Premium only • Upgrade to access Marketing & Ads, Graphics Design, Reviewer Program, Additional Costs, and Taxes'
+                : 'Available in Advance & Premium • Includes: All Gross Profit + Marketing & Ads + Graphics Design + Reviewer Program + Additional Costs + Taxes'}
             </p>
             {isBasicOrTrial && (
               <button

@@ -48,13 +48,18 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
   const [showProfitCalculator, setShowProfitCalculator] = useState(false);
 
   // Product Details Query
+  // ✅ Using the same endpoint as BlueRitt Explorer with source parameter
   const {
     data: productDetails,
     isLoading: detailsLoading,
     error: detailsError
   } = useQuery({
     queryKey: ['amazon-trends-product-details', product.asin],
-    queryFn: () => getAmazonTrendsProductDetails({ asin: product.asin }),
+    queryFn: () => getAmazonTrendsProductDetails({
+      asin: product.asin,
+      country: 'US',
+      source: 'amazon_trends' // ✅ Specify source as amazon_trends
+    }),
     enabled: isOpen,
     staleTime: 1000 * 60 * 30, // 30 minutes
   });

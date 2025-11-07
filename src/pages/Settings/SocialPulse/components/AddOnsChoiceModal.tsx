@@ -93,7 +93,7 @@ const AddOnsChoiceModal: React.FC<AddOnsChoiceModalProps> = ({ isOpen, onClose }
               </div>
               <div className="flex-1">
                 <h5 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
-                  Purchase Product Search Add-ons
+                  Purchase BlueRitt Add-ons
                 </h5>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Buy additional search credits to increase your quota limits

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Filter, Grid, List, Star, ShoppingCart, ExternalLink, Eye, Package, TrendingUp, Zap, X, CheckCircle } from 'lucide-react';
+import { Search, Filter, Grid, List, Star, ShoppingCart, ExternalLink, Eye, Package, TrendingUp, Zap, X, CheckCircle, ChevronDown } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import AmazonLoader from '../../../../../components/AmazonLoader';
@@ -81,8 +81,8 @@ const getDefaultLanguage = (countryCode: string): string => {
 // Dynamic categories are now fetched from the API
 
 const ProductExplorer: React.FC<ProductExplorerProps> = () => {
-  // Backend quota management for Amazon search
-  const { quotaDetails: amazonSearchQuotaDetails, updateQuota: updateAmazonSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonSearch);
+  // Backend quota management for Amazon Trends search (separate from BlueRitt Explorer)
+  const { quotaDetails: amazonSearchQuotaDetails, updateQuota: updateAmazonSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonTrendsSearch);
 
   // Backend quota management for supplier discovery (shared with BlueRitt Explorer and TikTok Trends)
   const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
@@ -698,10 +698,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       <Zap className="w-4 h-4 text-blue-600" />
                       {quotaDetails.packageName} Plan Features
                     </p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {/* Amazon Searches */}
                       <div className="bg-white  dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
-                        <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Amazon Searches</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Amazon Trend Searches</div>
                         <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
                           {amazonSearchQuotaDetails.quotaValue === -1 ? '∞' : amazonSearchQuotaDetails.quotaValue}
                         </div>
@@ -736,46 +736,52 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           {/* Search and Filter Controls - Always Visible */}
           <div className="space-y-4 mb-6">
             {/* Country, Type, and Category Selectors */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Select Country
                   </label>
-                  <select
-                    value={country}
-                    onChange={(e) => {
-                      setCountry(e.target.value);
-                      setSelectedCategoryId(''); // Reset selected category when country changes
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    {AMAZON_COUNTRIES.map((countryOption) => (
-                      <option key={countryOption.value} value={countryOption.value}>
-                        {countryOption.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={country}
+                      onChange={(e) => {
+                        setCountry(e.target.value);
+                        setSelectedCategoryId(''); // Reset selected category when country changes
+                      }}
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                    >
+                      {AMAZON_COUNTRIES.map((countryOption) => (
+                        <option key={countryOption.value} value={countryOption.value}>
+                          {countryOption.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Trend Type
                   </label>
-                  <select
-                    value={selectedType}
-                    onChange={(e) => {
-                      setSelectedType(e.target.value);
-                      setPage(1);
-                      // ✅ Don't auto-fetch - only fetch when "Discover Products" button is clicked
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    {amazonTrendsTypes.map((type) => (
-                      <option key={type.value} value={type.value} title={type.description}>
-                        {type.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={selectedType}
+                      onChange={(e) => {
+                        setSelectedType(e.target.value);
+                        setPage(1);
+                        // ✅ Don't auto-fetch - only fetch when "Discover Products" button is clicked
+                      }}
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                    >
+                      {amazonTrendsTypes.map((type) => (
+                        <option key={type.value} value={type.value} title={type.description}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  </div>
                 </div>
 
                 {/* <div>
@@ -813,36 +819,41 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Category
                   </label>
-                  <select
-                    value={selectedLocalRootCategory}
-                    onChange={(e) => {
-                      setSelectedLocalRootCategory(e.target.value);
-                      setSelectedLocalSubcategory(''); // Reset subcategory when main category changes
-                      setSelectedCategoryId(''); // Reset category ID
-                      setSelectedCategoryPath(''); // Reset category path
-                      setPage(1);
-                      // Don't auto-fetch - wait for user to select subcategory and click Discover Products
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">Select Main Category</option>
-                    {localRootCategories.map((category, index) => (
-                      <option
-                        key={category.id || index}
-                        value={category.id}
-                      >
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={selectedLocalRootCategory}
+                      onChange={(e) => {
+                        setSelectedLocalRootCategory(e.target.value);
+                        setSelectedLocalSubcategory(''); // Reset subcategory when main category changes
+                        setSelectedCategoryId(''); // Reset category ID
+                        setSelectedCategoryPath(''); // Reset category path
+                        setPage(1);
+                        // Don't auto-fetch - wait for user to select subcategory and click Discover Products
+                      }}
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                    >
+                      <option value="">Select Main Category</option>
+                      {localRootCategories.map((category, index) => (
+                        <option
+                          key={category.id || index}
+                          value={category.id}
+                        >
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  </div>
                 </div>
+              </div>
 
-                {/* Subcategory Dropdown */}
-                {selectedLocalRootCategory && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                      Subcategory
-                    </label>
+              {/* Subcategory Dropdown - Full width below main grid */}
+              {selectedLocalRootCategory && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+                    Subcategory
+                  </label>
+                  <div className="relative">
                     <select
                       value={selectedLocalSubcategory}
                       onChange={(e) => {
@@ -859,7 +870,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         setPage(1);
                         // Don't auto-fetch - wait for user to click Discover Products button
                       }}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
                     >
                       <option value="">Select Subcategory</option>
                       {getSubcategories(selectedLocalRootCategory).map((subcategory, index) => (
@@ -871,9 +882,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         </option>
                       ))}
                     </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* ✅ Search Input - Added below category selection */}
               <div className="mt-4">
@@ -1034,10 +1046,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               <div className="flex-1">
                 <h3 className="font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
                   <Zap className="w-4 h-4" />
-                  Loaded from Cache - No Quota Deducted
+                  Loaded from Saved Results
                 </h3>
                 <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                  These results were cached from your previous search. Your quota was not deducted. Cache expires in 7 days from first search.
+                  Quota was not used This data will remain available for 7 days from the first search.
                 </p>
               </div>
             </div>
@@ -1076,8 +1088,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                     viewMode === 'category' ? 'Amazon category products' : 'Amazon products'}...`}
               />
             </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div className="p-3 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
                 {[...Array(8)].map((_, index) => (
                   <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-pulse">
                     <div className="h-48 bg-gray-200"></div>
@@ -1127,8 +1139,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
             </p>
           </div>
         ) : (
-          <div className="p-6 bg-white dark:bg-gray-800 ">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+          <div className="p-3 sm:p-6 bg-white dark:bg-gray-800 ">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-10">
               {products.map((product: any, index: number) => (
                 <ProductCard
                   key={`${product.asin}-${index}`}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, AlertCircle, Loader, X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import api from '@/api';
 
 interface Influencer {
   influencer_name: string;
@@ -1261,32 +1262,31 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
       setError(null);
       setPosts([]);
       try {
-        const url = `https://real-time-amazon-data.p.rapidapi.com/influencer-posts?influencer_name=${encodeURIComponent(influencerName)}&country=US&scope=ALL&limit=100`;
+        console.log('Fetching posts for influencer:', influencerName);
 
-        console.log('Fetching posts from:', url);
-
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
-            'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+        // ✅ Call backend endpoint instead of RapidAPI directly - SECURITY FIX
+        const response = await api.get('/products/amazon-trends/influencer-posts/', {
+          params: {
+            influencer_name: influencerName,
+            country: 'US',
+            scope: 'ALL',
+            limit: '100'
           }
         });
 
-        console.log('Response status:', response.status);
+        console.log('API Response:', response.data);
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log('API Response:', data);
+        if (response.data.status === 'success') {
+          const data = response.data.data;
 
           // Handle different response structures
           let postsData: InfluencerPost[] = [];
 
           // Check for the correct response structure from the API
-          if (data.data && data.data.posts && Array.isArray(data.data.posts)) {
-            postsData = data.data.posts;
-          } else if (data.data && Array.isArray(data.data)) {
-            postsData = data.data;
+          if (data && data.posts && Array.isArray(data.posts)) {
+            postsData = data.posts;
+          } else if (data && Array.isArray(data)) {
+            postsData = data;
           } else if (Array.isArray(data)) {
             postsData = data;
           }
@@ -1298,9 +1298,8 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
             setError('No posts found for this influencer');
           }
         } else {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('API Error:', errorData);
-          setError(`Failed to load posts (Status: ${response.status})`);
+          console.error('API Error:', response.data);
+          setError(`Failed to load posts: ${response.data.error || 'Unknown error'}`);
         }
       } catch (err) {
         console.error('Error fetching posts:', err);

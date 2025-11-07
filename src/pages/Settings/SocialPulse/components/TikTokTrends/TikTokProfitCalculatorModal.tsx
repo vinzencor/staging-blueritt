@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { X, Calculator, Save, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Calculator, Save, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
 import { type TikTokTrendingProduct, type SupplierInfo } from '@/api/tiktokTrends';
+import { useUserSubscriptionAndSearchQuota } from '@/hooks/useUserDetails';
+import { useNavigate } from 'react-router-dom';
 
 interface TikTokProfitCalculatorModalProps {
   product: TikTokTrendingProduct;
@@ -110,6 +112,14 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
   isOpen,
   onClose,
 }) => {
+  const navigate = useNavigate();
+  const { quotaDetails } = useUserSubscriptionAndSearchQuota();
+
+  // ✅ Check if user has access to Net Profit features (Advance & Premium only)
+  const userPlan = quotaDetails?.packageName?.toLowerCase() || 'trial';
+  const hasNetProfitAccess = userPlan === 'advance' || userPlan === 'premium';
+  const isBasicOrTrial = userPlan === 'basic' || userPlan === 'trial';
+
   const [calculation, setCalculation] = useState<EnhancedProfitCalculation>({
     pi_sellingPrice: 0, pi_totalRevenue: 0, pi_quantity: 100,
     psc_manufacturingCost: 0, psc_shippingCost: 0, psc_productLogoCost: 0, psc_miscCost: 0,
@@ -533,14 +543,18 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
 
       // Calculate all profit metrics
       const totalRevenue = initialCalc.pi_totalRevenue;
-      const totalCostsBeforeTax = initialCalc.psc_totalCost + initialCalc.fm_totalCost +
-        initialCalc.marc_totalCost + initialCalc.gc_totalCost +
-        initialCalc.pfc_totalCost + initialCalc.oc_totalCost;
 
-      initialCalc.grossProfit = totalRevenue - initialCalc.psc_totalCost;
+      // Gross Profit = Revenue - Sourcing Cost - Fulfillment Cost
+      const grossProfitCosts = initialCalc.psc_totalCost + initialCalc.fm_totalCost;
+      initialCalc.grossProfit = totalRevenue - grossProfitCosts;
       initialCalc.grossProfitMargin = totalRevenue > 0 ? (initialCalc.grossProfit / totalRevenue) * 100 : 0;
-      initialCalc.netProfitBeforeTaxes = totalRevenue - totalCostsBeforeTax;
+
+      // Net Profit (Before Tax) = Gross Profit - (Marketing + Graphics + Feedback + Other)
+      const netProfitCosts = initialCalc.marc_totalCost + initialCalc.gc_totalCost + initialCalc.pfc_totalCost + initialCalc.oc_totalCost;
+      initialCalc.netProfitBeforeTaxes = initialCalc.grossProfit - netProfitCosts;
       initialCalc.netProfitBeforeTaxesMargin = totalRevenue > 0 ? (initialCalc.netProfitBeforeTaxes / totalRevenue) * 100 : 0;
+
+      // Net Profit (After Tax) = Net Profit Before Tax - Taxes
       initialCalc.netProfitAfterTaxes = initialCalc.netProfitBeforeTaxes - initialCalc.tax_totalCost;
       initialCalc.netProfitAfterTaxesMargin = totalRevenue > 0 ? (initialCalc.netProfitAfterTaxes / totalRevenue) * 100 : 0;
 
@@ -551,6 +565,31 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
   }, [isOpen, product, supplier]);
 
   const toggleSection = (section: keyof typeof expandedSections) => {
+    // ✅ Check if section is locked for Basic/Trial users
+    const netProfitSections = ['marketing', 'taxes', 'graphics', 'feedback', 'other'];
+    const isLockedSection = netProfitSections.includes(section) && isBasicOrTrial;
+
+    if (isLockedSection) {
+      // Show upgrade message
+      toast.info(
+        <div>
+          <p className="font-semibold">🔒 Net Profit Features Locked</p>
+          <p className="text-sm mt-1">Upgrade to Advance or Premium plan to access Net Profit calculations including Marketing, Taxes, Graphics, Feedback, and Other Costs.</p>
+          <button
+            onClick={() => navigate('/settings/subscription-plans')}
+            className="mt-2 px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          >
+            Upgrade Plan
+          </button>
+        </div>,
+        {
+          autoClose: 5000,
+          closeButton: true,
+        }
+      );
+      return;
+    }
+
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
@@ -613,12 +652,18 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
     }
 
     const totalRevenue = newCalc.pi_totalRevenue;
-    const totalCostsBeforeTax = newCalc.psc_totalCost + newCalc.fm_totalCost + newCalc.marc_totalCost + newCalc.gc_totalCost + newCalc.pfc_totalCost + newCalc.oc_totalCost;
 
-    newCalc.grossProfit = totalRevenue - newCalc.psc_totalCost;
+    // Gross Profit = Revenue - Sourcing Cost - Fulfillment Cost
+    const grossProfitCosts = newCalc.psc_totalCost + newCalc.fm_totalCost;
+    newCalc.grossProfit = totalRevenue - grossProfitCosts;
     newCalc.grossProfitMargin = totalRevenue > 0 ? (newCalc.grossProfit / totalRevenue) * 100 : 0;
-    newCalc.netProfitBeforeTaxes = totalRevenue - totalCostsBeforeTax;
+
+    // Net Profit (Before Tax) = Gross Profit - (Marketing + Graphics + Feedback + Other)
+    const netProfitCosts = newCalc.marc_totalCost + newCalc.gc_totalCost + newCalc.pfc_totalCost + newCalc.oc_totalCost;
+    newCalc.netProfitBeforeTaxes = newCalc.grossProfit - netProfitCosts;
     newCalc.netProfitBeforeTaxesMargin = totalRevenue > 0 ? (newCalc.netProfitBeforeTaxes / totalRevenue) * 100 : 0;
+
+    // Net Profit (After Tax) = Net Profit Before Tax - Taxes
     newCalc.netProfitAfterTaxes = newCalc.netProfitBeforeTaxes - newCalc.tax_totalCost;
     newCalc.netProfitAfterTaxesMargin = totalRevenue > 0 ? (newCalc.netProfitAfterTaxes / totalRevenue) * 100 : 0;
 
@@ -667,6 +712,17 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
               <p className="text-lg font-bold text-purple-900 dark:text-purple-100">${calculation.netProfitAfterTaxes.toFixed(2)}</p>
               <p className="text-xs text-purple-700 dark:text-purple-300">{calculation.netProfitAfterTaxesMargin.toFixed(1)}%</p>
             </div>
+          </div>
+
+          {/* ✅ GROSS PROFIT SECTION HEADING */}
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 rounded-lg p-4 shadow-md">
+            <h2 className="text-xl font-bold text-white flex items-center gap-3">
+              <Calculator className="w-6 h-6" />
+              Gross Profit Section
+            </h2>
+            <p className="text-green-100 mt-1 text-sm">
+              Available in all subscriptions • Includes: Product Revenue + Product Sourcing Cost + Fulfillment Cost
+            </p>
           </div>
 
           {/* Product Information Section */}
@@ -868,15 +924,40 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
             )}
           </div>
 
+          {/* ✅ NET PROFIT SECTION HEADING */}
+          <div className={`rounded-lg p-4 shadow-md ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700' : 'bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-700 dark:to-indigo-700'}`}>
+            <h2 className="text-xl font-bold text-white flex items-center gap-3">
+              {isBasicOrTrial ? <Lock className="w-6 h-6" /> : <Calculator className="w-6 h-6" />}
+              Net Profit Section
+              {isBasicOrTrial && <span className="ml-auto text-sm bg-white/20 px-3 py-1 rounded-full">🔒 Locked</span>}
+            </h2>
+            <p className="text-white/90 mt-1 text-sm">
+              {isBasicOrTrial
+                ? 'Available in Advance & Premium only • Upgrade to access Marketing & Ads, Graphics Design, Reviewer Program, Additional Costs, and Taxes'
+                : 'Available in Advance & Premium • Includes: All Gross Profit + Marketing & Ads + Graphics Design + Reviewer Program + Additional Costs + Taxes'}
+            </p>
+            {isBasicOrTrial && (
+              <button
+                onClick={() => navigate('/settings/subscription-plans')}
+                className="mt-3 px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
+              >
+                Upgrade to Advance or Premium
+              </button>
+            )}
+          </div>
+
           {/* Marketing Section */}
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4">
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-yellow-50 to-orange-50'}`}>
             <button
               onClick={() => toggleSection('marketing')}
-              className="w-full flex items-center justify-between font-semibold text-yellow-900 hover:text-yellow-700"
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-yellow-900 hover:text-yellow-700'}`}
+              disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
+                {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.marketing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 Marketing & Advertising
+                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.marketing && (
@@ -930,14 +1011,17 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
           </div>
 
           {/* Taxes Section */}
-          <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-4">
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-red-50 to-pink-50'}`}>
             <button
               onClick={() => toggleSection('taxes')}
-              className="w-full flex items-center justify-between font-semibold text-red-900 hover:text-red-700"
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-red-900 hover:text-red-700'}`}
+              disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
+                {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.taxes ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 Taxes
+                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.taxes && (
@@ -995,14 +1079,17 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
 
 
           {/* Graphics Section */}
-          <div className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg p-4">
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-cyan-50 to-blue-50'}`}>
             <button
               onClick={() => toggleSection('graphics')}
-              className="w-full flex items-center justify-between font-semibold text-cyan-900 hover:text-cyan-700"
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-cyan-900 hover:text-cyan-700'}`}
+              disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
+                {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.graphics ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 Graphics & Content
+                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.graphics && (
@@ -1056,14 +1143,17 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
           </div>
 
           {/* Product Feedback Section */}
-          <div className="bg-gradient-to-r from-teal-50 to-green-50 rounded-lg p-4">
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-teal-50 to-green-50'}`}>
             <button
               onClick={() => toggleSection('feedback')}
-              className="w-full flex items-center justify-between font-semibold text-teal-900 hover:text-teal-700"
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-teal-900 hover:text-teal-700'}`}
+              disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
+                {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.feedback ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 Product Feedback
+                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.feedback && (
@@ -1095,14 +1185,17 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
           </div>
 
           {/* Other Costs Section */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4">
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50'}`}>
             <button
               onClick={() => toggleSection('other')}
-              className="w-full flex items-center justify-between font-semibold text-indigo-900 hover:text-indigo-700"
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-indigo-900 hover:text-indigo-700'}`}
+              disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
+                {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.other ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 Other Costs
+                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.other && (

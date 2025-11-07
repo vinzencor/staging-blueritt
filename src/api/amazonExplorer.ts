@@ -179,6 +179,7 @@ export const getAmazonExplorerBestSellers = async ({
 };
 
 // Amazon Product Search
+// ✅ Using the same endpoint as BlueRitt Explorer for consistency and multi-country support
 export const searchAmazonExplorerProducts = async ({
   query,
   country = 'US',
@@ -187,6 +188,12 @@ export const searchAmazonExplorerProducts = async ({
   product_condition = 'ALL',
   is_prime = false,
   deals_and_discounts = 'NONE',
+  min_star_rating = 0,
+  max_star_rating = 5,
+  min_reviews = 0,
+  max_reviews = 99999990,
+  min_price,
+  max_price,
 }: {
   query: string;
   country?: string;
@@ -195,17 +202,39 @@ export const searchAmazonExplorerProducts = async ({
   product_condition?: string;
   is_prime?: boolean;
   deals_and_discounts?: string;
+  min_star_rating?: number;
+  max_star_rating?: number;
+  min_reviews?: number;
+  max_reviews?: number;
+  min_price?: number;
+  max_price?: number;
 }): Promise<AmazonExplorerResponse> => {
-  const response = await api.get('/products/amazon-trends/search/', {
-    params: {
-      query,
-      country,
-      page,
-      sort_by,
-      product_condition,
-      is_prime,
-      deals_and_discounts,
-    },
+  const params: any = {
+    query,
+    country,
+    sort_by,
+    product_condition,
+    deals_and_discounts,
+    min_star_rating,
+    max_star_rating,
+    min_reviews,
+    max_reviews,
+  };
+
+  // Add optional price filters
+  if (min_price !== undefined) {
+    params.min = min_price;
+  }
+  if (max_price !== undefined) {
+    params.max = max_price;
+  }
+  if (is_prime !== undefined) {
+    params.is_prime = is_prime;
+  }
+
+  // ✅ Use the same endpoint as BlueRitt Explorer
+  const response = await api.get('/products/amazon-search/', {
+    params,
   });
   return response.data;
 };
@@ -332,27 +361,18 @@ export const getAmazonBestSellerCategories = async ({
   }
 };
 
-// Direct API call to fetch best seller categories from Real-Time Amazon Data API
+// Fetch best seller categories via backend API (secure - no exposed API keys)
 export const getAmazonBestSellerCategoriesDirect = async ({
   country = 'US',
 }: {
   country?: string;
 } = {}): Promise<BestSellerCategoriesResponse> => {
-  // This will be implemented to fetch from a best-sellers endpoint that returns category structure
-  // For now, we'll use the product-category-list and process it for best-sellers
-  const response = await fetch(`https://real-time-amazon-data.p.rapidapi.com/product-category-list?country=${country}`, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com',
-      'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
-    }
+  // ✅ Call backend endpoint instead of RapidAPI directly - SECURITY FIX
+  const response = await api.get('/products/amazon-trends/category-list/', {
+    params: { country }
   });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const data = await response.json();
+  const data = response.data;
 
   // Process the categories to create hierarchical structure
   if (data.status === 'OK' && data.data) {
@@ -577,19 +597,22 @@ export const getAmazonBestSellerProductsDirect = async ({
 };
 
 // Amazon Product Details
+// ✅ Using the same endpoint as BlueRitt Explorer for consistency
 export const getAmazonExplorerProductDetails = async ({
   asin,
   country = 'US',
+  source,
 }: {
   asin: string;
   country?: string;
+  source?: string;
 }): Promise<{ data: ProductDetails; status: string; remaining_quota?: number }> => {
-  const response = await api.get('/products/amazon/product-details/', {
-    params: {
-      asin,
-      country,
-    },
-  });
+  const response = await api.get(
+    `/products/amazon-product-detail/${asin}/?country=${country}${source ? '&search_type=' + source : ''}`
+  );
+  if (!response?.data?.data?.asin) {
+    throw new Error("Product not found");
+  }
   return response.data;
 };
 
