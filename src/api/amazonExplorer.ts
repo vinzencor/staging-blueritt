@@ -686,11 +686,22 @@ export const discoverSuppliers = async (productData: {
 
   console.log('🔍 Amazon Supplier Discovery Request:', `/products/suppliers/discover/?${params.toString()}`);
 
-  const response = await api.get(`/products/suppliers/discover/?${params.toString()}`);
+  try {
+    const response = await api.get(`/products/suppliers/discover/?${params.toString()}`);
 
-  // ✅ Transform AlibabaProductMatcher response format to frontend format
-  const backendData = response.data;
-  const suppliersArray = backendData.suppliers || backendData.products || [];
+    // ✅ Check if backend returned an error (even with HTTP 200)
+    if (response.data?.error) {
+      console.error('❌ Amazon Supplier Discovery API error:', response.data.error);
+      console.error('❌ Error message:', response.data.message);
+      console.error('❌ Status code:', response.data.status_code);
+
+      // Throw error with backend message
+      throw new Error(response.data.message || response.data.error);
+    }
+
+    // ✅ Transform AlibabaProductMatcher response format to frontend format
+    const backendData = response.data;
+    const suppliersArray = backendData.suppliers || backendData.products || [];
 
   // Transform each supplier from backend format to frontend format
   const transformedSuppliers = suppliersArray.map((supplierData: any) => {
@@ -809,24 +820,30 @@ export const discoverSuppliers = async (productData: {
     };
   });
 
-  return {
-    status: 'success',
-    analysis_time: 0,
-    product_info: {
-      title: productData.title,
-      category: productData.category || '',
-      asin: productData.asin || '',
-      brand: productData.brand || '',
-      price: productData.price || '',
-    },
-    suppliers: transformedSuppliers,
-    total_suppliers: transformedSuppliers.length,
-    analysis_summary: {
-      criteria_analyzed: ['AI Matching', 'Verification Status', 'Trade Assurance'],
-      top_match_score: transformedSuppliers[0]?.ai_match_score || 0,
-    },
-    remaining_quota: backendData.remaining_quota,
-  };
+    return {
+      status: 'success',
+      analysis_time: 0,
+      product_info: {
+        title: productData.title,
+        category: productData.category || '',
+        asin: productData.asin || '',
+        brand: productData.brand || '',
+        price: productData.price || '',
+      },
+      suppliers: transformedSuppliers,
+      total_suppliers: transformedSuppliers.length,
+      analysis_summary: {
+        criteria_analyzed: ['AI Matching', 'Verification Status', 'Trade Assurance'],
+        top_match_score: transformedSuppliers[0]?.ai_match_score || 0,
+      },
+      remaining_quota: backendData.remaining_quota,
+    };
+  } catch (error: any) {
+    console.error('❌ Amazon Supplier Discovery failed:', error);
+
+    // Re-throw with more context
+    throw new Error(error.message || 'Failed to discover suppliers. Please try again.');
+  }
 };
 
 // Utility functions

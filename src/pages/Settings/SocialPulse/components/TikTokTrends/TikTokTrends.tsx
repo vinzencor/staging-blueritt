@@ -221,12 +221,40 @@ const fetchTikTokTrendingProducts = async (params: {
       try {
         // ✅ Call backend endpoint instead of RapidAPI directly
         const response = await api.get('/products/tiktok-trends/creative-center/', { params: apiParams });
+
+        // Check if response contains error information
+        if (response.data?.error) {
+          console.warn(`⚠️ Backend API Page ${pageNum} returned error:`, response.data.error, response.data.message);
+
+          // Show user-friendly error message for specific errors
+          if (response.data.status_code === 402) {
+            console.error('❌ TikTok API quota exceeded');
+          } else if (response.data.status_code === 408) {
+            console.warn('⏱️ TikTok API timeout - will retry');
+          } else if (response.data.status_code === 503) {
+            console.warn('🔌 TikTok API connection error - will retry');
+          }
+
+          return [];
+        }
+
         const products = response.data?.data?.list || [];
         console.log(`✅ Backend API Page ${pageNum}:`, products.length, 'products');
         console.log(`📦 Page ${pageNum} products:`, products);
         return products;
-      } catch (error) {
+      } catch (error: any) {
         console.warn(`⚠️ Backend API Page ${pageNum} failed:`, error);
+
+        // Log specific error details
+        if (error.response) {
+          console.error(`❌ Error response status: ${error.response.status}`);
+          console.error(`❌ Error response data:`, error.response.data);
+        } else if (error.request) {
+          console.error('❌ No response received from server');
+        } else {
+          console.error('❌ Error setting up request:', error.message);
+        }
+
         return [];
       }
     };
@@ -1014,18 +1042,52 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             {/* Error State */}
             {tiktokError && !tiktokLoading && (
               <div className="text-center py-12">
-                <Package className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">
-                  Error Loading Products
+                  Unable to Load Products
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  {tiktokError instanceof Error ? tiktokError.message : 'Failed to fetch TikTok trending products'}
+                <p className="text-gray-600 dark:text-gray-300 mb-4 max-w-md mx-auto">
+                  {tiktokError instanceof Error ? tiktokError.message : 'Failed to fetch TikTok trending products. This could be due to API quota limits, network issues, or temporary service unavailability.'}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                  <button
+                    onClick={handleDoneClick}
+                    className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors flex items-center gap-2"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    Try Again
+                  </button>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  >
+                    Refresh Page
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
+                  If the problem persists, please contact support or try again later.
+                </p>
+              </div>
+            )}
+
+            {/* No Products Found State */}
+            {tiktokData && !tiktokLoading && !tiktokError &&
+             (!tiktokData.data?.list || tiktokData.data.list.length === 0) &&
+             (!tiktokData.data?.products || tiktokData.data.products.length === 0) && (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
+                  No Products Found
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-4">
+                  No trending products available for the selected filters. Try adjusting your search criteria or try again later.
                 </p>
                 <button
                   onClick={handleDoneClick}
-                  className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                  className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors flex items-center gap-2 mx-auto"
                 >
-                  Try Again
+                  <TrendingUp className="w-4 h-4" />
+                  Search Again
                 </button>
               </div>
             )}
@@ -1911,7 +1973,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                 <h5 className="font-bold text-gray-900 dark:text-white text-lg mb-2">{supplier.name}</h5>
                 <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{supplier.location}</p>
 
-                {/* ✅ Verification Badges - Order: Verified → Trade Assurance → Gold → Store Age → Rating */}
+                {/* ✅ Verification Badges - Order: Verified → Trade Assurance → Assessed → Gold → Store Age → Rating */}
                 <div className="flex flex-wrap gap-2 mb-2">
                   {/* 1. Verified Supplier Badge (First) */}
                   {(supplier.verification_badge === 'Verified Pro' ||
@@ -1940,7 +2002,15 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                     </span>
                   )}
 
-                  {/* 3. Gold Supplier Badge (Third) */}
+                  {/* 3. Assessed Supplier Badge (Third) */}
+                  {supplier.is_assessed && (
+                    <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                      <Shield className="w-3 h-3 fill-current" />
+                      Assessed Supplier
+                    </span>
+                  )}
+
+                  {/* 4. Gold Supplier Badge (Fourth) */}
                   {(supplier.verification_badge === 'Gold Supplier' ||
                     supplier.verification_status === 'Gold Supplier' ||
                     supplier.verification_badge === 'Gold' ||
@@ -1951,14 +2021,14 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                     </span>
                   )}
 
-                  {/* 4. Store Age Badge (Fourth) */}
+                  {/* 5. Store Age Badge (Fifth) */}
                   {supplier.years_in_business && supplier.years_in_business > 0 && (
                     <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
                       {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
                     </span>
                   )}
 
-                  {/* 5. Star Rating Badge (Fifth) - Always show rating */}
+                  {/* 6. Star Rating Badge (Sixth) - Always show rating */}
                   <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
                     <Star className="w-3 h-3 fill-current" />
                     {supplier.rating ? supplier.rating.toFixed(1) : '0'}

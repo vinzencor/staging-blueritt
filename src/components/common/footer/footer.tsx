@@ -27,7 +27,7 @@ const Footer = () => {
           </span>
         </div>
         <div className="items-center mb-0 p-0 m-0 leading-none">
-          <span className="block leading-none"><span className="font-bold">Version:</span> 1.0.0</span>
+          <span className="block leading-none"><span className="font-bold">Version:</span> 1.1</span>
         </div>
       </footer>
     </Fragment>

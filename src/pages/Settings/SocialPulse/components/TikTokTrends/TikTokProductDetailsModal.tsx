@@ -919,6 +919,14 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                     </span>
                   )}
 
+                  {/* Assessed Supplier Badge */}
+                  {supplier.is_assessed && (
+                    <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                      <Shield className="w-3 h-3 fill-current" />
+                      Assessed Supplier
+                    </span>
+                  )}
+
                   {/* Rating Badge */}
                   {supplier.rating && supplier.rating > 0 && (
                     <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">

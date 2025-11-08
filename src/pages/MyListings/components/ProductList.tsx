@@ -97,9 +97,17 @@ const ProductList: React.FC<ProductListProps> = ({
     products.forEach((product) => {
       const source = product.amazon_product?.source;
 
+      console.log('🔍 Product Source Debug:', {
+        productId: product.id,
+        productName: product.name,
+        source: source,
+        hasAmazonProduct: !!product.amazon_product
+      });
+
       if (source === 'tiktok_trends') {
         grouped.tiktok_trends.push(product);
-      } else if (source === 'amazon_trends') {
+      } else if (source === 'amazon_trends' || source === 'amazon_explorer') {
+        // Both amazon_trends and amazon_explorer go to Amazon Trends section
         grouped.amazon_trends.push(product);
       } else {
         // Default to BlueRitt Explorer if no source or unknown source
@@ -327,38 +335,38 @@ const ProductList: React.FC<ProductListProps> = ({
     return (
       <div className="w-full p-4">
         {[...Array(7)].map((_, index) => (
-          <div key={index} className="border grid grid-cols-1 lg:grid-cols-2 gap-x-4 p-4 mb-4 rounded-md">
+          <div key={index} className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 grid grid-cols-1 lg:grid-cols-2 gap-x-4 p-4 mb-4 rounded-md">
             <div className="animate-pulse p-4">
               <div className="flex gap-x-6 items-center w-full">
                 <div className="mt-2">
-                  <div className="bg-gray-300 rounded-full w-20 h-20"></div>
+                  <div className="bg-gray-300 dark:bg-gray-700 rounded-full w-20 h-20"></div>
                 </div>
                 <div className="w-full">
-                  <div className="h-5 bg-gray-300 rounded w-36 md:w-1/2 mb-2"></div>
+                  <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded w-36 md:w-1/2 mb-2"></div>
                   <div className="grid grid-cols-1 gap-y-3 md:grid-cols-4 lg:grid-cols-5 mt-3 md:gap-x-8">
-                    {[...Array(5)].map((_, index) => (
-                      <div key={index}>
-                        <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
-                        <div className="h-5 bg-gray-300 rounded w-24"></div>
+                    {[...Array(5)].map((_, idx) => (
+                      <div key={idx}>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-1"></div>
+                        <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded w-24"></div>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
-            <div key={index} className="rounded-md p-4 animate-pulse">
+            <div className="rounded-md p-4 animate-pulse">
               <div className="animate-pulse p-4">
                 <div className="flex gap-x-6 items-center w-full">
                   <div className="mt-2">
-                    <div className="bg-gray-300 rounded-full w-20 h-20"></div>
+                    <div className="bg-gray-300 dark:bg-gray-700 rounded-full w-20 h-20"></div>
                   </div>
                   <div className="w-full">
-                    <div className="h-5 bg-gray-300 rounded w-36 md:w-1/2 mb-2"></div>
+                    <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded w-36 md:w-1/2 mb-2"></div>
                     <div className="grid grid-cols-1 gap-y-3 md:grid-cols-4 lg:grid-cols-5 mt-3 md:gap-x-8">
-                      {[...Array(5)].map((_, index) => (
-                        <div key={index}>
-                          <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
-                          <div className="h-5 bg-gray-300 rounded w-24"></div>
+                      {[...Array(5)].map((_, idx) => (
+                        <div key={idx}>
+                          <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20 mb-1"></div>
+                          <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded w-24"></div>
                         </div>
                       ))}
                     </div>
@@ -373,7 +381,7 @@ const ProductList: React.FC<ProductListProps> = ({
   }
 
   // ✅ Helper function to render products for a specific source
-  const renderProductsForSource = (sourceProducts: TProduct[]) => {
+  const renderProductsForSource = (sourceProducts: TProduct[], isAmazonOrTikTok: boolean = false) => {
     return sourceProducts.map((product) => {
       const amazonData = getAmazonData(product);
       const hasAmazonData = !!amazonData;
@@ -399,26 +407,26 @@ const ProductList: React.FC<ProductListProps> = ({
           return (
             <div
               key={product.id}
-              className="border rounded-md grid grid-cols-1 lg:grid-cols-2 mb-4"
+              className="border border-gray-200 dark:border-gray-700 rounded-md grid grid-cols-1 lg:grid-cols-2 mb-4 bg-white dark:bg-gray-900"
             >
               {/* Amazon product card */}
               <div>
-                <div className="font-medium p-4 text-gray-500 flex justify-between lg:justify-between items-center">
+                <div className="font-medium p-4 text-gray-500 dark:text-gray-400 flex justify-between lg:justify-between items-center">
                   <div>Search saved at: {formatDate(product.created_at)}</div>
 
                   <div className="flex items-center gap-3">
-                    <div className="font-bold text-gray-700 flex items-center gap-2">
+                    <div className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
                       <i className="bi bi-journal-bookmark-fill"></i>
                       Selected Product
                     </div>
                     <button
                       onClick={() => handleDeleteProduct(product.id, product.name || 'this product')}
                       disabled={deletingProductId === product.id}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Delete product"
                     >
                       {deletingProductId === product.id ? (
-                        <div className="w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-5 h-5 border-2 border-red-600 dark:border-red-400 border-t-transparent rounded-full animate-spin"></div>
                       ) : (
                         <Trash2 className="w-5 h-5" />
                       )}
@@ -463,6 +471,43 @@ const ProductList: React.FC<ProductListProps> = ({
                   buttonCheck={false}
                   Loading={false}
                 />
+
+                {/* ✅ Product Description Section - Only for Amazon/TikTok Trends */}
+                {isAmazonOrTikTok && (() => {
+                  const aboutProduct = product.amazon_product?.data?.about_product;
+                  const productDescription = product.amazon_product?.data?.product_description || product.description;
+
+                  return (aboutProduct && aboutProduct.length > 0) || productDescription ? (
+                    <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                        <i className="bi bi-file-text"></i>
+                        Product Description
+                      </h4>
+
+                      {/* About Product (Bullet Points) */}
+                      {aboutProduct && aboutProduct.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Key Features:</p>
+                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                            {aboutProduct.slice(0, 5).map((point: string, idx: number) => (
+                              <li key={idx} className="leading-relaxed">{point}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Product Description */}
+                      {productDescription && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Description:</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4">
+                            {productDescription}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
+                })()}
 
                 {/* Display profit information if available */}
                 {(() => {
@@ -511,8 +556,8 @@ const ProductList: React.FC<ProductListProps> = ({
 
               {/* Seller/Supplier Info - Show seller info for Amazon/TikTok or Alibaba supplier */}
               <div>
-                <div className="flex justify-between items-center p-4 text-gray-500">
-                  <div className="flex items-center font-bold text-gray-700">
+                <div className="flex justify-between items-center p-4 text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center font-bold text-gray-700 dark:text-gray-300">
                     <i className="bi bi-journal-bookmark-fill mr-2"></i>
                     {product.alibaba_product && Object.keys(product.alibaba_product).length > 0
                       ? "Selected Supplier"
@@ -738,51 +783,175 @@ const ProductList: React.FC<ProductListProps> = ({
                             </div>
                           </>
                         ) : (
-                          /* Display Amazon seller info */
+                          /* Display Amazon/TikTok seller info - Enhanced for Amazon/TikTok Trends only */
                           hasAmazonData && (
-                            <>
-                              <div>
-                                <span className="text-gray-600">Seller Name:</span>
-                                <span className="ml-2 font-medium">{amazonData.sellerName || 'N/A'}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Seller Rating:</span>
-                                <span className="ml-2 font-medium">
-                                  {amazonData.sellerRating ? `${amazonData.sellerRating}/5` : 'N/A'}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Ships From:</span>
-                                <span className="ml-2 font-medium">{amazonData.sellerShipsFrom || 'N/A'}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Country:</span>
-                                <span className="ml-2 font-medium">{amazonData.sellerCountry || 'N/A'}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Delivery:</span>
-                                <span className="ml-2 font-medium">{amazonData.deliveryPrice || 'N/A'}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Delivery Time:</span>
-                                <span className="ml-2 font-medium">{amazonData.sellerDeliveryTime || 'N/A'}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-600">Product Source:</span>
-                                <span className="ml-2 font-medium">
-                                  {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' : 'Amazon Trends'}
-                                </span>
-                              </div>
-                              {product.amazon_product?.source === 'tiktok_trends' && (
+                            isAmazonOrTikTok ? (
+                              /* ✅ Enhanced display for Amazon/TikTok Trends */
+                              <>
+                                {/* Seller Name */}
                                 <div className="col-span-2">
-                                  <span className="text-gray-600">TikTok Metrics:</span>
-                                  <span className="ml-2 font-medium">
-                                    {product.amazon_product?.data?.likes_count ? `${product.amazon_product.data.likes_count.toLocaleString()} likes` : ''}
-                                    {product.amazon_product?.data?.sales_count ? ` • ${product.amazon_product.data.sales_count.toLocaleString()} sales` : ''}
+                                  <span className="text-gray-600 dark:text-gray-400">Seller Name:</span>
+                                  <div className="mt-1">
+                                    <span className="font-bold text-gray-900 dark:text-white text-lg">
+                                      {amazonData.sellerName || 'N/A'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* ✅ Product Rating & Reviews */}
+                                <div className="col-span-2">
+                                  <span className="text-gray-600 dark:text-gray-400 mb-2 block">Product Rating:</span>
+                                  <div className="flex flex-wrap gap-2 items-center">
+                                    {amazonData.rating && amazonData.rating > 0 ? (
+                                      <>
+                                        <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-md flex items-center gap-1">
+                                          ⭐ {amazonData.rating.toFixed(1)}/5
+                                        </span>
+                                        {amazonData.numRatings && amazonData.numRatings > 0 && (
+                                          <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
+                                            {amazonData.numRatings.toLocaleString()} reviews
+                                          </span>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <span className="text-gray-500 dark:text-gray-400 text-sm">No rating available</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* ✅ Seller Rating (if different from product rating) */}
+                                {amazonData.sellerRating && amazonData.sellerRating !== amazonData.rating && (
+                                  <div className="col-span-2">
+                                    <span className="text-gray-600 dark:text-gray-400 mb-2 block">Seller Rating:</span>
+                                    <div className="flex flex-wrap gap-2 items-center">
+                                      <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-md flex items-center gap-1">
+                                        ⭐ {amazonData.sellerRating.toFixed(1)}/5
+                                      </span>
+                                      {amazonData.sellerNumRatings && amazonData.sellerNumRatings > 0 && (
+                                        <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
+                                          {amazonData.sellerNumRatings.toLocaleString()} ratings
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* ✅ Product Badges */}
+                                <div className="col-span-2">
+                                  <span className="text-gray-600 dark:text-gray-400 mb-2 block">Product Badges:</span>
+                                  <div className="flex flex-wrap gap-2">
+                                    {amazonData.isBestSeller && (
+                                      <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                        <Shield className="w-3 h-3 fill-current" />
+                                        Best Seller
+                                      </span>
+                                    )}
+                                    {amazonData.isAmazonChoice && (
+                                      <span className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                        <Shield className="w-3 h-3 fill-current" />
+                                        Amazon's Choice
+                                      </span>
+                                    )}
+                                    {amazonData.isPrime && (
+                                      <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                        <Shield className="w-3 h-3 fill-current" />
+                                        Prime
+                                      </span>
+                                    )}
+                                    {amazonData.IsClimateFriendly && (
+                                      <span className="bg-gradient-to-r from-green-600 to-green-800 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                        <Shield className="w-3 h-3 fill-current" />
+                                        Climate Pledge Friendly
+                                      </span>
+                                    )}
+                                    {amazonData.salesVolume && amazonData.salesVolume > 0 && (
+                                      <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                        <Shield className="w-3 h-3 fill-current" />
+                                        {amazonData.salesVolume.toLocaleString()} sold
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Shipping & Delivery Info */}
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Ships From:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerShipsFrom || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Country:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerCountry || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Delivery:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.deliveryPrice || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Delivery Time:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerDeliveryTime || 'N/A'}</span>
+                                </div>
+
+                                {/* Product Source */}
+                                <div className="col-span-2">
+                                  <span className="text-gray-600 dark:text-gray-400">Product Source:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                    {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' :
+                                     product.amazon_product?.source === 'amazon_trends' ? 'Amazon Trends' :
+                                     product.amazon_product?.source === 'amazon_explorer' ? 'Amazon Trends' :
+                                     'BlueRitt Explorer'}
                                   </span>
                                 </div>
-                              )}
-                            </>
+
+                                {/* TikTok Metrics (if from TikTok) */}
+                                {product.amazon_product?.source === 'tiktok_trends' && (
+                                  <div className="col-span-2">
+                                    <span className="text-gray-600 dark:text-gray-400">TikTok Metrics:</span>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                      {product.amazon_product?.data?.likes_count && (
+                                        <span className="bg-gradient-to-r from-pink-500 to-pink-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
+                                          ❤️ {product.amazon_product.data.likes_count.toLocaleString()} likes
+                                        </span>
+                                      )}
+                                      {product.amazon_product?.data?.sales_count && (
+                                        <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
+                                          🛒 {product.amazon_product.data.sales_count.toLocaleString()} sales
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              /* Original simple display for BlueRitt Explorer */
+                              <>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Seller Name:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerName || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Seller Rating:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                    {amazonData.sellerRating ? `${amazonData.sellerRating}/5` : 'N/A'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Ships From:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerShipsFrom || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Country:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerCountry || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Delivery:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.deliveryPrice || 'N/A'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600 dark:text-gray-400">Delivery Time:</span>
+                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerDeliveryTime || 'N/A'}</span>
+                                </div>
+                              </>
+                            )
                           )
                         )}
                       </div>
@@ -790,13 +959,13 @@ const ProductList: React.FC<ProductListProps> = ({
                   </div>
                 )}
 
-                <div className="col-span-1 lg:col-span-2 flex justify-end p-2">
+                <div className="col-span-1 lg:col-span-2 flex justify-end p-2 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/listing-detail/${product.id}`);
                     }}
-                    className="text-primary hover:underline"
+                    className="text-primary dark:text-blue-400 hover:underline font-medium"
                   >
                     View Details<i className="ti ti-arrow-right ml-1"></i>
                   </button>
@@ -823,7 +992,7 @@ const ProductList: React.FC<ProductListProps> = ({
                 </h2>
                 <p className="text-blue-100 mt-1 text-sm">Products discovered through BlueRitt Explorer</p>
               </div>
-              {renderProductsForSource(groupedProducts.blueritt_explorer)}
+              {renderProductsForSource(groupedProducts.blueritt_explorer, false)}
             </div>
           )}
 
@@ -839,7 +1008,7 @@ const ProductList: React.FC<ProductListProps> = ({
                 </h2>
                 <p className="text-pink-100 mt-1 text-sm">Products discovered through TikTok Trends</p>
               </div>
-              {renderProductsForSource(groupedProducts.tiktok_trends)}
+              {renderProductsForSource(groupedProducts.tiktok_trends, true)}
             </div>
           )}
 
@@ -851,16 +1020,16 @@ const ProductList: React.FC<ProductListProps> = ({
                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
-                  BlueRitt SocialPulse (Amazon Trends)
+                  Amazon Trends
                 </h2>
-                <p className="text-orange-100 mt-1 text-sm">Products discovered through Amazon Trends</p>
+                <p className="text-orange-100 mt-1 text-sm">Products discovered through Amazon Trends & Amazon Explorer</p>
               </div>
-              {renderProductsForSource(groupedProducts.amazon_trends)}
+              {renderProductsForSource(groupedProducts.amazon_trends, true)}
             </div>
           )}
         </>
       ) : (
-        <p className="text-center text-gray-500">
+        <p className="text-center text-gray-500 dark:text-gray-400 py-8">
           No products available in this category.
         </p>
       )}

@@ -743,7 +743,6 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
                   isLoading={isSupplierDiscoveryLoading}
                   analysisTime={supplierAnalysisTime}
                   onSelectSupplier={handleSelectSupplier}
-                  product={product}
                 />
               )}
             </div>
@@ -1146,10 +1145,9 @@ interface SuppliersTabProps {
   isLoading: boolean;
   analysisTime: number;
   onSelectSupplier: (supplier: SupplierInfo) => void;
-  product: AmazonProduct;
 }
 
-const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onSelectSupplier, product }) => {
+const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onSelectSupplier }) => {
   // ✅ Show ONLY VERIFIED suppliers (backend filtered)
   const displaySuppliers = suppliers || [];
 
@@ -1214,202 +1212,196 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
         </div>
       </div>
 
-      {/* Suppliers List - Enhanced Layout with Product Image & Description */}
+      {/* Suppliers List - EXACT COPY from BlueRitt Explorer with Colorful Badges */}
       <div className="space-y-4">
         {displaySuppliers.map((supplier, index) => (
-          <div key={index} className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-lg hover:border-purple-300 dark:hover:border-purple-500 transition-all bg-white dark:bg-gray-800">
-            {/* Main Layout: Description (Left) | Supplier Info (Center) | Product Image (Right) */}
-            <div className="flex gap-5">
-              {/* LEFT: Product Description */}
-              <div className="flex-1 min-w-0">
-                <div className="mb-4">
-                  <h5 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Product Description</h5>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4">
-                    {product.product_title || supplier.main_products || 'High-quality product sourced from verified suppliers. Contact supplier for detailed specifications and customization options.'}
-                  </p>
+          <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h4 className="font-semibold text-gray-900 dark:text-white">{supplier.name || supplier.supplier_name || 'Unknown Supplier'}</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{supplier.location || 'Location not specified'}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                  {supplier.estimated_price || 'Price on request'}
                 </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Est. Price</div>
+              </div>
+            </div>
 
-                {/* Main Products Tags */}
-                {supplier.main_products && (
-                  <div className="mt-3">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Main Products:</span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {Array.isArray(supplier.main_products)
-                        ? supplier.main_products.slice(0, 3).map((prod: string, idx: number) => (
-                            <span key={idx} className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-xs">
-                              {prod}
-                            </span>
-                          ))
-                        : <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-xs">
-                            {String(supplier.main_products).substring(0, 50)}...
-                          </span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">MOQ</div>
+                <div className="font-medium text-gray-900 dark:text-white">{supplier.moq || supplier.min_order_quantity || 'Contact supplier'}</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Lead Time</div>
+                <div className="font-medium text-gray-900 dark:text-white">{supplier.lead_time || 'Contact supplier'}</div>
+              </div>
+
+              <div className="flex items-center justify-end gap-[8px] col-span-2">
+                <div className="relative h-[90px] w-[90px]">
+                  {/* Circular Progress Bar - AI Match Score */}
+                  <svg className="transform -rotate-90" width="90" height="90">
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke="#e5e7eb"
+                      strokeWidth="8"
+                      fill="none"
+                    />
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke={
+                        (supplier.ai_match_score || 0) >= 80
+                          ? '#22c55e'
+                          : (supplier.ai_match_score || 0) >= 60
+                          ? '#eab308'
+                          : '#ef4444'
                       }
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 40}
+                      strokeDashoffset={
+                        2 * Math.PI * 40 * (1 - (supplier.ai_match_score || 0) / 100)
+                      }
+                    />
+                  </svg>
+
+                  {/* Content in center */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-[10px] rounded-full">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
+                    <div className="font-medium text-purple-600 dark:text-purple-400">
+                      {(supplier.ai_match_score || 0).toFixed(2)}%
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* CENTER: Supplier Information */}
-              <div className="flex-1">
-                {/* Supplier Header */}
-                <div className="mb-3">
-                  <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-1">
-                    {supplier.name || supplier.supplier_name || 'Unknown Supplier'}
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">{supplier.location || 'Location not specified'}</p>
-                </div>
-
-                {/* Price & AI Match Score */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div>
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {supplier.estimated_price || 'Price on request'}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Estimated Price</div>
-                  </div>
-
-                  <div className="relative h-[70px] w-[70px]">
-                    {/* Circular Progress Bar - AI Match Score */}
-                    <svg className="transform -rotate-90" width="70" height="70">
-                      <circle cx="35" cy="35" r="30" stroke="#e5e7eb" strokeWidth="6" fill="none" />
-                      <circle
-                        cx="35" cy="35" r="30"
-                        stroke={
-                          (supplier.ai_match_score || 0) >= 80 ? '#22c55e'
-                          : (supplier.ai_match_score || 0) >= 60 ? '#eab308' : '#ef4444'
-                        }
-                        strokeWidth="6" strokeLinecap="round" fill="none"
-                        strokeDasharray={2 * Math.PI * 30}
-                        strokeDashoffset={2 * Math.PI * 30 * (1 - (supplier.ai_match_score || 0) / 100)}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div className="text-[10px] text-gray-500 dark:text-gray-400">AI Match</div>
-                      <div className="text-sm font-bold text-purple-600 dark:text-purple-400">
-                        {(supplier.ai_match_score || 0).toFixed(0)}%
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* MOQ & Lead Time */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">MOQ</div>
-                    <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                      {supplier.moq || supplier.min_order_quantity || 'Contact'}
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">Lead Time</div>
-                    <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                      {supplier.lead_time || 'Contact'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* ✅ Verification Badges - Order: Verified → Trade Assurance → Gold → Store Age → Rating */}
-                <div className="flex flex-wrap gap-2">
-                  {/* 1. Verified Supplier Badge (First) */}
-                  {(supplier.verification_badge === 'Verified Pro' || supplier.verified_pro) && (
-                    <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Shield className="w-3 h-3 fill-current" />
-                      Verified Pro
-                    </span>
-                  )}
-
-                  {!supplier.verified_pro &&
-                   (supplier.verification_badge === 'Verified Supplier' ||
-                    supplier.verification_status === 'Verified' ||
-                    supplier.verified_supplier) && (
-                    <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Shield className="w-3 h-3 fill-current" />
-                      Verified
-                    </span>
-                  )}
-
-                  {/* 2. Trade Assurance Badge (Second) */}
-                  {supplier.trade_assurance && (
-                    <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Shield className="w-3 h-3 fill-current" />
-                      Trade Assurance
-                    </span>
-                  )}
-
-                  {/* 3. Gold Supplier Badge (Third) */}
-                  {(supplier.verification_badge === 'Gold Supplier' ||
-                    supplier.verification_status === 'Gold Supplier' ||
-                    supplier.is_gold) && (
-                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Shield className="w-3 h-3 fill-current" />
-                      Gold
-                    </span>
-                  )}
-
-                  {/* 4. Store Age Badge (Fourth) */}
-                  {supplier.years_in_business && supplier.years_in_business > 0 && (
-                    <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
-                      Store Age: {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
-                    </span>
-                  )}
-
-                  {/* 5. Star Rating Badge (Fifth) */}
-                  {supplier.rating && supplier.rating > 0 && (
-                    <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-current" />
-                      {supplier.rating.toFixed(1)} rating
-                    </span>
-                  )}
-                </div>
-
-                {/* Response Rate & Transactions */}
-                <div className="mt-3 flex gap-4 text-xs text-gray-600 dark:text-gray-400">
-                  <div>
-                    <span className="font-medium">Response:</span> {supplier.response_rate || 'N/A'}
-                  </div>
-                  {supplier.total_transactions && supplier.total_transactions > 0 && (
-                    <div>
-                      <span className="font-medium">Transactions:</span> {supplier.total_transactions.toLocaleString()}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* RIGHT: Product Image */}
-              <div className="w-40 flex-shrink-0">
-                <div className="sticky top-4">
-                  <img
-                    src={product.product_photo || '/placeholder-product.png'}
-                    alt={product.product_title || 'Product'}
-                    className="w-full h-40 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-md"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://via.placeholder.com/160x160/e5e7eb/6b7280?text=No+Image';
-                    }}
-                  />
-                  <div className="mt-2 text-center">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Product Image</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="mt-5 pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
-              <button
-                onClick={() => onSelectSupplier(supplier)}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2.5 px-4 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-medium text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-              >
-                <Calculator className="w-4 h-4" />
-                Calculate Profit
-              </button>
-              <button
-                onClick={() => onSelectSupplier(supplier)}
-                className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2.5 px-4 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all font-medium text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-              >
-                <Save className="w-4 h-4" />
-                Save to Vault
-              </button>
+            {/* ✅ Colorful Verification Badges Section - EXACT COPY from BlueRitt Explorer */}
+            <div className="flex flex-wrap gap-2 mt-3">
+              {/* 1. Gold Supplier Badge - Score +15 (Highest bonus) */}
+              {(supplier.verification_badge === 'Gold Supplier' ||
+                supplier.verification_status === 'Gold Supplier' ||
+                supplier.is_gold) && (
+                <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Gold Supplier
+                </span>
+              )}
+
+              {/* 2. Verified Pro Badge - Score +12 */}
+              {(supplier.verification_badge === 'Verified Pro' ||
+                supplier.verified_pro) && (
+                <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Verified Pro
+                </span>
+              )}
+
+              {/* 3. Verified Supplier Badge - Score +10 */}
+              {!supplier.verified_pro &&
+               (supplier.verification_badge === 'Verified Supplier' ||
+                supplier.verification_status === 'Verified' ||
+                supplier.verified_supplier) && (
+                <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Verified
+                </span>
+              )}
+
+              {/* 4. Alibaba Guaranteed Badge - Score +8 */}
+              {supplier.alibaba_guaranteed && (
+                <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Alibaba Guaranteed
+                </span>
+              )}
+
+              {/* 5. Trade Assurance Badge - Score +8 */}
+              {supplier.trade_assurance && (
+                <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Trade Assurance
+                </span>
+              )}
+
+              {/* 6. Assessed Supplier Badge - Score +5 */}
+              {!supplier.verified_pro &&
+               !supplier.verified_supplier &&
+               supplier.is_assessed && (
+                <span className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                  <Shield className="w-3 h-3 fill-current" />
+                  Assessed
+                </span>
+              )}
+
+              {/* Store Age Badge */}
+              {supplier.years_in_business && supplier.years_in_business > 0 && (
+                <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
+                  Store Age: {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
+                </span>
+              )}
+
+              {/* Rating Badge */}
+              {supplier.rating && supplier.rating > 0 && (
+                <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
+                  <Star className="w-3 h-3 fill-current" />
+                  {supplier.rating.toFixed(1)} Rating
+                </span>
+              )}
+
+              {/* AI Match Level Badge */}
+              <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm text-white ${
+                (supplier.ai_match_score || 0) >= 80
+                  ? 'bg-gradient-to-r from-green-500 to-green-700'
+                  : (supplier.ai_match_score || 0) >= 60
+                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-700'
+                  : 'bg-gradient-to-r from-red-500 to-red-700'
+              }`}>
+                AI Match: {(supplier.ai_match_score || 0).toFixed(2)}%
+              </span>
             </div>
+
+            {/* Additional Info Section */}
+            <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600 dark:text-gray-400">Response Rate:</span>
+                <span className="font-medium ml-2 text-gray-900 dark:text-white">{supplier.response_rate || 'N/A'}</span>
+              </div>
+              {supplier.total_transactions && supplier.total_transactions > 0 && (
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400">Transactions:</span>
+                  <span className="font-medium ml-2 text-gray-900 dark:text-white">{supplier.total_transactions.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Main Products Section */}
+            {supplier.main_products && (
+              <div className="mt-3">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">Main Products:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {Array.isArray(supplier.main_products)
+                    ? supplier.main_products.map((product: string, idx: number) => (
+                        <span key={idx} className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                          {product}
+                        </span>
+                      ))
+                    : (
+                        <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs">
+                          {supplier.main_products}
+                        </span>
+                      )
+                  }
+                </div>
+              </div>
+            )}
 
             {/* Certifications Section */}
             {supplier.certifications && supplier.certifications.length > 0 && (
