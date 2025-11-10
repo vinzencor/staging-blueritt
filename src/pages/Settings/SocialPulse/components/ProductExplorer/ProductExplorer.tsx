@@ -81,8 +81,9 @@ const getDefaultLanguage = (countryCode: string): string => {
 // Dynamic categories are now fetched from the API
 
 const ProductExplorer: React.FC<ProductExplorerProps> = () => {
-  // Backend quota management for Amazon Trends search (separate from BlueRitt Explorer)
-  const { quotaDetails: amazonSearchQuotaDetails, updateQuota: updateAmazonSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonTrendsSearch);
+  // ✅ Backend quota management for BlueRitt Explorer search (SEPARATE from Amazon Trends)
+  // Uses amazon_search quota (backend: AmazonDataAPI)
+  const { quotaDetails: amazonSearchQuotaDetails, updateQuota: updateAmazonSearchQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.AmazonSearch);
 
   // Backend quota management for supplier discovery (shared with BlueRitt Explorer and TikTok Trends)
   const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);

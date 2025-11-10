@@ -106,6 +106,7 @@ export interface AmazonDealsResponse {
 }
 
 // Amazon Trends Search API
+// ✅ FIXED: Uses /products/amazon-trends/search/ endpoint with separate amazon_trends_search quota
 export const amazonTrendsSearch = async ({
   query,
   country = 'US',
@@ -159,6 +160,7 @@ export const amazonTrendsSearch = async ({
   if (four_stars_and_up !== undefined) params.four_stars_and_up = four_stars_and_up;
   if (language && language.trim()) params.language = language.trim();
 
+  // ✅ Use separate amazon-trends/search/ endpoint with separate quota
   const response = await api.get('/products/amazon-trends/search/', {
     params,
   });
