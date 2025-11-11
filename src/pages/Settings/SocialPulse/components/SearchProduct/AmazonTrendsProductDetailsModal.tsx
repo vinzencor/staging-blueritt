@@ -356,10 +356,10 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-6"></div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Discovering Suppliers...
+          Analyzing the Product, Discovering Verified Suppliers and Computing the AI Match Score
         </h3>
         <p className="text-gray-600 mb-4">
-          Our AI is analyzing global suppliers to find the best matches for this product.
+          This process may take 30–45 seconds. Please wait while our AI engine generates the results
         </p>
         <div className="bg-blue-50 rounded-lg p-4 max-w-md mx-auto">
           <div className="flex items-center gap-2 text-blue-700">
@@ -410,6 +410,21 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       <div className="space-y-4">
         {displaySuppliers.map((supplier, index) => (
           <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+            {/* ✅ Supplier Product Image */}
+            {supplier.supplier_product_image && (
+              <div className="mb-4">
+                <img
+                  src={supplier.supplier_product_image}
+                  alt={supplier.name || 'Supplier Product'}
+                  className="w-full h-48 object-cover rounded-lg"
+                  onError={(e) => {
+                    // Hide image if it fails to load
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+
             <div className="flex justify-between items-start mb-3">
               <div>
                 <h4 className="font-semibold text-gray-900">{supplier.name || supplier.supplier_name || 'Unknown Supplier'}</h4>
@@ -486,7 +501,21 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                 </div>
                 <div>
                   <span className="text-gray-600">Rating:</span>
-                  <span className="font-medium ml-2">{supplier.rating || 'N/A'}/5.0</span>
+                  <div className="inline-flex items-center gap-1 ml-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-4 h-4 ${
+                          star <= (supplier.rating || 0)
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'fill-gray-300 text-gray-300'
+                        }`}
+                      />
+                    ))}
+                    <span className="ml-1 font-medium">
+                      {supplier.rating ? supplier.rating.toFixed(1) : '0.0'}/5.0
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <span className="text-gray-600">Transactions:</span>

@@ -139,13 +139,13 @@ export const useUserSubscriptionAndSearchQuota = (quotaName: QuotaName = "amazon
   const accessToken = localStorage.getItem('access_token');
 
   const { data, isLoading, error, refetch, ...rest } = useQuery({
-    queryKey: ["user", "subscription", "search_quota"],
+    queryKey: ["user", "subscription", "search_quota"], // ✅ Use same key for all quota types to share data
     queryFn: () => api.get("/auth/me/").then((res) => res.data),
     enabled: !!accessToken, // Only run query if user is authenticated
-    staleTime: 0, // Always consider data stale - refetch on every mount
-    gcTime: 5 * 60 * 1000, // 5 minutes - keep data in cache for 5 minutes
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
-    refetchOnMount: 'always', // Always refetch on component mount
+    staleTime: 0, // ✅ Always consider data stale - fetch fresh data every time
+    gcTime: 0, // ✅ NO CACHE - Don't keep data in cache to prevent showing wrong values
+    refetchOnWindowFocus: true, // ✅ Refetch when window regains focus
+    refetchOnMount: 'always', // ✅ Always refetch on component mount
     retry: 2, // Retry failed requests twice
   });
 
@@ -179,6 +179,7 @@ export const useUserSubscriptionAndSearchQuota = (quotaName: QuotaName = "amazon
       dataExists: !!data
     });
 
+    // ✅ Update cache immediately - this will update ALL components using this hook
     const updatedData = {
       ...data,
       search_quota: {
@@ -192,15 +193,12 @@ export const useUserSubscriptionAndSearchQuota = (quotaName: QuotaName = "amazon
       updatedData
     );
 
-    console.log('✅ updateQuota: Cache updated successfully', {
+    console.log('✅ updateQuota: Cache updated successfully - all components will see new value', {
       quotaName,
       oldValue: quotaValue,
       newValue,
       cacheKey: ["user", "subscription", "search_quota"]
     });
-
-    // Force a re-render by invalidating the query
-    queryClient.invalidateQueries({ queryKey: ["user", "subscription", "search_quota"] });
   };
   const checkAccess =  (accessType: string) => {
     if (!data) return;

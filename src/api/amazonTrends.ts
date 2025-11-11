@@ -456,12 +456,13 @@ export const getAmazonCategoryListDirect = async ({
 };
 
 // Products by category - Uses backend API with quota deduction and 7-day caching
+// ✅ Updated to use the correct endpoint: /products/products-by-category/
 export const getAmazonProductsByCategoryDirect = async ({
   categoryId,
   country = 'US',
   page = 1,
   sortBy = 'RELEVANCE',
-  productCondition = 'ALL',
+  productCondition = 'NEW',
   isPrime = false,
   dealsAndDiscounts = 'NONE',
   minPrice,
@@ -490,11 +491,14 @@ export const getAmazonProductsByCategoryDirect = async ({
   const params: any = {
     category_id: categoryId,
     country,
-    page,
     sort_by: sortBy,
     product_condition: productCondition,
-    is_prime: isPrime,
     deals_and_discounts: dealsAndDiscounts,
+    min_star_rating: 0,
+    min_reviews: 0,
+    max_star_rating: 5,
+    max_reviews: 99999990,
+    max: 99999990,
   };
 
   // Add optional price filters
@@ -505,8 +509,8 @@ export const getAmazonProductsByCategoryDirect = async ({
     params.max_price = maxPrice;
   }
 
-  // ✅ Use Amazon Trends endpoint with quota management and 7-day caching
-  const response = await api.get('/products/amazon-trends/products-by-category/', {
+  // ✅ Use the correct endpoint: /products/products-by-category/
+  const response = await api.get('/products/products-by-category/', {
     params,
   });
 

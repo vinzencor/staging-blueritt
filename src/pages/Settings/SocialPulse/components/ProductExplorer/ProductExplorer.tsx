@@ -6,13 +6,12 @@ import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserD
 import AmazonLoader from '../../../../../components/AmazonLoader';
 import { QuotaNames } from '../../../../../enum';
 
-
+import api from '@/api';
 
 import {
   getAmazonExplorerBestSellers,
   searchAmazonExplorerProducts,
   getAmazonExplorerProductsByCategory,
-  getAmazonExplorerCategories,
   getAmazonBestSellerCategories,
   getAmazonBestSellerProducts,
   formatPrice,
@@ -22,8 +21,7 @@ import {
   getAmazonUrl,
   type AmazonProduct,
   type AmazonExplorerResponse,
-  type AmazonExplorerCategory,
-  type BestSellerCategory
+  type AmazonExplorerCategory
 } from '@/api/amazonExplorer';
 
 // Import keyword filtering utility
@@ -33,12 +31,6 @@ import {
   getAmazonProductsByCategoryDirect,
 } from '@/api/amazonTrends';
 
-import {
-  loadAmazonCategories,
-  getSubcategories,
-  AmazonCategoryItem,
-} from '@/utils/amazonCategories';
-
 import ProductDetailsModal from './ProductDetailsModal';
 import AddOnsChoiceModalAmazon from './AddOnChoiceModalAmazon';
 
@@ -46,30 +38,21 @@ interface ProductExplorerProps { }
 
 type ViewMode = 'best-sellers' | 'search' | 'category';
 
-// ✅ Amazon Trends - 22 Countries with Language Support
+// ✅ Amazon Trends - Only 6 Supported Countries
 const AMAZON_COUNTRIES = [
   { value: 'US', label: 'United States', languages: ['en_US', 'es_US'] },
-  { value: 'AU', label: 'Australia', languages: ['en_AU'] },
-  { value: 'BR', label: 'Brazil', languages: ['pt_BR'] },
   { value: 'CA', label: 'Canada', languages: ['en_CA', 'fr_CA'] },
-  { value: 'FR', label: 'France', languages: ['fr_FR', 'en_GB'] },
-  { value: 'DE', label: 'Germany', languages: ['de_DE', 'en_GB', 'cs_CZ', 'nl_NL', 'pl_PL', 'tr_TR', 'da_DK'] },
-  { value: 'IN', label: 'India', languages: ['en_IN', 'hi_IN', 'ta_IN', 'te_IN', 'kn_IN', 'ml_IN', 'bn_IN', 'mr_IN'] },
-  { value: 'IT', label: 'Italy', languages: ['it_IT', 'en_GB'] },
   { value: 'MX', label: 'Mexico', languages: ['es_MX'] },
-  { value: 'NL', label: 'Netherlands', languages: ['nl_NL', 'en_GB'] },
-  { value: 'SG', label: 'Singapore', languages: ['en_SG'] },
-  { value: 'ES', label: 'Spain', languages: ['es_ES', 'pt_PT', 'en_GB'] },
-  { value: 'TR', label: 'Turkey', languages: ['tr_TR'] },
-  { value: 'AE', label: 'United Arab Emirates', languages: ['en_AE', 'ar_AE'] },
+  { value: 'BR', label: 'Brazil', languages: ['pt_BR'] },
   { value: 'GB', label: 'United Kingdom', languages: ['en_GB'] },
-  { value: 'JP', label: 'Japan', languages: ['ja_JP', 'en_US', 'zh_CN'] },
-  { value: 'SA', label: 'Saudi Arabia', languages: ['ar_AE', 'en_AE'] },
+  { value: 'AU', label: 'Australia', languages: ['en_AU'] },
+  { value: 'FR', label: 'France', languages: ['fr_FR'] },
+  { value: 'DE', label: 'Germany', languages: ['de_DE'] },
+  { value: 'SE', label: 'Sweden', languages: ['sv_SE'] },
   { value: 'PL', label: 'Poland', languages: ['pl_PL'] },
-  { value: 'SE', label: 'Sweden', languages: ['sv_SE', 'en_GB'] },
-  { value: 'BE', label: 'Belgium', languages: ['fr_BE', 'nl_BE', 'en_GB'] },
-  { value: 'EG', label: 'Egypt', languages: ['ar_AE', 'en_AE'] },
-  { value: 'CN', label: 'China', languages: ['zh_CN'] },
+  { value: 'TR', label: 'Turkey', languages: ['tr_TR'] },
+  { value: 'AE', label: 'UAE', languages: ['ar_AE', 'en_AE'] },
+  { value: 'IN', label: 'India', languages: ['en_IN', 'hi_IN'] },
 ];
 
 // Helper function to get default language for a country
@@ -96,54 +79,78 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [country, setCountry] = useState('US'); // ✅ Default to US
+  const [country, setCountry] = useState('US'); // ✅ Default to United States
   const [language, setLanguage] = useState('en_US'); // ✅ Default language
   const [page, setPage] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState<AmazonProduct | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [autoStartSupplierDiscovery, setAutoStartSupplierDiscovery] = useState(false);
-  const [bestSellerCategories, setBestSellerCategories] = useState<BestSellerCategory[]>([]);
-  const [mainCategories, setMainCategories] = useState<BestSellerCategory[]>([]);
-  const [selectedMainCategory, setSelectedMainCategory] = useState<string>('');
-  const [currentSubcategories, setCurrentSubcategories] = useState<BestSellerCategory[]>([]);
   const [selectedType, setSelectedType] = useState<string>('BEST_SELLERS');
   const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(false);
 
-  // Local Amazon categories from JSON (for ALL countries)
-  const [localRootCategories, setLocalRootCategories] = useState<AmazonCategoryItem[]>([]);
-
-  const [selectedLocalRootCategory, setSelectedLocalRootCategory] = useState<string>('');
-  const [selectedLocalSubcategory, setSelectedLocalSubcategory] = useState<string>('');
+  // API-based categories (fetched dynamically based on country)
+  const [mainCategories, setMainCategories] = useState<any[]>([]);
+  const [selectedMainCategory, setSelectedMainCategory] = useState<string>('');
+  const [currentSubcategories, setCurrentSubcategories] = useState<any[]>([]);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
   const [selectedCategoryPath, setSelectedCategoryPath] = useState<string>(''); // Store full category path for display
 
-  // Helper function to extract numeric category ID from local JSON format
-  // Local JSON uses format like "baby-products/695338011", API needs just "695338011"
-  const extractNumericCategoryId = (categoryId: string): string => {
-    if (!categoryId) return categoryId;
+  // ✅ Fetch categories from backend API based on country (same as BlueRitt Explorer)
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+  } = useQuery({
+    queryKey: ['amazon-categories', country],
+    queryFn: async () => {
+      console.log('🌍 Fetching Amazon categories for country:', country);
+      const response = await api.get('/products/categories/', {
+        params: { country }
+      });
+      console.log('✅ Categories fetched for country:', country, 'Response:', response.data);
+      return response.data;
+    },
+    enabled: true,
+    staleTime: 1000 * 60 * 60, // 1 hour
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+  });
 
-    // If it contains a slash, extract the numeric part after the slash
-    if (categoryId.includes('/')) {
-      const parts = categoryId.split('/');
-      return parts[parts.length - 1]; // Get the last part (numeric ID)
-    }
-
-    // Otherwise return as-is
-    return categoryId;
-  };
-
-  // Load local categories on mount (for ALL countries)
+  // Update main categories when API data changes
   React.useEffect(() => {
-    const { rootCategories } = loadAmazonCategories();
-    setLocalRootCategories(rootCategories);
-    console.log('📂 Loaded local categories for all countries:', rootCategories.length);
-  }, []);
+    if (categoriesData?.res) {
+      setMainCategories(categoriesData.res);
+      console.log('📂 Updated main categories from API:', categoriesData.res.length);
+      console.log('📂 Full categories data:', JSON.stringify(categoriesData.res, null, 2));
+    }
+  }, [categoriesData]);
+
+  // Update subcategories when main category changes
+  React.useEffect(() => {
+    if (selectedMainCategory) {
+      const mainCat = mainCategories.find((cat: any) => cat.category === selectedMainCategory);
+      if (mainCat && mainCat.subcategories) {
+        setCurrentSubcategories(mainCat.subcategories);
+        console.log('📂 Updated subcategories for:', selectedMainCategory, 'Total:', mainCat.subcategories.length);
+      } else {
+        setCurrentSubcategories([]);
+      }
+    } else {
+      setCurrentSubcategories([]);
+    }
+    // Reset subcategory selection when main category changes
+    setSelectedSubcategory('');
+    setSelectedCategoryId('');
+    setSelectedCategoryPath('');
+  }, [selectedMainCategory, mainCategories]);
 
   // Reset category selection when country changes
   React.useEffect(() => {
-    setSelectedLocalRootCategory('');
-    setSelectedLocalSubcategory('');
+    setSelectedMainCategory('');
+    setSelectedSubcategory('');
     setSelectedCategoryId('');
     setSelectedCategoryPath('');
+    setCurrentSubcategories([]);
     // Update language to default for the new country
     const defaultLang = getDefaultLanguage(country);
     setLanguage(defaultLang);
@@ -319,23 +326,23 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         timestamp: new Date().toISOString()
       });
 
-      // Extract numeric ID from local JSON format (e.g., "baby-products/695338011" -> "695338011")
-      const apiCategoryId = extractNumericCategoryId(selectedCategoryId);
-
       console.log('📦 Using Category ID:', {
-        original: selectedCategoryId,
-        forAPI: apiCategoryId,
-        country: country
+        selectedCategoryId,
+        categoryIdType: typeof selectedCategoryId,
+        country: country,
+        selectedMainCategory,
+        selectedSubcategory,
+        selectedCategoryPath
       });
 
       try {
-        // ✅ Fetch from selected country
+        // ✅ Fetch from selected country - selectedCategoryId is already the subcategory_id
         const result = await getAmazonProductsByCategoryDirect({
-          categoryId: apiCategoryId,
+          categoryId: selectedCategoryId, // ✅ Use selectedCategoryId directly (it's the subcategory_id)
           country: country, // ✅ Use selected country
           page: 1,
           sortBy: 'RELEVANCE',
-          productCondition: 'ALL',
+          productCondition: 'NEW',
           isPrime: false,
           dealsAndDiscounts: 'NONE',
         });
@@ -507,12 +514,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     console.log('🔍 Discover Products clicked:', {
       viewMode,
       selectedCategoryId,
-      selectedLocalSubcategory,
       country,
       selectedType
     });
 
-    if (selectedCategoryId || selectedLocalSubcategory) {
+    if (selectedCategoryId) {
       // If a category is selected, fetch category products
       console.log('📦 Fetching category products...');
       refetchDirectCategoryProducts();
@@ -815,31 +821,29 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                   </select>
                 </div> */}
 
-                {/* Main Category Dropdown */}
+                {/* Main Category Dropdown - Dynamically loaded from API */}
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                    Category
+                    Main Category {categoriesLoading && <span className="text-xs text-gray-500">(Loading...)</span>}
                   </label>
                   <div className="relative">
                     <select
-                      value={selectedLocalRootCategory}
+                      value={selectedMainCategory}
                       onChange={(e) => {
-                        setSelectedLocalRootCategory(e.target.value);
-                        setSelectedLocalSubcategory(''); // Reset subcategory when main category changes
-                        setSelectedCategoryId(''); // Reset category ID
-                        setSelectedCategoryPath(''); // Reset category path
+                        setSelectedMainCategory(e.target.value);
                         setPage(1);
-                        // Don't auto-fetch - wait for user to select subcategory and click Discover Products
+                        // Don't auto-fetch - wait for user to select subcategory and click Discover Products button
                       }}
                       className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                      disabled={categoriesLoading}
                     >
                       <option value="">Select Main Category</option>
-                      {localRootCategories.map((category, index) => (
+                      {mainCategories.map((category: any, index: number) => (
                         <option
-                          key={category.id || index}
-                          value={category.id}
+                          key={category.category || index}
+                          value={category.category}
                         >
-                          {category.name}
+                          {category.category}
                         </option>
                       ))}
                     </select>
@@ -848,25 +852,46 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 </div>
               </div>
 
-              {/* Subcategory Dropdown - Full width below main grid */}
-              {selectedLocalRootCategory && (
+              {/* Subcategory Dropdown - Shows when main category is selected */}
+              {selectedMainCategory && currentSubcategories.length > 0 && (
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
                     Subcategory
                   </label>
                   <div className="relative">
                     <select
-                      value={selectedLocalSubcategory}
+                      value={selectedSubcategory}
                       onChange={(e) => {
-                        setSelectedLocalSubcategory(e.target.value);
-                        setSelectedCategoryId(e.target.value);
+                        const subcategoryName = e.target.value;
+                        setSelectedSubcategory(subcategoryName);
 
-                        // Build category path for display
-                        const subcategories = getSubcategories(selectedLocalRootCategory);
-                        const mainCategoryName = localRootCategories.find(cat => cat.id === selectedLocalRootCategory)?.name || '';
-                        const subcategoryName = subcategories.find(sub => sub.id === e.target.value)?.name || '';
-                        const fullPath = mainCategoryName && subcategoryName ? `${mainCategoryName} > ${subcategoryName}` : '';
-                        setSelectedCategoryPath(fullPath);
+                        // Find the subcategory to get the actual category ID
+                        const subcat = currentSubcategories.find((sub: any) => sub.subcategory_name === subcategoryName);
+                        if (subcat) {
+                          // Extract the subcategory_id from the ids object
+                          // Format: { category_id: "gift-cards", subcategory_id: "120225710011" }
+                          let subcategoryId = '';
+
+                          if (typeof subcat.ids === 'object' && subcat.ids !== null) {
+                            // Extract subcategory_id from the ids object
+                            subcategoryId = subcat.ids.subcategory_id || subcat.ids.id || subcat.ids.category_id || '';
+                          } else if (typeof subcat.ids === 'string') {
+                            subcategoryId = subcat.ids;
+                          } else {
+                            subcategoryId = String(subcat.ids);
+                          }
+
+                          setSelectedCategoryId(subcategoryId);
+                          setSelectedCategoryPath(`${selectedMainCategory} > ${subcategoryName}`);
+                          console.log('✅ Subcategory selected:', {
+                            subcategoryName,
+                            subcatObject: subcat,
+                            idsField: subcat.ids,
+                            idsType: typeof subcat.ids,
+                            extractedSubcategoryId: subcategoryId,
+                            path: `${selectedMainCategory} > ${subcategoryName}`
+                          });
+                        }
 
                         setPage(1);
                         // Don't auto-fetch - wait for user to click Discover Products button
@@ -874,12 +899,12 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                       className="w-full px-4 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
                     >
                       <option value="">Select Subcategory</option>
-                      {getSubcategories(selectedLocalRootCategory).map((subcategory, index) => (
+                      {currentSubcategories.map((subcategory: any, index: number) => (
                         <option
-                          key={subcategory.id || index}
-                          value={subcategory.id}
+                          key={subcategory.subcategory_name || index}
+                          value={subcategory.subcategory_name}
                         >
-                          {subcategory.name}
+                          {subcategory.subcategory_name}
                         </option>
                       ))}
                     </select>
@@ -957,11 +982,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               <div className="flex justify-center mt-4">
                 <button
                   onClick={handleDiscoverProducts}
-                  disabled={bestSellersLoading || directCategoryProductsLoading || !selectedLocalSubcategory}
+                  disabled={bestSellersLoading || directCategoryProductsLoading || !selectedCategoryId}
                   className="bg-gradient-to-r from-[#ffa41c] to-[#ff6201] dark:bg-orange-600 text-white py-3 px-6 rounded-lg hover:from-[#ffa41c] hover:to-[#ff6201] dark:hover:bg-orange-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <Package className="w-4 h-4" />
-                  {selectedCategoryId || selectedLocalSubcategory ? 'Discover Trending Products' : 'Discover Trending Products'}
+                  {selectedCategoryId ? 'Discover Trending Products' : 'Discover Trending Products'}
                 </button>
               </div>
 
@@ -990,7 +1015,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         Category Selected
                       </span>
                       <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                        {selectedCategoryPath || bestSellerCategories.find(cat => cat.category_path === selectedCategoryId)?.name || 'Selected Category'}
+                        {selectedCategoryPath || 'Selected Category'}
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                         {AMAZON_COUNTRIES.find(c => c.value === country)?.label || country}
@@ -1001,10 +1026,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                     </div>
                     <button
                       onClick={() => {
+                        setSelectedMainCategory('');
+                        setSelectedSubcategory('');
                         setSelectedCategoryId('');
                         setSelectedCategoryPath('');
-                        setSelectedLocalRootCategory('');
-                        setSelectedLocalSubcategory('');
+                        setCurrentSubcategories([]);
                         setViewMode('best-sellers');
                         setPage(1);
                         // ✅ Don't auto-fetch - user needs to click "Discover Products" button

@@ -138,6 +138,7 @@ export interface SupplierInfo {
   // Additional optional properties
   price_per_unit?: string;
   minimum_order?: number;
+  supplier_product_image?: string; // Supplier's product image from Alibaba
 }
 
 export interface SupplierDiscoveryResponse {
@@ -534,20 +535,27 @@ export const discoverSuppliers = async (productData: {
 
     console.log('🔍 Store Evaluates:', storeEvaluates);
 
-    // Parse storeEvaluates for rating, response rate, and transactions
+    // ✅ Extract "All Product Review" rating from storeEvaluates[4]
+    if (storeEvaluates.length > 4 && storeEvaluates[4]) {
+      const allProductReview = storeEvaluates[4];
+      const score = allProductReview.score || '';
+      console.log('🌟 All Product Review (storeEvaluates[4]):', allProductReview);
+
+      // Extract rating (e.g., "4.5" or "5.0")
+      const ratingMatch = score.match(/([\d.]+)/);
+      if (ratingMatch) {
+        rating = parseFloat(ratingMatch[1]);
+      }
+    }
+
+    // Parse storeEvaluates for response rate and transactions
     storeEvaluates.forEach((evaluate: any) => {
       const title = evaluate.title?.toLowerCase() || '';
       const score = evaluate.score || '';
 
       console.log('🔍 Evaluate:', { title, score });
 
-      if (title.includes('rating') || title.includes('score')) {
-        // Extract rating (e.g., "4.5/5.0" or "4.5")
-        const ratingMatch = score.match(/([\d.]+)/);
-        if (ratingMatch) {
-          rating = parseFloat(ratingMatch[1]);
-        }
-      } else if (title.includes('response') || title.includes('reply')) {
+      if (title.includes('response') || title.includes('reply')) {
         // Extract response rate (e.g., "95%" or "95")
         responseRate = score.includes('%') ? score : `${score}%`;
       } else if (title.includes('transaction') || title.includes('order')) {
@@ -558,6 +566,9 @@ export const discoverSuppliers = async (productData: {
         }
       }
     });
+
+    // ✅ Extract supplier product image from item.image
+    const supplierProductImage = item.image || item.images?.[0] || '';
 
     return {
       id: item.itemId || item.id || '',
@@ -584,6 +595,7 @@ export const discoverSuppliers = async (productData: {
       total_transactions: totalTransactions,
       price_per_unit: firstPrice.priceFormatted || priceModule.priceFormatted,
       minimum_order: minOrder.quantity,
+      supplier_product_image: supplierProductImage, // ✅ Supplier's product image from Alibaba
       // ✅ Colorful Badge Properties - EXACT COPY from BlueRitt Explorer
       is_gold: company.status?.gold || false,
       verified_pro: false, // Not available in Alibaba API

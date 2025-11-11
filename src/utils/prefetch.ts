@@ -6,6 +6,10 @@ import { startTransition } from 'react';
 
 export const prefetchUserQuotaData = async (queryClient: QueryClient) => {
   try {
+    // ✅ DISABLED PREFETCHING - Always fetch fresh quota data from database
+    // This ensures users always see the correct, up-to-date quota values
+    // without any caching issues
+
     // Check if user is authenticated before prefetching
     const accessToken = localStorage.getItem('access_token');
     if (!accessToken) {
@@ -13,18 +17,11 @@ export const prefetchUserQuotaData = async (queryClient: QueryClient) => {
       return;
     }
 
-    const existingData = queryClient.getQueryData(['user', 'subscription', 'search_quota']);
-
-    if (!existingData) {
-      const response = await api.get('/auth/me/');
-      const data = response.data;
-
-      queryClient.setQueryData(['user', 'subscription', 'search_quota'], data);
-
-      console.log('Prefetched user quota data successfully');
-    }
+    // ✅ DO NOT PREFETCH - Let the useUserSubscriptionAndSearchQuota hook fetch fresh data
+    // This prevents showing stale/cached quota values
+    console.log('⚠️  Quota prefetching disabled - will fetch fresh data on component mount');
   } catch (error) {
-    console.error('Error prefetching user quota data:', error);
+    console.error('Error in prefetchUserQuotaData:', error);
   }
 };
 

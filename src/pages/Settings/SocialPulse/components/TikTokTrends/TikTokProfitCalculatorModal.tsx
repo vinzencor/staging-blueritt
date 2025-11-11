@@ -398,10 +398,17 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
         years_in_business: supplier.years_in_business || 0,
         main_products: supplier.main_products || '',
         certifications: supplier.certifications || [],
-        trade_assurance: supplier.trade_assurance || false,
+        supplier_product_image: supplier.supplier_product_image || '', // ✅ Supplier's product image from Alibaba
         contact_method: supplier.contact_method || '',
         contact_url: supplier.contact_url || '',
         match_explanation: supplier.match_explanation || '',
+        // ✅ ALL Verification Badge Fields - Required for Product Vault Display
+        trade_assurance: supplier.trade_assurance || false,
+        verified_supplier: supplier.verified_supplier || false,
+        is_gold: supplier.is_gold || false,
+        verified_pro: supplier.verified_pro || false,
+        alibaba_guaranteed: supplier.alibaba_guaranteed || false,
+        is_assessed: supplier.is_assessed || false,
       },
 
       // Product Information (MarginMax Basic format)

@@ -11,7 +11,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
-import { getTikTokTrendingProducts, discoverSuppliers, type SupplierInfo, getTikTokShopAnalysis, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse } from '../../../../../api/tiktokTrends';
+import { getTikTokTrendingProducts, discoverSuppliers, type SupplierInfo, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse } from '../../../../../api/tiktokTrends';
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 import { fetchPexelsFallbackImage, extractCategoryName } from '../../../../../utils/pexelsImageFallback'; // Now uses Freepik API
 import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
@@ -52,9 +52,9 @@ const TIKTOK_CATEGORIES = [
 
 // Time range options
 const TIME_RANGES = [
-  { value: '1', label: 'Last 30 Days' },
-  { value: '7', label: 'Last 90 days' },
-  { value: '30', label: 'Last 180 days' },
+  { value: '1', label: 'Yesterday' },
+  { value: '7', label: 'This Week' },
+  { value: '30', label: 'This Month' },
 ];
 
 // Sort options
@@ -210,13 +210,15 @@ const fetchTikTokTrendingProducts = async (params: {
     const fetchPage = async (pageNum: number) => {
       const apiParams = {
         page: pageNum.toString(),
+        country_code: params.country_code || 'US', // ✅ Use country_code parameter (matches backend)
         ...(params.category_id && { category_id: params.category_id }),
         ...(params.last && { last: params.last }),
         ...(params.order_by && { order_by: params.order_by }),
         ...(params.order_type && { order_type: params.order_type }),
         ...(params.keyword && { keyword: params.keyword }),
-        ...(params.country_code && { country: params.country_code })
       };
+
+      console.log(`🌍 Fetching Page ${pageNum} with country_code:`, params.country_code, 'Full API Params:', JSON.stringify(apiParams, null, 2));
 
       try {
         // ✅ Call backend endpoint instead of RapidAPI directly
@@ -343,8 +345,8 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierInfo | null>(null);
   const [showProfitCalculator, setShowProfitCalculator] = useState(false);
 
-  // Shop analysis state
-  const [shopAnalysisData, setShopAnalysisData] = useState<TikTokShopAnalysisResponse | null>(null);
+  // ✅ Shop analysis state - feature disabled to prevent quota deduction, but keeping state to avoid UI errors
+  const [shopAnalysisData, setShopAnalysisData] = useState<any>(null);
   const [isShopAnalysisLoading, setIsShopAnalysisLoading] = useState(false);
   const [shopAnalysisError, setShopAnalysisError] = useState<string | null>(null);
 
@@ -363,8 +365,11 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   // Add a fetch counter to create unique query keys only when button is clicked
   const [fetchCounter, setFetchCounter] = useState(0);
 
-  // Track last quota update to prevent duplicate updates
-  const lastQuotaUpdateRef = useRef<number | null>(null);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 12;
+
+
 
   // TikTok API Query - Only fetch when shouldFetch is true
   const {
@@ -372,9 +377,17 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     isLoading: tiktokLoading,
     error: tiktokError,
   } = useQuery({
-    queryKey: ['tiktok-trending', fetchCounter], // Only change when button is clicked
+    queryKey: ['tiktok-trending', selectedCategory, selectedCountry, selectedTimeRange, selectedSortBy, selectedSortOrder, searchKeyword, fetchCounter], // Include all parameters to prevent wrong cached data
     queryFn: () => {
-      console.log('🔥 QUERY FUNCTION EXECUTING - fetchCounter:', fetchCounter);
+      console.log('🔥 QUERY FUNCTION EXECUTING:', {
+        fetchCounter,
+        category: selectedCategory,
+        country: selectedCountry,
+        timeRange: selectedTimeRange,
+        sortBy: selectedSortBy,
+        sortOrder: selectedSortOrder,
+        keyword: searchKeyword
+      });
       return fetchTikTokTrendingProducts({
         category_id: selectedCategory || undefined,
         last: selectedTimeRange,
@@ -397,28 +410,17 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
   // Update quota when API response comes back and reset shouldFetch
   useEffect(() => {
-    if (tiktokData?.remaining_quota !== undefined && tiktokData?.remaining_quota !== null) {
-      console.log('📊 Quota update check:', {
-        current: lastQuotaUpdateRef.current,
-        new: tiktokData.remaining_quota,
-        shouldFetch: shouldFetch,
-        tiktokLoading: tiktokLoading
-      });
+    // ✅ DISABLED: Do NOT update quota from TikTok API responses
+    // The quota is already updated by the backend and returned in the response
+    // Updating it here causes race conditions and quota toggling issues
+    // The quota hook will fetch the correct value from /auth/me/ endpoint
 
-      // Update quota if it has changed
-      if (lastQuotaUpdateRef.current !== tiktokData.remaining_quota) {
-        console.log('📊 Updating quota:', lastQuotaUpdateRef.current, '→', tiktokData.remaining_quota);
-        lastQuotaUpdateRef.current = tiktokData.remaining_quota;
-        updateTikTokSearchQuota(tiktokData.remaining_quota);
-      }
-    }
-
-    // Always reset shouldFetch after data is received (whether quota changed or not)
+    // Always reset shouldFetch after data is received
     if (tiktokData && !tiktokLoading && shouldFetch) {
       console.log('✅ Data received, resetting shouldFetch to false');
       setShouldFetch(false);
     }
-  }, [tiktokData, tiktokLoading, shouldFetch, updateTikTokSearchQuota]);
+  }, [tiktokData, tiktokLoading, shouldFetch]);
 
   // Debug logging for data structure
   useEffect(() => {
@@ -482,6 +484,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     // Set shouldFetch to true and increment counter to trigger new query
     console.log('🚀 Triggering API call with button click');
     console.log('🚀 Setting shouldFetch to TRUE');
+    setCurrentPage(1); // ✅ Reset to first page when fetching new data
     setShouldFetch(true);
     setFetchCounter(prev => {
       const newCounter = prev + 1;
@@ -514,13 +517,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       const response = await api.get('/products/tiktok-trends/hashtags/', { params });
       const data = response.data;
       console.log('✅ Trending Hashtags API response:', data);
+      console.log('📊 Cache hit:', data.cache_hit ? 'YES (no quota deducted)' : 'NO (quota deducted)');
 
-      // ✅ Update quota from backend response (handles cache hit/miss automatically)
-      if (data.remaining_quota !== undefined) {
-        console.log('🔄 Hashtag Discovery - Updating quota from backend:', data.remaining_quota);
-        console.log('📊 Cache hit:', data.cache_hit ? 'YES (no quota deducted)' : 'NO (quota deducted)');
-        updateTikTokSearchQuota(data.remaining_quota);
-      }
+      // ✅ DISABLED: Do NOT update quota here - it causes race conditions
+      // The quota hook will automatically fetch the updated value from /auth/me/
 
       // Handle the API response structure: data.data.list
       if (data.data && data.data.list && Array.isArray(data.data.list)) {
@@ -547,15 +547,12 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     // Reset supplier state when opening new product
     setSuppliers([]);
     setSupplierAnalysisTime(0);
-    // Reset shop analysis state
-    setShopAnalysisData(null);
-    setShopAnalysisError(null);
     // Reset creative center state
     setCreativeCenterData(null);
 
     // Check quota before making API call
     if (quotaDetails.quotaValue <= 0) {
-      setShopAnalysisError('Search quota exceeded. Please upgrade your plan or wait for quota reset.');
+      console.error('Search quota exceeded. Please upgrade your plan or wait for quota reset.');
       return;
     }
 
@@ -596,38 +593,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       });
     }
 
-    // Fetch shop analysis data if third_ecom_category is available
-    if (product.third_ecom_category?.id) {
-      console.log('🛍️ Fetching shop analysis for category:', product.third_ecom_category.id);
-      setIsShopAnalysisLoading(true);
-
-      try {
-        console.log('🔍 Using category ID:', product.third_ecom_category.id);
-        console.log('📝 Category name:', product.third_ecom_category.value);
-        console.log('📦 Product title:', product.url_title);
-
-        // Pass product title as keyword for better filtering
-        const shopData = await getTikTokShopAnalysis(
-          product.third_ecom_category.id,
-          product.url_title || product.title
-        );
-
-        // Update quota after successful API call (shop analysis uses TikTok search quota)
-        updateTikTokSearchQuota(tiktokSearchQuotaDetails.quotaValue - 1);
-
-        setShopAnalysisData(shopData);
-        console.log('✅ Shop analysis data loaded:', shopData);
-        console.log('📊 Quota updated after TikTok Shop search');
-      } catch (error) {
-        console.error('❌ Error fetching shop analysis:', error);
-        setShopAnalysisError(`Failed to load shop analysis data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      } finally {
-        setIsShopAnalysisLoading(false);
-      }
-    } else {
-      console.log('⚠️ No third_ecom_category.id found for shop analysis');
-      setShopAnalysisError('Product category not available for shop analysis');
-    }
+    // ✅ DISABLED: Shop analysis feature removed to prevent quota deduction on view details
+    // Shop analysis was calling the search API which deducts quota unnecessarily
+    // If needed in future, create a separate endpoint that doesn't deduct quota
+    console.log('ℹ️ Shop analysis feature disabled - not needed for product details');
   };
 
   const handleCloseModal = () => {
@@ -1139,9 +1108,15 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {/* Display Direct API products first (fresh data), then database products */}
                   {(() => {
-                    const productsToRender = tiktokData.data?.list || tiktokData.data?.products || [];
-                    console.log('🎨 RENDERING PRODUCTS:', productsToRender.length, 'products');
-                    console.log('🎨 Products array:', productsToRender);
+                    const allProducts = tiktokData.data?.list || tiktokData.data?.products || [];
+                    console.log('🎨 TOTAL PRODUCTS:', allProducts.length, 'products');
+
+                    // Calculate pagination
+                    const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+                    const endIndex = startIndex + PRODUCTS_PER_PAGE;
+                    const productsToRender = allProducts.slice(startIndex, endIndex);
+
+                    console.log('🎨 RENDERING PAGE:', currentPage, 'Products:', productsToRender.length, `(${startIndex + 1}-${Math.min(endIndex, allProducts.length)} of ${allProducts.length})`);
                     return productsToRender;
                   })().map((product: any, index: number) => (
                     <div
@@ -1247,6 +1222,104 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                     </div>
                   ))}
                 </div>
+
+                {/* Pagination Controls */}
+                {(() => {
+                  const allProducts = tiktokData.data?.list || tiktokData.data?.products || [];
+                  const totalPages = Math.ceil(allProducts.length / PRODUCTS_PER_PAGE);
+
+                  // Only show pagination if there are more than 12 products
+                  if (allProducts.length <= PRODUCTS_PER_PAGE) {
+                    return null;
+                  }
+
+                  return (
+                    <div className="flex items-center justify-center gap-2 mt-8 pb-6">
+                      {/* Previous Button */}
+                      <button
+                        onClick={() => {
+                          setCurrentPage(prev => Math.max(1, prev - 1));
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        disabled={currentPage === 1}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+                          currentPage === 1
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Previous
+                      </button>
+
+                      {/* Page Numbers */}
+                      <div className="flex items-center gap-2">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                          // Show first page, last page, current page, and pages around current
+                          const showPage =
+                            pageNum === 1 ||
+                            pageNum === totalPages ||
+                            (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+
+                          if (!showPage) {
+                            // Show ellipsis
+                            if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                              return (
+                                <span key={pageNum} className="px-2 text-gray-400 dark:text-gray-500">
+                                  ...
+                                </span>
+                              );
+                            }
+                            return null;
+                          }
+
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => {
+                                setCurrentPage(pageNum);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                                currentPage === pageNum
+                                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg'
+                                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Next Button */}
+                      <button
+                        onClick={() => {
+                          setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        disabled={currentPage === totalPages}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+                          currentPage === totalPages
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        Next
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+
+                      {/* Page Info */}
+                      <div className="ml-4 text-sm text-gray-600 dark:text-gray-400">
+                        Page {currentPage} of {totalPages} ({allProducts.length} products)
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -1301,7 +1374,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                TikTok Product Details
+                {activeModalTab === 'suppliers' ? 'TikTok Product Suppliers' : 'TikTok Product Details'}
               </h2>
               <button
                 onClick={handleCloseModal}
@@ -1362,15 +1435,28 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
               </div>
 
               <div className="flex items-center gap-3">
-                {/* Discover Suppliers Button */}
-                <button
-                  onClick={handleDiscoverSuppliers}
-                  disabled={isSupplierDiscoveryLoading}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  <Zap className="w-4 h-4" />
-                  {isSupplierDiscoveryLoading ? 'Analyzing...' : suppliers.length > 0 ? 'Discover More Suppliers' : 'Discover Suppliers'}
-                </button>
+                {/* Discover Suppliers Button - Only show if suppliers not discovered yet */}
+                {suppliers.length === 0 && (
+                  <button
+                    onClick={handleDiscoverSuppliers}
+                    disabled={isSupplierDiscoveryLoading}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <Zap className="w-4 h-4" />
+                    {isSupplierDiscoveryLoading ? 'Analyzing...' : 'Discover Suppliers'}
+                  </button>
+                )}
+
+                {/* Show disabled button after suppliers are discovered */}
+                {suppliers.length > 0 && (
+                  <button
+                    disabled
+                    className="bg-gray-400 text-white px-4 py-2 rounded-lg cursor-not-allowed flex items-center gap-2 opacity-60"
+                  >
+                    <Zap className="w-4 h-4" />
+                    Suppliers Discovered
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1922,7 +2008,8 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     verifiedCount: displaySuppliers.filter(s => s.verification_status?.toLowerCase() !== 'unverified').length,
     unverifiedCount: displaySuppliers.filter(s => s.verification_status?.toLowerCase() === 'unverified').length,
     isLoading,
-    analysisTime
+    analysisTime,
+    hasProduct: !!product
   });
 
   if (isLoading) {
@@ -1930,10 +2017,10 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="w-12 h-12 text-purple-600 animate-spin mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          Discovering Suppliers...
+          Analyzing the Product, Discovering Verified Suppliers and Computing the AI Match Score
         </h3>
         <p className="text-gray-600 dark:text-gray-300 text-center max-w-md">
-          Our AI is analyzing the product and finding the best suppliers for you. This may take a few moments.
+          This process may take 30–45 seconds. Please wait while our AI engine generates the results
         </p>
       </div>
     );
@@ -1954,22 +2041,97 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
   }
 
   return (
-    <div className="space-y-6">
-      {/* Analysis Summary */}
-      <div className="bg-gradient-to-r from-orange-50 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/30 rounded-lg p-4 border border-orange-100 dark:border-purple-700">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-          Supplier Analysis Complete
-        </h3>
-        <div className="text-sm text-gray-600 dark:text-gray-300">
-          <p>Found {displaySuppliers.length} suppliers in {analysisTime}s</p>
-          <p>Suppliers are ranked by AI match score and verification status</p>
+    <div className="flex gap-6 h-[calc(90vh-300px)]">
+      {/* Left Side - Product Details (Fixed) */}
+      <div className="w-1/3 flex-shrink-0">
+        <div className="sticky top-0 bg-white dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-purple-600 p-6 shadow-lg">
+          {/* Product Image */}
+          <div className="mb-4">
+            <ProductImageWithFallback product={product} className="rounded-xl w-full" />
+          </div>
+
+          {/* Product Title */}
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
+            {product?.url_title || 'TikTok Product'}
+          </h3>
+
+          {/* Category */}
+          {product?.first_ecom_category && (
+            <div className="mb-4">
+              <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-3 py-1.5 rounded-full text-sm font-medium">
+                {product.first_ecom_category.value}
+              </span>
+            </div>
+          )}
+
+          {/* Key Metrics */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {product?.ctr !== undefined && product.ctr > 0 && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center border border-blue-200 dark:border-blue-800">
+                <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">CTR</div>
+                <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{product.ctr.toFixed(2)}%</div>
+              </div>
+            )}
+            {product?.cvr !== undefined && product.cvr > 0 && (
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center border border-green-200 dark:border-green-800">
+                <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-1">CVR</div>
+                <div className="text-lg font-bold text-green-700 dark:text-green-300">{product.cvr.toFixed(2)}%</div>
+              </div>
+            )}
+            {product?.cpa !== undefined && product.cpa > 0 && (
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center border border-purple-200 dark:border-purple-800">
+                <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">CPA</div>
+                <div className="text-lg font-bold text-purple-700 dark:text-purple-300">${product.cpa.toFixed(2)}</div>
+              </div>
+            )}
+            {product?.impression !== undefined && product.impression > 0 && (
+              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 text-center border border-orange-200 dark:border-orange-800">
+                <div className="text-xs text-orange-600 dark:text-orange-400 font-medium mb-1">Views</div>
+                <div className="text-lg font-bold text-orange-700 dark:text-orange-300">
+                  {product.impression >= 1000000
+                    ? `${(product.impression / 1000000).toFixed(1)}M`
+                    : product.impression >= 1000
+                    ? `${(product.impression / 1000).toFixed(1)}K`
+                    : product.impression}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Analysis Summary */}
+          <div className="bg-gradient-to-r from-orange-50 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/30 rounded-lg p-4 border border-orange-100 dark:border-purple-700">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2 text-sm">
+              Supplier Analysis
+            </h4>
+            <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
+              <p>✓ Found {displaySuppliers.length} suppliers</p>
+              <p>✓ Analysis time: {analysisTime}s</p>
+              <p>✓ Ranked by AI match score</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Suppliers List */}
-      <div className="space-y-4">
+      {/* Right Side - Suppliers List (Scrollable) */}
+      <div className="flex-1 overflow-y-auto pr-2">
+        <div className="space-y-4">
         {displaySuppliers.map((supplier) => (
           <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
+            {/* ✅ Supplier Product Image */}
+            {supplier.supplier_product_image && (
+              <div className="mb-4">
+                <img
+                  src={supplier.supplier_product_image}
+                  alt={supplier.name}
+                  className="w-full h-48 object-cover rounded-lg"
+                  onError={(e) => {
+                    // Hide image if it fails to load
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+
             {/* Header with Name, Verification, and AI Score */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1 min-w-0 pr-4">
@@ -2085,7 +2247,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             </div>
 
             {/* Key Details Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
               <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
                 <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">MOQ</div>
                 <div className="font-semibold text-gray-900 dark:text-white">
@@ -2108,6 +2270,25 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                 <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Response Rate</div>
                 <div className="font-semibold text-gray-900 dark:text-white">
                   {supplier.response_rate}
+                </div>
+              </div>
+              {/* ✅ Star Rating Display */}
+              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Supplier Rating</div>
+                <div className="flex items-center justify-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-4 h-4 ${
+                        star <= (supplier.rating || 0)
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'fill-gray-300 text-gray-300 dark:fill-gray-500 dark:text-gray-500'
+                      }`}
+                    />
+                  ))}
+                  <span className="ml-1 text-xs font-semibold text-gray-900 dark:text-white">
+                    {supplier.rating ? supplier.rating.toFixed(1) : '0.0'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -2170,6 +2351,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             )}
           </div>
         ))}
+        </div>
       </div>
     </div>
   );

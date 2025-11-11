@@ -179,7 +179,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
   const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
   const [hashtagsError, setHashtagsError] = useState<string | null>(null);
   const [hashtagPeriod, setHashtagPeriod] = useState('120');
-  const [hashtagCountry, setHashtagCountry] = useState('GB'); // ✅ Default to UK
+  const [hashtagCountry, setHashtagCountry] = useState('GB'); // ? Default to UK
   const [hashtagIndustry, setHashtagIndustry] = useState('');
 
   // Determine if we're on TikTok page
@@ -217,16 +217,17 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         period: hashtagPeriod,
         country: hashtagCountry,
         sort_by: 'popular',
+        ...(hashtagIndustry && { industry_id: hashtagIndustry })
       };
 
-      // ✅ Call backend endpoint with 7-day caching and quota deduction
+      // ? Call backend endpoint with 7-day caching and quota deduction
       const response = await api.get('/products/tiktok-trends/hashtags/', { params });
       const data = response.data;
 
-      // ✅ Update quota from backend response (handles cache hit/miss automatically)
+      // ? Update quota from backend response (handles cache hit/miss automatically)
       if (data.remaining_quota !== undefined) {
-        console.log('🔄 Hashtag Discovery - Updating quota from backend:', data.remaining_quota);
-        console.log('📊 Cache hit:', data.cache_hit ? 'YES (no quota deducted)' : 'NO (quota deducted)');
+        console.log('?? Hashtag Discovery - Updating quota from backend:', data.remaining_quota);
+        console.log('?? Cache hit:', data.cache_hit ? 'YES (no quota deducted)' : 'NO (quota deducted)');
         updateHashtagQuota(data.remaining_quota);
       }
 
@@ -278,7 +279,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
             </div>
             <div className="text-right">
               <div className="text-lg xl:text-xl font-bold text-pink-600 dark:text-pink-400">
-                {hashtagQuotaDetails.quotaValue === -1 ? '∞' : hashtagQuotaDetails.quotaValue}
+                {hashtagQuotaDetails.quotaValue === -1 ? '8' : hashtagQuotaDetails.quotaValue}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400">
                 remaining

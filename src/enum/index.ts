@@ -2,7 +2,7 @@ export enum QuotaNames {
     AmazonSearch = "amazon_search",
     TikTokSearches = "tiktok_searches",  // ✅ TikTok Trends Searches (matches backend field name - singular)
     TikTokHashtagSearch = "tiktok_hashtag_search",  // ✅ Separate quota for TikTok Trending Hashtags
-    SupplierDiscovery = "supplier_discovery",
+    SupplierDiscovery = "alibaba_match_per_product",  // ✅ CHANGED: Now uses alibaba_match_per_product for all supplier discovery
     NoOfGrossProfitCalculations = "no_of_gross_profit_calculations",
     NoOfNetProfitCalculations = "no_of_net_profit_calculations",
     AlibabaMatchPerProduct = "alibaba_match_per_product",

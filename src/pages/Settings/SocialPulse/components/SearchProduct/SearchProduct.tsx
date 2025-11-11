@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Stepper from "@/components/common/Stepper";
 import { Search, SlidersHorizontal } from "lucide-react";
 import Drawer from "@mui/material/Drawer";
@@ -6,6 +7,7 @@ import { Options, TSearchFilters } from "../../index";
 import { toast } from "react-toastify";
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 import { COUNTRY_OPTIONS } from '@/utils/constants';
+import { getAmazonCategoryList } from '@/api/amazonTrends';
 import {
   Select,
   SelectContent,
@@ -52,12 +54,37 @@ const SearchProducts: React.FC<TSearchProductsProps> = ({
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("");
   const [localRootCategories, setLocalRootCategories] = useState<AmazonCategoryItem[]>([]);
 
-  // Load local Amazon categories on mount
+  // ✅ Fetch categories from API based on country selection
+  const {
+    data: apiCategories,
+    isLoading: categoriesLoading,
+    error: categoriesError,
+    refetch: refetchCategories
+  } = useQuery({
+    queryKey: ['amazon-trends-categories', country],
+    queryFn: async () => {
+      console.log('🌍 Fetching Amazon categories for country:', country);
+      const result = await getAmazonCategoryList({ country });
+      console.log('✅ Categories fetched for country:', country, 'Total:', result?.data?.length || 0);
+      return result;
+    },
+    enabled: true,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+
+  // Load local Amazon categories on mount as fallback
   useEffect(() => {
     const { rootCategories } = loadAmazonCategories();
     setLocalRootCategories(rootCategories);
     console.log('📁 Loaded local Amazon categories:', rootCategories.length);
   }, []);
+
+  // Reset category selection when country changes
+  useEffect(() => {
+    setSelectedCategory('');
+    setSelectedSubcategory('');
+    console.log('🌍 Country changed to:', country, '- Resetting category selection');
+  }, [country]);
 
   // Get subcategories for selected category
   const subcategoriesList = useMemo(() => {
@@ -229,28 +256,34 @@ const SearchProducts: React.FC<TSearchProductsProps> = ({
                 <Select value={selectedCategory} onValueChange={(value) => {
                   setSelectedCategory(value);
                   setSelectedSubcategory(''); // Reset subcategory when category changes
-                }}>
+                }} disabled={categoriesLoading}>
                   <SelectTrigger className="h-[45px] w-full px-3 text-sm">
-                    <SelectValue placeholder="Select Category" />
+                    <SelectValue placeholder={categoriesLoading ? "Loading categories..." : "Select Category"} />
                   </SelectTrigger>
                   <SelectContent className="w-full box py-3">
                     <SelectGroup className="flex flex-col gap-3">
                       <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
-                        {localRootCategories.map((cat) => (
-                          <SelectItem
-                            key={cat.id}
-                            className="cursor-pointer"
-                            value={cat.id}
-                          >
-                            {cat.name}
-                          </SelectItem>
-                        ))}
+                        {categoriesLoading ? (
+                          <div className="p-2 text-sm text-gray-500">Loading categories...</div>
+                        ) : categoriesError ? (
+                          <div className="p-2 text-sm text-red-500">Error loading categories</div>
+                        ) : (
+                          localRootCategories.map((cat) => (
+                            <SelectItem
+                              key={cat.id}
+                              className="cursor-pointer"
+                              value={cat.id}
+                            >
+                              {cat.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </div>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic px-1">
-                  Main Category
+                  Main Category {categoriesLoading && '(Loading...)'}
                 </p>
               </div>
 

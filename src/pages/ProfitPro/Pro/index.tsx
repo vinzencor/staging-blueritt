@@ -1555,7 +1555,7 @@ const ProProfitPro = () => {
                               return;
                             }
                             productDetailRefetch();
-                            updateQuota(quotaDetails.quotaValue - 1);
+                            // ✅ Quota will be updated from backend response - no hardcoded calculation
                           }}
                           disabled={
                             !quotaDetails.quotaValue ||

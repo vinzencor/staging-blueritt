@@ -541,6 +541,7 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
         lead_time: selectedSupplier.lead_time || '7-14 days',
         response_rate: selectedSupplier.response_rate || '95%',
         verification_status: selectedSupplier.verification_status || 'Verified',
+        supplier_product_image: selectedSupplier.supplier_product_image || '', // ✅ Supplier's product image from Alibaba
       },
 
       // alibaba_product: Backend expects this field (JSONField in Product model)
@@ -559,6 +560,7 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
           lead_time: selectedSupplier.lead_time || '7-14 days',
           response_rate: selectedSupplier.response_rate || '95%',
           verification_status: selectedSupplier.verification_status || 'Verified',
+          supplier_product_image: selectedSupplier.supplier_product_image || '', // ✅ Supplier's product image from Alibaba
         },
         source: 'amazon_explorer',
         saved_at: new Date().toISOString(),
@@ -1162,10 +1164,10 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-6"></div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Discovering Suppliers...
+          Analyzing the Product, Discovering Verified Suppliers and Computing the AI Match Score
         </h3>
         <p className="text-gray-600 mb-4">
-          Our AI is analyzing global suppliers to find the best matches for this product.
+          This process may take 30–45 seconds. Please wait while our AI engine generates the results
         </p>
         <div className="bg-blue-50 rounded-lg p-4 max-w-md mx-auto">
           <div className="flex items-center gap-2 text-blue-700">
