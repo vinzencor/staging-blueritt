@@ -16,7 +16,7 @@ const AddOnsChoiceModalAmazon: React.FC<AddOnsChoiceModalAmazonProps> = ({ isOpe
     // Close modal first
     onClose();
     // Navigate to Subscription page with "Purchase Add-ons" tab active
-    navigate('/settings/subscription', { state: { activeTab: 'Purchase Add-ons' } });
+    navigate('/settings/subscription', { state: { activeTab: 'Purchase Add-ons' } });
   };
 
   const handleUpdateSubscription = () => {

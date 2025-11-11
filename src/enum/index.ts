@@ -8,13 +8,8 @@ export enum QuotaNames {
     AlibabaMatchPerProduct = "alibaba_match_per_product",
     NoOfCustomerReview = "no_of_customer_review",
     NoOfProductOffer = "no_of_product_offer",
-    // Amazon Trends
-    AmazonTrendsSearch = "amazon_trends_search",
-    AmazonTrendsBestSellers = "amazon_trends_best_sellers",
-    AmazonTrendsCategory = "amazon_trends_category",
-    AmazonTrendsProductDetails = "amazon_trends_product_details",
-    AmazonTrendsProductReviews = "amazon_trends_product_reviews",
-    AmazonTrendsProductOffers = "amazon_trends_product_offers",
+    // Amazon Trends - Single quota for all Amazon Trends operations
+    AmazonSearchTrends = "amazon_search_trends",  // ✅ Single quota for all Amazon Trends (search, best sellers, trending, category)
     // Amazon Explorer
     AmazonExplorerSearch = "amazon_explorer_search",
     AmazonExplorerBestSellers = "amazon_explorer_best_sellers",

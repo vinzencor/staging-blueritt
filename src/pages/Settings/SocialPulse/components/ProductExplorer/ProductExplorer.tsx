@@ -159,7 +159,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
 
   // Amazon Trends Types
   const amazonTrendsTypes = [
-    { value: 'BEST_SELLERS', name: 'Best Sellers', description: 'Top selling products' },
+    { value: 'BEST_SELLERS', name: 'Trending Products', description: 'Top selling products' },
     { value: 'GIFT_IDEAS', name: 'Gift Ideas', description: 'Popular gift suggestions' },
     { value: 'MOST_WISHED_FOR', name: 'Most Wished For', description: 'Most wanted items' },
     { value: 'MOVERS_AND_SHAKERS', name: 'Movers & Shakers', description: 'Trending up products' },

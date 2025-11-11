@@ -688,7 +688,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
               <Calculator className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">TikTok Profit Calculator</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">BlueRitt MarginMax</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">Complete profit analysis with all cost categories</p>
             </div>
           </div>
@@ -707,17 +707,17 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
             <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
               <p className="text-xs font-semibold text-green-600 dark:text-green-400 mb-1">Gross Profit</p>
               <p className="text-lg font-bold text-green-900 dark:text-green-100">${calculation.grossProfit.toFixed(2)}</p>
-              <p className="text-xs text-green-700 dark:text-green-300">{calculation.grossProfitMargin.toFixed(1)}%</p>
+              <p className="text-xs text-green-700 dark:text-green-300">{calculation.grossProfitMargin.toFixed(2)}%</p>
             </div>
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
               <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">Net Profit (Before Tax)</p>
               <p className="text-lg font-bold text-blue-900 dark:text-blue-100">${calculation.netProfitBeforeTaxes.toFixed(2)}</p>
-              <p className="text-xs text-blue-700 dark:text-blue-300">{calculation.netProfitBeforeTaxesMargin.toFixed(1)}%</p>
+              <p className="text-xs text-blue-700 dark:text-blue-300">{calculation.netProfitBeforeTaxesMargin.toFixed(2)}%</p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
               <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">Net Profit (After Tax)</p>
               <p className="text-lg font-bold text-purple-900 dark:text-purple-100">${calculation.netProfitAfterTaxes.toFixed(2)}</p>
-              <p className="text-xs text-purple-700 dark:text-purple-300">{calculation.netProfitAfterTaxesMargin.toFixed(1)}%</p>
+              <p className="text-xs text-purple-700 dark:text-purple-300">{calculation.netProfitAfterTaxesMargin.toFixed(2)}%</p>
             </div>
           </div>
 
@@ -748,7 +748,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Selling Price ($)</label>
                     <input
                       type="number"
-                      value={calculation.pi_sellingPrice}
+                      step="0.01"
+                      value={calculation.pi_sellingPrice.toFixed(2)}
                       onChange={(e) => updateCalculation('pi_sellingPrice', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
@@ -757,6 +758,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity</label>
                     <input
                       type="number"
+                      step="1"
                       value={calculation.pi_quantity}
                       onChange={(e) => updateCalculation('pi_quantity', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
@@ -766,7 +768,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Revenue ($)</label>
                     <input
                       type="number"
-                      value={calculation.pi_totalRevenue}
+                      step="0.01"
+                      value={calculation.pi_totalRevenue.toFixed(2)}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
@@ -792,7 +795,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manufacturing Cost ($)</label>
                     <input
                       type="number"
-                      value={calculation.psc_manufacturingCost}
+                      step="0.01"
+                      value={calculation.psc_manufacturingCost.toFixed(2)}
                       onChange={(e) => updateCalculation('psc_manufacturingCost', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
@@ -801,7 +805,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Shipping Cost ($)</label>
                     <input
                       type="number"
-                      value={calculation.psc_shippingCost}
+                      step="0.01"
+                      value={calculation.psc_shippingCost.toFixed(2)}
                       onChange={(e) => updateCalculation('psc_shippingCost', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
@@ -810,7 +815,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Logo Cost ($)</label>
                     <input
                       type="number"
-                      value={calculation.psc_productLogoCost}
+                      step="0.01"
+                      value={calculation.psc_productLogoCost.toFixed(2)}
                       onChange={(e) => updateCalculation('psc_productLogoCost', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
@@ -819,7 +825,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Misc Cost ($)</label>
                     <input
                       type="number"
-                      value={calculation.psc_miscCost}
+                      step="0.01"
+                      value={calculation.psc_miscCost.toFixed(2)}
                       onChange={(e) => updateCalculation('psc_miscCost', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
@@ -830,6 +837,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order Quantity</label>
                     <input
                       type="number"
+                      step="1"
                       value={calculation.psc_orderQuantity}
                       onChange={(e) => updateCalculation('psc_orderQuantity', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
@@ -839,7 +847,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
                     <input
                       type="number"
-                      value={calculation.psc_perUnitCost}
+                      step="0.01"
+                      value={calculation.psc_perUnitCost.toFixed(2)}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
@@ -848,7 +857,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
                     <input
                       type="number"
-                      value={calculation.psc_totalCost}
+                      step="0.01"
+                      value={calculation.psc_totalCost.toFixed(2)}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
@@ -874,7 +884,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Referral Fees ($)</label>
                     <input
                       type="number"
-                      value={calculation.fm_referrfalFees}
+                      step="0.01"
+                      value={calculation.fm_referrfalFees.toFixed(2)}
                       onChange={(e) => updateCalculation('fm_referrfalFees', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
@@ -883,7 +894,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">FBA Fulfillment Fees ($)</label>
                     <input
                       type="number"
-                      value={calculation.fm_fbaFulfillmentFees}
+                      step="0.01"
+                      value={calculation.fm_fbaFulfillmentFees.toFixed(2)}
                       onChange={(e) => updateCalculation('fm_fbaFulfillmentFees', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
@@ -892,7 +904,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Storage Fees ($)</label>
                     <input
                       type="number"
-                      value={calculation.fm_monthlyStorageFees}
+                      step="0.01"
+                      value={calculation.fm_monthlyStorageFees.toFixed(2)}
                       onChange={(e) => updateCalculation('fm_monthlyStorageFees', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
@@ -901,7 +914,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Long Term Storage Fees ($)</label>
                     <input
                       type="number"
-                      value={calculation.fm_longTermStorageFees}
+                      step="0.01"
+                      value={calculation.fm_longTermStorageFees.toFixed(2)}
                       onChange={(e) => updateCalculation('fm_longTermStorageFees', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
@@ -912,7 +926,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per Unit Cost ($)</label>
                     <input
                       type="number"
-                      value={calculation.fm_perUnitCost}
+                      step="0.01"
+                      value={calculation.fm_perUnitCost.toFixed(2)}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
@@ -921,7 +936,8 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Cost ($)</label>
                     <input
                       type="number"
-                      value={calculation.fm_totalCost}
+                      step="0.01"
+                      value={calculation.fm_totalCost.toFixed(2)}
                       disabled
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
@@ -974,7 +990,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.marc_marketingCost}
+                    value={calculation.marc_marketingCost.toFixed(2)}
                     onChange={(e) => updateCalculation('marc_marketingCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     placeholder="0.00"
@@ -985,7 +1001,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.marc_attributionCost}
+                    value={calculation.marc_attributionCost.toFixed(2)}
                     onChange={(e) => updateCalculation('marc_attributionCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     placeholder="0.00"
@@ -996,7 +1012,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.marc_influencerCost}
+                    value={calculation.marc_influencerCost.toFixed(2)}
                     onChange={(e) => updateCalculation('marc_influencerCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1007,7 +1023,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.marc_miscCost}
+                    value={calculation.marc_miscCost.toFixed(2)}
                     onChange={(e) => updateCalculation('marc_miscCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1051,7 +1067,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.tax_VAT}
+                      value={calculation.tax_VAT.toFixed(2)}
                       onChange={(e) => updateCalculation('tax_VAT', parseFloat(e.target.value) || 0)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       placeholder="0.00"
@@ -1062,7 +1078,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.tax_GST}
+                      value={calculation.tax_GST.toFixed(2)}
                       onChange={(e) => updateCalculation('tax_GST', parseFloat(e.target.value) || 0)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       placeholder="0.00"
@@ -1073,7 +1089,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.tax_salesTax}
+                      value={calculation.tax_salesTax.toFixed(2)}
                       onChange={(e) => updateCalculation('tax_salesTax', parseFloat(e.target.value) || 0)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       placeholder="0.00"
@@ -1106,7 +1122,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.gc_imagingAndPhotographyCost}
+                    value={calculation.gc_imagingAndPhotographyCost.toFixed(2)}
                     onChange={(e) => updateCalculation('gc_imagingAndPhotographyCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1117,7 +1133,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.gc_videographyCost}
+                    value={calculation.gc_videographyCost.toFixed(2)}
                     onChange={(e) => updateCalculation('gc_videographyCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1128,7 +1144,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.gc_productPackingCost}
+                    value={calculation.gc_productPackingCost.toFixed(2)}
                     onChange={(e) => updateCalculation('gc_productPackingCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1139,7 +1155,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.gc_3dAnimationCost}
+                    value={calculation.gc_3dAnimationCost.toFixed(2)}
                     onChange={(e) => updateCalculation('gc_3dAnimationCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1170,7 +1186,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.pfc_vineProgramCost}
+                    value={calculation.pfc_vineProgramCost.toFixed(2)}
                     onChange={(e) => updateCalculation('pfc_vineProgramCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1181,7 +1197,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.pfc_miscCost}
+                    value={calculation.pfc_miscCost.toFixed(2)}
                     onChange={(e) => updateCalculation('pfc_miscCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1212,7 +1228,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.oc_competitorProductSamples}
+                    value={calculation.oc_competitorProductSamples.toFixed(2)}
                     onChange={(e) => updateCalculation('oc_competitorProductSamples', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1223,7 +1239,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.oc_preLaunchSamples}
+                    value={calculation.oc_preLaunchSamples.toFixed(2)}
                     onChange={(e) => updateCalculation('oc_preLaunchSamples', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1234,7 +1250,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.oc_employeesCost}
+                    value={calculation.oc_employeesCost.toFixed(2)}
                     onChange={(e) => updateCalculation('oc_employeesCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="0.00"
@@ -1245,7 +1261,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.oc_anyOtherCost}
+                    value={calculation.oc_anyOtherCost.toFixed(2)}
                     onChange={(e) => updateCalculation('oc_anyOtherCost', parseFloat(e.target.value) || 0)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="0.00"

@@ -30,7 +30,7 @@ const AddOnsChoiceModal: React.FC<AddOnsChoiceModalProps> = ({ isOpen, onClose }
       // Navigate to Subscription page with "Purchase Add-ons" tab active
       console.log('🚀 Navigating to /settings/subscription with state: Purchase Add-ons');
       navigate('/settings/subscription', {
-        state: { activeTab: 'Purchase Add-ons' },
+        state: { activeTab: 'Purchase Add-ons' },
         replace: false
       });
     }

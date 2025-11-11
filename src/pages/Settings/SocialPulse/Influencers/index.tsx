@@ -1816,9 +1816,9 @@ const InfluencersPage: React.FC = () => {
                 <span className="text-sm text-gray-600 dark:text-gray-400">
                   Page {currentPage} of {totalPages}
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-500">
+                {/* <span className="text-xs text-gray-500 dark:text-gray-500">
                   ({filteredInfluencers.length} total)
-                </span>
+                </span> */}
               </div>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}

@@ -24,13 +24,8 @@ interface SearchQuota {
   tiktok_searches: number;  // ✅ TikTok Product Searches (matches backend field name)
   tiktok_hashtag_search: number; // ✅ Separate quota for TikTok Trending Hashtags
   seasonal_product_searches: number;
-  // Amazon Trends search types
-  amazon_trends_search: number;
-  amazon_trends_best_sellers: number;
-  amazon_trends_category: number;
-  amazon_trends_product_details: number;
-  amazon_trends_product_reviews: number;
-  amazon_trends_product_offers: number;
+  // Amazon Trends - Single quota for all operations
+  amazon_search_trends: number;  // ✅ Single quota for all Amazon Trends (search, best sellers, trending, category)
   // Amazon Explorer search types
   amazon_explorer_search: number;
   amazon_explorer_best_sellers: number;

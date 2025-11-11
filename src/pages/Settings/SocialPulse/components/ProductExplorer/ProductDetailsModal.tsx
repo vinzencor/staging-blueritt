@@ -843,7 +843,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, isLoading, 
                 <span className="ml-2 text-gray-900">{details?.brand || product.brand}</span>
               </div>
             )}
-            {(details?.category_path || product.category_path) && (
+            {/* {(details?.category_path || product.category_path) && (
               <div className="md:col-span-2">
                 <span className="font-medium text-gray-600">Category:</span>
                 <span className="ml-2 text-gray-900">
@@ -858,7 +858,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, isLoading, 
                   })()}
                 </span>
               </div>
-            )}
+            )} */}
             {details?.availability && (
               <div className="md:col-span-2">
                 <span className="font-medium text-gray-600">Availability:</span>
