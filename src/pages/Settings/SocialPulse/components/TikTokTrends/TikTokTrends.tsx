@@ -11,7 +11,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import { QuotaNames } from '../../../../../enum';
-import { getTikTokTrendingProducts, discoverSuppliers, type SupplierInfo, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse } from '../../../../../api/tiktokTrends';
+import { getTikTokTrendingProducts, discoverSuppliers, type SupplierInfo, type TikTokShopAnalysisResponse, getTikTokCreativeCenterProductDetails, type TikTokCreativeCenterResponse, getTikTokShopAnalysis } from '../../../../../api/tiktokTrends';
 import { checkForBlockedKeywords, getBlockedContentMessage } from '../../../../../utils/keywordFilter';
 import { fetchPexelsFallbackImage, extractCategoryName } from '../../../../../utils/pexelsImageFallback'; // Now uses Freepik API
 import TikTokProfitCalculatorModal from './TikTokProfitCalculatorModal';
@@ -345,7 +345,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierInfo | null>(null);
   const [showProfitCalculator, setShowProfitCalculator] = useState(false);
 
-  // ✅ Shop analysis state - feature disabled to prevent quota deduction, but keeping state to avoid UI errors
+  // ✅ Shop analysis state - fetches TikTok Shop pricing and product data
   const [shopAnalysisData, setShopAnalysisData] = useState<any>(null);
   const [isShopAnalysisLoading, setIsShopAnalysisLoading] = useState(false);
   const [shopAnalysisError, setShopAnalysisError] = useState<string | null>(null);
@@ -593,10 +593,33 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       });
     }
 
-    // ✅ DISABLED: Shop analysis feature removed to prevent quota deduction on view details
-    // Shop analysis was calling the search API which deducts quota unnecessarily
-    // If needed in future, create a separate endpoint that doesn't deduct quota
-    console.log('ℹ️ Shop analysis feature disabled - not needed for product details');
+    // ✅ Fetch TikTok Shop Analysis data (pricing and shop information)
+    if (product.third_ecom_category?.id) {
+      console.log('🛍️ Fetching TikTok Shop Analysis for category:', product.third_ecom_category.id);
+      console.log('📦 Product title for keyword:', product.url_title || product.title);
+      setIsShopAnalysisLoading(true);
+      setShopAnalysisError(null);
+
+      try {
+        // Use product title as keyword for shop analysis
+        const keyword = product.url_title || product.title || 'trending product';
+        const shopAnalysisResponse = await getTikTokShopAnalysis(product.third_ecom_category.id, keyword);
+        setShopAnalysisData(shopAnalysisResponse);
+        console.log('✅ Shop Analysis data loaded:', shopAnalysisResponse);
+        console.log('💰 Products found:', shopAnalysisResponse.products?.length || 0);
+      } catch (error: any) {
+        console.error('❌ Error fetching Shop Analysis data:', error);
+        setShopAnalysisError(error.message || 'Failed to load shop analysis data');
+        // Set empty data on error
+        setShopAnalysisData(null);
+      } finally {
+        setIsShopAnalysisLoading(false);
+      }
+    } else {
+      console.log('⚠️ No third_ecom_category.id found for Shop Analysis');
+      setShopAnalysisData(null);
+      setShopAnalysisError(null);
+    }
   };
 
   const handleCloseModal = () => {
@@ -607,6 +630,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     setSupplierAnalysisTime(0);
     // Reset Creative Center data
     setCreativeCenterData(null);
+    // Reset Shop Analysis data
+    setShopAnalysisData(null);
+    setShopAnalysisError(null);
   };
 
   // Handle discover suppliers from product card - opens modal and starts discovery
@@ -749,26 +775,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {/* Category Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Category
-            </label>
-            <div className="relative">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
-              >
-                <option value="">All Categories</option>
-                {TIKTOK_CATEGORIES.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
-            </div>
-          </div>
+
 
           {/* Country Selection */}
           <div>
@@ -784,6 +791,27 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                 {COUNTRY_OPTIONS.map((country) => (
                   <option key={country.value} value={country.value}>
                     {country.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Category
+            </label>
+            <div className="relative">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none cursor-pointer"
+              >
+                <option value="">All Categories</option>
+                {TIKTOK_CATEGORIES.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
                   </option>
                 ))}
               </select>
@@ -1041,25 +1069,25 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
             {/* No Products Found State */}
             {tiktokData && !tiktokLoading && !tiktokError &&
-             (!tiktokData.data?.list || tiktokData.data.list.length === 0) &&
-             (!tiktokData.data?.products || tiktokData.data.products.length === 0) && (
-              <div className="text-center py-12">
-                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
-                  No Products Found
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-4">
-                  No trending products available for the selected filters. Try adjusting your search criteria or try again later.
-                </p>
-                <button
-                  onClick={handleDoneClick}
-                  className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors flex items-center gap-2 mx-auto"
-                >
-                  <TrendingUp className="w-4 h-4" />
-                  Search Again
-                </button>
-              </div>
-            )}
+              (!tiktokData.data?.list || tiktokData.data.list.length === 0) &&
+              (!tiktokData.data?.products || tiktokData.data.products.length === 0) && (
+                <div className="text-center py-12">
+                  <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    No Products Found
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">
+                    No trending products available for the selected filters. Try adjusting your search criteria or try again later.
+                  </p>
+                  <button
+                    onClick={handleDoneClick}
+                    className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-lg hover:from-pink-600 hover:to-purple-600 transition-colors flex items-center gap-2 mx-auto"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    Search Again
+                  </button>
+                </div>
+              )}
 
             {/* Products Grid */}
             {tiktokData && ((tiktokData.data?.list && tiktokData.data.list.length > 0) || (tiktokData.data?.products && tiktokData.data.products.length > 0)) && !tiktokLoading && (
@@ -1239,14 +1267,13 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       <button
                         onClick={() => {
                           setCurrentPage(prev => Math.max(1, prev - 1));
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          window.scrollTo({ top: 600, behavior: 'smooth' });
                         }}
                         disabled={currentPage === 1}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                          currentPage === 1
-                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                        }`}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${currentPage === 1
+                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                          : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1282,11 +1309,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                 setCurrentPage(pageNum);
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
-                              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                                currentPage === pageNum
-                                  ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg'
-                                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                              }`}
+                              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${currentPage === pageNum
+                                ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg'
+                                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                }`}
                             >
                               {pageNum}
                             </button>
@@ -1298,14 +1324,13 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       <button
                         onClick={() => {
                           setCurrentPage(prev => Math.min(totalPages, prev + 1));
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          window.scrollTo({ top: 700, behavior: 'smooth' });
                         }}
                         disabled={currentPage === totalPages}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
-                          currentPage === totalPages
-                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                        }`}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${currentPage === totalPages
+                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                          : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          }`}
                       >
                         Next
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1374,7 +1399,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {activeModalTab === 'suppliers' ? 'TikTok Product Suppliers' : 'TikTok Product Details'}
+                {activeModalTab === 'suppliers' ? 'BlueRitt SourceLink' : 'TikTok Product Details'}
               </h2>
               <button
                 onClick={handleCloseModal}
@@ -1490,15 +1515,15 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
                       {/* Price Information from Shop Analysis - Show only first matching product */}
                       {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
-                        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl p-6 border border-green-200 dark:border-green-700">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border-2 border-green-500 dark:border-green-600 shadow-lg">
                           <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-green-600" />
+                            <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
                             TikTok Shop Price
                           </h4>
                           {(() => {
                             const firstProduct = shopAnalysisData.products[0];
                             return (
-                              <div className="bg-white dark:bg-gray-700 rounded-lg p-6 border border-green-100 dark:border-green-600">
+                              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
                                 <div className="mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 h-40 flex items-center justify-center">
                                   <img
                                     src={firstProduct.image_url || `https://picsum.photos/400/400?random=${Date.now()}`}
@@ -1554,53 +1579,53 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                       setSelectedSupplier(mockSupplier);
                                       setShowProfitCalculator(true);
                                     }}
-                                    className="group cursor-pointer inline-block"
+                                    className="group cursor-pointer inline-block w-full"
                                   >
-                                    <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">
+                                    <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">
                                       ${firstProduct.price.toFixed(2)}
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
-                                      Click to Calculate Profit
+                                    <div className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors font-medium">
+                                      💰 Click to Calculate Profit
                                     </div>
                                   </button>
 
-                                  <div className="text-sm text-gray-600 dark:text-gray-300 mb-3 mt-2">
-                                    {firstProduct.currency}
+                                  <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3 mt-3">
+                                    Currency: {firstProduct.currency}
                                   </div>
-                                  <div className="text-sm text-gray-700 dark:text-gray-200 mb-4 line-clamp-3">
+                                  <div className="text-sm text-gray-700 dark:text-gray-200 mb-4 line-clamp-2 font-medium">
                                     {firstProduct.title}
                                   </div>
 
                                   {/* Product Details Grid */}
                                   <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
                                     {firstProduct.sales_count > 0 && (
-                                      <div className="bg-green-50 dark:bg-green-900/30 rounded p-2">
-                                        <div className="text-xs text-gray-600 dark:text-gray-400">Sales</div>
-                                        <div className="font-semibold text-green-600 dark:text-green-400">
+                                      <div className="bg-green-100 dark:bg-green-900/50 rounded-lg p-3 border border-green-200 dark:border-green-700">
+                                        <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Sales</div>
+                                        <div className="font-bold text-green-700 dark:text-green-300 text-base">
                                           {firstProduct.sales_count.toLocaleString()}
                                         </div>
                                       </div>
                                     )}
                                     {firstProduct.product_rating > 0 && (
-                                      <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded p-2">
-                                        <div className="text-xs text-gray-600 dark:text-gray-400">Rating</div>
-                                        <div className="font-semibold text-yellow-600 dark:text-yellow-400">
+                                      <div className="bg-yellow-100 dark:bg-yellow-900/50 rounded-lg p-3 border border-yellow-200 dark:border-yellow-700">
+                                        <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Rating</div>
+                                        <div className="font-bold text-yellow-700 dark:text-yellow-300 text-base">
                                           ⭐ {firstProduct.product_rating.toFixed(1)}
                                         </div>
                                       </div>
                                     )}
                                     {firstProduct.shop_name && (
-                                      <div className="bg-blue-50 dark:bg-blue-900/30 rounded p-2 col-span-2">
-                                        <div className="text-xs text-gray-600 dark:text-gray-400">Shop</div>
-                                        <div className="font-semibold text-blue-600 dark:text-blue-400 truncate">
+                                      <div className="bg-blue-100 dark:bg-blue-900/50 rounded-lg p-3 col-span-2 border border-blue-200 dark:border-blue-700">
+                                        <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Shop</div>
+                                        <div className="font-bold text-blue-700 dark:text-blue-300 truncate">
                                           {firstProduct.shop_name}
                                         </div>
                                       </div>
                                     )}
                                     {firstProduct.shipping_info.free_shipping && (
-                                      <div className="bg-purple-50 dark:bg-purple-900/30 rounded p-2 col-span-2">
-                                        <div className="text-xs text-purple-600 dark:text-purple-400 font-semibold">
-                                          ✓ Free Shipping
+                                      <div className="bg-purple-100 dark:bg-purple-900/50 rounded-lg p-3 col-span-2 border border-purple-200 dark:border-purple-700">
+                                        <div className="text-sm text-purple-700 dark:text-purple-300 font-bold">
+                                          ✓ Free Shipping Available
                                         </div>
                                       </div>
                                     )}
@@ -1609,9 +1634,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                   {/* View All Products Link */}
                                   <button
                                     onClick={() => setActiveModalTab('shop-analysis')}
-                                    className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors text-sm"
+                                    className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm shadow-md"
                                   >
-                                    View All {shopAnalysisData.products.length} Products
+                                    View All {shopAnalysisData.products.length} Products →
                                   </button>
                                 </div>
                               </div>
@@ -2012,16 +2037,99 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     hasProduct: !!product
   });
 
+  const [progress, setProgress] = useState(0);
+
+  // Progress simulation effect
+  useEffect(() => {
+    if (isLoading) {
+      setProgress(0);
+      const timer = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(timer);
+            return 100;
+          }
+          // Slow down progress to match 30-45 seconds timeframe
+          const increment = Math.random() * 3 + 1; // 1-4% per interval
+          return Math.min(prev + increment, 100);
+        });
+      }, 800);
+
+      return () => clearInterval(timer);
+    } else {
+      setProgress(100);
+    }
+  }, [isLoading]);
+
+  const getStatusText = () => {
+    if (progress < 30) return "Analyzing the Product";
+    if (progress < 75) return "Discovering Verified Suppliers";
+    return "Computing AI Match Score";
+  };
+
+  const getSubStatusText = () => {
+    if (progress < 30) return "Analyzing product specifications and requirements...";
+    if (progress < 75) return "Screening verified suppliers from global database...";
+    return "Calculating optimal matches based on capabilities and pricing...";
+  };
+
+  console.log('🏭 BlueRitt Explorer Supplier Display:', {
+    totalSuppliers: suppliers?.length || 0,
+    displayingVerifiedOnly: true,
+    note: 'Backend filters to show only verified suppliers with badges'
+  });
+
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Loader2 className="w-12 h-12 text-purple-600 animate-spin mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          Analyzing the Product, Discovering Verified Suppliers and Computing the AI Match Score
-        </h3>
-        <p className="text-gray-600 dark:text-gray-300 text-center max-w-md">
-          This process may take 30–45 seconds. Please wait while our AI engine generates the results
-        </p>
+      <div className="text-center py-12">
+        <div className="max-w-md mx-auto">
+          {/* Progress Bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+            <div
+              className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+
+          {/* Progress Percentage */}
+          <div className="text-2xl font-bold text-purple-600 mb-3">
+            {Math.round(progress)}%
+          </div>
+
+          {/* Dynamic Status Text */}
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            {getStatusText()}
+          </h3>
+
+          {/* Constant Message */}
+          <p className="text-gray-400 text-sm mb-6">
+            This process may take 30–45 seconds. Please wait while our AI engine generates the results
+          </p>
+
+          {/* Animated Dots */}
+          <div className="flex justify-center items-center gap-1 mb-6">
+            {[1, 2, 3].map((dot) => (
+              <div
+                key={dot}
+                className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"
+                style={{ animationDelay: `${dot * 0.2}s` }}
+              ></div>
+            ))}
+          </div>
+
+          {/* AI Powered Section */}
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+            <div className="flex items-center gap-2 text-blue-700 mb-2">
+              <Zap className="w-5 h-5 animate-pulse" />
+              <span className="font-medium">AI-Powered Matching</span>
+            </div>
+
+            {/* Dynamic Sub-status */}
+            <p className="text-blue-600 text-sm">
+              {getSubStatusText()}
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -2041,69 +2149,69 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
   }
 
   return (
-    <div className="flex gap-6 h-[calc(90vh-300px)]">
+    <div className="flex gap-6 h-[600px]">
       {/* Left Side - Product Details (Fixed) */}
       <div className="w-1/3 flex-shrink-0">
-        <div className="sticky top-0 bg-white dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-purple-600 p-6 shadow-lg">
+        <div className="sticky top-0 bg-white dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-purple-600 p-4 shadow-lg h-[600px] flex flex-col">
           {/* Product Image */}
-          <div className="mb-4">
-            <ProductImageWithFallback product={product} className="rounded-xl w-full" />
+          <div className="mb-3">
+            <ProductImageWithFallback product={product} className="rounded-xl w-full h-48 object-cover" />
           </div>
 
           {/* Product Title */}
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
+          <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
             {product?.url_title || 'TikTok Product'}
           </h3>
 
           {/* Category */}
           {product?.first_ecom_category && (
-            <div className="mb-4">
-              <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-3 py-1.5 rounded-full text-sm font-medium">
+            <div className="mb-3">
+              <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-2 py-1 rounded-full text-xs font-medium">
                 {product.first_ecom_category.value}
               </span>
             </div>
           )}
 
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-2 gap-2 mb-3">
             {product?.ctr !== undefined && product.ctr > 0 && (
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center border border-blue-200 dark:border-blue-800">
-                <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">CTR</div>
-                <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{product.ctr.toFixed(2)}%</div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center border border-blue-200 dark:border-blue-800">
+                <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-0.5">CTR</div>
+                <div className="text-sm font-bold text-blue-700 dark:text-blue-300">{product.ctr.toFixed(2)}%</div>
               </div>
             )}
             {product?.cvr !== undefined && product.cvr > 0 && (
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center border border-green-200 dark:border-green-800">
-                <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-1">CVR</div>
-                <div className="text-lg font-bold text-green-700 dark:text-green-300">{product.cvr.toFixed(2)}%</div>
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center border border-green-200 dark:border-green-800">
+                <div className="text-xs text-green-600 dark:text-green-400 font-medium mb-0.5">CVR</div>
+                <div className="text-sm font-bold text-green-700 dark:text-green-300">{product.cvr.toFixed(2)}%</div>
               </div>
             )}
             {product?.cpa !== undefined && product.cpa > 0 && (
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center border border-purple-200 dark:border-purple-800">
-                <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">CPA</div>
-                <div className="text-lg font-bold text-purple-700 dark:text-purple-300">${product.cpa.toFixed(2)}</div>
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center border border-purple-200 dark:border-purple-800">
+                <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-0.5">CPA</div>
+                <div className="text-sm font-bold text-purple-700 dark:text-purple-300">${product.cpa.toFixed(2)}</div>
               </div>
             )}
             {product?.impression !== undefined && product.impression > 0 && (
-              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 text-center border border-orange-200 dark:border-orange-800">
-                <div className="text-xs text-orange-600 dark:text-orange-400 font-medium mb-1">Views</div>
-                <div className="text-lg font-bold text-orange-700 dark:text-orange-300">
+              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center border border-orange-200 dark:border-orange-800">
+                <div className="text-xs text-orange-600 dark:text-orange-400 font-medium mb-0.5">Views</div>
+                <div className="text-sm font-bold text-orange-700 dark:text-orange-300">
                   {product.impression >= 1000000
                     ? `${(product.impression / 1000000).toFixed(1)}M`
                     : product.impression >= 1000
-                    ? `${(product.impression / 1000).toFixed(1)}K`
-                    : product.impression}
+                      ? `${(product.impression / 1000).toFixed(1)}K`
+                      : product.impression}
                 </div>
               </div>
             )}
           </div>
 
           {/* Analysis Summary */}
-          <div className="bg-gradient-to-r from-orange-50 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/30 rounded-lg p-4 border border-orange-100 dark:border-purple-700">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2 text-sm">
+          <div className="bg-gradient-to-r from-orange-50 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/30 rounded-lg p-3 border border-orange-100 dark:border-purple-700 mt-auto">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-1.5 text-xs">
               Supplier Analysis
             </h4>
-            <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
+            <div className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5">
               <p>✓ Found {displaySuppliers.length} suppliers</p>
               <p>✓ Analysis time: {analysisTime}s</p>
               <p>✓ Ranked by AI match score</p>
@@ -2113,177 +2221,183 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
       </div>
 
       {/* Right Side - Suppliers List (Scrollable) */}
-      <div className="flex-1 overflow-y-auto pr-2">
-        <div className="space-y-4">
-        {displaySuppliers.map((supplier) => (
-          <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-5 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
-            {/* ✅ Supplier Product Image */}
-            {supplier.supplier_product_image && (
-              <div className="mb-4">
-                <img
-                  src={supplier.supplier_product_image}
-                  alt={supplier.name}
-                  className="w-full h-48 object-cover rounded-lg"
-                  onError={(e) => {
-                    // Hide image if it fails to load
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
+      <div className="flex-1 overflow-y-auto pr-2 h-[600px]">
+        <div className="space-y-3">
+          {displaySuppliers.map((supplier) => (
+            <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
+              {/* ✅ Supplier Product Image - Always show */}
+              <div className="mb-2 bg-gray-100 dark:bg-gray-600 rounded-lg overflow-hidden h-32 flex items-center justify-center">
+                {supplier.supplier_product_image ? (
+                  <img
+                    src={supplier.supplier_product_image}
+                    alt={supplier.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Show placeholder on error
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = '<div class="flex items-center justify-center w-full h-full"><svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>';
+                      }
+                    }}
+                  />
+                ) : (
+                  <Package className="w-12 h-12 text-gray-400" />
+                )}
               </div>
-            )}
 
-            {/* Header with Name, Verification, and AI Score */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1 min-w-0 pr-4">
-                <h5 className="font-bold text-gray-900 dark:text-white text-lg mb-2">{supplier.name}</h5>
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{supplier.location}</p>
+              {/* Header with Name, Verification, and AI Score */}
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1 min-w-0 pr-2">
+                  <h5 className="font-bold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1">{supplier.name}</h5>
+                  <p className="text-gray-600 dark:text-gray-300 text-xs mb-2">{supplier.location}</p>
 
-                {/* ✅ Verification Badges - Order: Verified → Trade Assurance → Assessed → Gold → Store Age → Rating */}
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {/* 1. Verified Supplier Badge (First) */}
-                  {(supplier.verification_badge === 'Verified Pro' ||
-                    supplier.verified_pro) && (
-                    <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Shield className="w-3 h-3 fill-current" />
-                      Verified Pro
+                  {/* ✅ Verification Badges - Larger and more visible */}
+                  <div className="flex flex-wrap gap-1.5 mb-1">
+                    {/* 1. Verified Supplier Badge (First) */}
+                    {(supplier.verification_badge === 'Verified Pro' ||
+                      supplier.verified_pro) && (
+                        <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                          <Shield className="w-3 h-3 fill-current" />
+                          Verified Pro
+                        </span>
+                      )}
+
+                    {!supplier.verified_pro &&
+                      (supplier.verification_badge === 'Verified Supplier' ||
+                        supplier.verification_status === 'Verified' ||
+                        supplier.verified_supplier) && (
+                        <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                          <Shield className="w-3 h-3 fill-current" />
+                          Verified
+                        </span>
+                      )}
+
+                    {supplier.is_assessed && (
+                      <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                        <Shield className="w-3 h-3 fill-current" />
+                        Verified
+                      </span>
+                    )}
+
+                    {/* 2. Trade Assurance Badge (Second) */}
+                    {supplier.trade_assurance && (
+                      <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                        <Shield className="w-3 h-3 fill-current" />
+                        Trade Assurance
+                      </span>
+                    )}
+
+                    {supplier.years_in_business && supplier.years_in_business > 0 && (
+                      <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md">
+                        {supplier.years_in_business} {supplier.years_in_business === 1 ? 'yr' : 'yrs'}
+                      </span>
+                    )}
+
+                    {/* 4. Gold Supplier Badge (Fourth) */}
+                    {(supplier.verification_badge === 'Gold Supplier' ||
+                      supplier.verification_status === 'Gold Supplier' ||
+                      supplier.verification_badge === 'Gold' ||
+                      supplier.is_gold) && (
+                        <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                          <Shield className="w-3 h-3 fill-current" />
+                          Gold
+                        </span>
+                      )}
+
+                    {/* 6. Star Rating Badge (Sixth) - Always show rating */}
+                    <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-current" />
+                      {supplier.rating ? supplier.rating.toFixed(1) : '0'}
                     </span>
-                  )}
-
-                  {!supplier.verified_pro &&
-                   (supplier.verification_badge === 'Verified Supplier' ||
-                    supplier.verification_status === 'Verified' ||
-                    supplier.verified_supplier) && (
-                    <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Shield className="w-3 h-3 fill-current" />
-                      Verified
-                    </span>
-                  )}
-
-                  {/* 2. Trade Assurance Badge (Second) */}
-                  {supplier.trade_assurance && (
-                    <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Shield className="w-3 h-3 fill-current" />
-                      Trade Assurance
-                    </span>
-                  )}
-
-                  {/* 3. Assessed Supplier Badge (Third) */}
-                  {supplier.is_assessed && (
-                    <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Shield className="w-3 h-3 fill-current" />
-                      Assessed Supplier
-                    </span>
-                  )}
-
-                  {/* 4. Gold Supplier Badge (Fourth) */}
-                  {(supplier.verification_badge === 'Gold Supplier' ||
-                    supplier.verification_status === 'Gold Supplier' ||
-                    supplier.verification_badge === 'Gold' ||
-                    supplier.is_gold) && (
-                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                      <Shield className="w-3 h-3 fill-current" />
-                      Gold Supplier
-                    </span>
-                  )}
-
-                  {/* 5. Store Age Badge (Fifth) */}
-                  {supplier.years_in_business && supplier.years_in_business > 0 && (
-                    <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm">
-                      {supplier.years_in_business} {supplier.years_in_business === 1 ? 'year' : 'years'}
-                    </span>
-                  )}
-
-                  {/* 6. Star Rating Badge (Sixth) - Always show rating */}
-                  <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                    <Star className="w-3 h-3 fill-current" />
-                    {supplier.rating ? supplier.rating.toFixed(1) : '0'}
-                  </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* AI Match Score - Circular Progress (Same as Amazon Trends) */}
-              <div className="flex items-center justify-end">
-                <div className="relative h-[90px] w-[90px]">
-                  {/* Circular Progress Bar */}
-                  <svg className="transform -rotate-90" width="90" height="90">
-                    <circle
-                      cx="45"
-                      cy="45"
-                      r="40"
-                      stroke="#e5e7eb"
-                      strokeWidth="8"
-                      fill="none"
-                    />
-                    <circle
-                      cx="45"
-                      cy="45"
-                      r="40"
-                      stroke={
-                        (supplier.ai_match_score || 0) >= 80
-                          ? '#22c55e'
-                          : (supplier.ai_match_score || 0) >= 60
-                          ? '#eab308'
-                          : '#ef4444'
-                      }
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      fill="none"
-                      strokeDasharray={2 * Math.PI * 40}
-                      strokeDashoffset={
-                        2 * Math.PI * 40 * (1 - (supplier.ai_match_score || 0) / 100)
-                      }
-                    />
-                  </svg>
+                {/* AI Match Score - Circular Progress (Smaller) */}
+                <div className="flex items-center justify-end">
+                  <div className="relative h-[60px] w-[60px]">
+                    {/* Circular Progress Bar */}
+                    <svg className="transform -rotate-90" width="60" height="60">
+                      <circle
+                        cx="30"
+                        cy="30"
+                        r="26"
+                        stroke="#e5e7eb"
+                        strokeWidth="6"
+                        fill="none"
+                      />
+                      <circle
+                        cx="30"
+                        cy="30"
+                        r="26"
+                        stroke={
+                          (supplier.ai_match_score || 0) >= 80
+                            ? '#22c55e'
+                            : (supplier.ai_match_score || 0) >= 60
+                              ? '#eab308'
+                              : '#ef4444'
+                        }
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                        fill="none"
+                        strokeDasharray={2 * Math.PI * 26}
+                        strokeDashoffset={
+                          2 * Math.PI * 26 * (1 - (supplier.ai_match_score || 0) / 100)
+                        }
+                      />
+                    </svg>
 
-                  {/* Content in center */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
-                    <div className="font-bold text-purple-600 dark:text-purple-400">
-                      {(supplier.ai_match_score || 0).toFixed(2)}%
+                    {/* Content in center */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <div className="text-[9px] text-gray-500 dark:text-gray-400">AI Match</div>
+                      <div className="font-bold text-xs text-purple-600 dark:text-purple-400">
+                        {(supplier.ai_match_score || 0).toFixed(0)}%
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Key Details Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">MOQ</div>
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  {supplier.moq?.toLocaleString() || 'N/A'}
+              {/* Key Details Grid - Compact */}
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Min Order QTY</div>
+                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                    {supplier.moq?.toLocaleString() || 'N/A'}
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Lead Time</div>
+                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                    {supplier.lead_time}
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Cost</div>
+                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                    {supplier.estimated_price}
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Response</div>
+                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                    {supplier.response_rate}
+                  </div>
                 </div>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Lead Time</div>
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  {supplier.lead_time}
-                </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Est. Price</div>
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  {supplier.estimated_price}
-                </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Response Rate</div>
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  {supplier.response_rate}
-                </div>
-              </div>
-              {/* ✅ Star Rating Display */}
-              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Supplier Rating</div>
-                <div className="flex items-center justify-center gap-1">
+
+              {/* ✅ Star Rating Display - Separate Row */}
+              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 mb-2">
+                <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-1 text-center">Supplier Rating</div>
+                <div className="flex items-center justify-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
-                      className={`w-4 h-4 ${
-                        star <= (supplier.rating || 0)
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'fill-gray-300 text-gray-300 dark:fill-gray-500 dark:text-gray-500'
-                      }`}
+                      className={`w-3 h-3 ${star <= (supplier.rating || 0)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'fill-gray-300 text-gray-300 dark:fill-gray-500 dark:text-gray-500'
+                        }`}
                     />
                   ))}
                   <span className="ml-1 text-xs font-semibold text-gray-900 dark:text-white">
@@ -2291,66 +2405,60 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   </span>
                 </div>
               </div>
-            </div>
 
-            {/* Additional Info */}
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-600 dark:text-gray-300">Main Products:</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {Array.isArray(supplier.main_products)
-                    ? supplier.main_products.join(', ')
-                    : supplier.main_products}
-                </span>
-              </div>
-              {supplier.certifications && supplier.certifications.length > 0 && (
-                <div className="flex items-start gap-2 text-sm">
-                  <span className="text-gray-600 dark:text-gray-300">Certifications:</span>
-                  <div className="flex flex-wrap gap-1">
-                    {supplier.certifications.map((cert, certIndex) => (
-                      <span key={certIndex} className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-2 py-1 rounded text-xs">
-                        {cert}
-                      </span>
-                    ))}
-                  </div>
+              {/* Additional Info - Compact */}
+              <div className="space-y-1 mb-2">
+                <div className="flex items-start gap-1">
+                  <span className="text-gray-600 dark:text-gray-300 whitespace-nowrap">Products:</span>
+                  <span className="font-medium text-gray-900 dark:text-white  line-clamp-1">
+                    {Array.isArray(supplier.main_products)
+                      ? supplier.main_products.join(', ')
+                      : supplier.main_products}
+                  </span>
                 </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-2">
-              {/* Calculate Button */}
-              <button
-                onClick={() => onCalculateClick(supplier)}
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
-              >
-                <DollarSign className="w-3.5 h-3.5" />
-                Calculate
-              </button>
-
-              {/* Contact Supplier Button */}
-              {supplier.contact_url && (
-                <a
-                  href={supplier.contact_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Contact Supplier
-                </a>
-              )}
-            </div>
-
-            {/* Trade Assurance Badge */}
-            {supplier.trade_assurance && (
-              <div className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400 mt-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Trade Assurance
+                {supplier.certifications && supplier.certifications.length > 0 && (
+                  <div className="flex items-start gap-1 text-xs">
+                    <span className="text-gray-600 dark:text-gray-300 text-[10px] whitespace-nowrap">Certs:</span>
+                    <div className="flex flex-wrap gap-0.5">
+                      {supplier.certifications.slice(0, 2).map((cert, certIndex) => (
+                        <span key={certIndex} className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-1 py-0.5 rounded text-[9px]">
+                          {cert}
+                        </span>
+                      ))}
+                      {supplier.certifications.length > 2 && (
+                        <span className="text-gray-500 dark:text-gray-400 text-[9px]">+{supplier.certifications.length - 2}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        ))}
+
+              {/* Action Buttons - Compact */}
+              <div className="flex justify-end gap-1.5">
+                {/* Calculate Button */}
+                <button
+                  onClick={() => onCalculateClick(supplier)}
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-1 px-2 rounded-lg transition-all duration-200 font-medium text-md flex items-center gap-1"
+                >
+                  <DollarSign className="w-3 h-3" />
+                  Select Supplier
+                </button>
+
+                {/* Contact Supplier Button */}
+                {supplier.contact_url && (
+                  <a
+                    href={supplier.contact_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-1 px-2 rounded-lg transition-all duration-200 font-medium text-md flex items-center gap-1"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Contact Supplier
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

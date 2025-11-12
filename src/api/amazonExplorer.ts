@@ -26,6 +26,10 @@ export interface AmazonProduct {
   has_variations?: boolean;
   brand?: string;
   category_path?: string;
+  // Additional properties used in ProductDetailsModal
+  product_num_offers?: number;
+  product_slug?: string;
+  customers_say?: string;
 }
 
 export interface AmazonExplorerResponse {
@@ -61,6 +65,10 @@ export interface ProductDetails {
   availability?: string;
   delivery_message?: string;
   climate_pledge_friendly?: boolean;
+  // Additional properties used in ProductDetailsModal
+  product_num_offers?: number;
+  product_slug?: string;
+  customers_say?: string;
 }
 
 export interface ProductReview {
@@ -858,10 +866,43 @@ export const discoverSuppliers = async (productData: {
   }
 };
 
+// Currency mapping for different countries
+const CURRENCY_MAP: { [key: string]: string } = {
+  US: "$",
+  CA: "$",
+  AU: "$",
+  MX: "$",
+  BR: "R$",
+  GB: "£",
+  DE: "€",
+  FR: "€",
+  IT: "€",
+  ES: "€",
+  NL: "€",
+  JP: "¥",
+  CN: "¥",
+  KR: "₩",
+  SE: "kr",
+  PL: "zł",
+  TR: "TL",
+  AE: "AED",
+  IN: "₹",
+};
+
 // Utility functions
-export const formatPrice = (price: string): string => {
+export const formatPrice = (price: string, country: string = 'US'): string => {
   if (!price) return 'N/A';
-  return price.startsWith('$') ? price : `$${price}`;
+
+  // Get the correct currency symbol for the country
+  const currencySymbol = CURRENCY_MAP[country] || '$';
+
+  // Remove any existing currency symbols and extract numeric value
+  const numericPrice = price.replace(/[^\d.,]/g, '').trim();
+
+  if (!numericPrice) return 'N/A';
+
+  // Format the price with the correct currency symbol
+  return `${currencySymbol}${numericPrice}`;
 };
 
 export const formatRating = (rating: string | number): string => {

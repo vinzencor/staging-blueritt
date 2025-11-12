@@ -155,14 +155,7 @@ export const MenuItems: any = [
     selected: false,
     path: "/explorer",
   },
-  {
-    icon: MyListingsIcon,
-    title: "BlueRitt ProductVault",
-    type: "link",
-    active: false,
-    selected: false,
-    path: `${import.meta.env.BASE_URL}listings`,
-  },
+  
   {
     icon: ProfitProIcon,
     title: "BlueRitt MarginMax",
@@ -188,6 +181,7 @@ export const MenuItems: any = [
       },
     ],
   },
+  
   {
     icon: ThirdPartyIcon,
     title: "BlueRitt ToolFusion",
@@ -229,6 +223,14 @@ export const MenuItems: any = [
     },
   ],
 },
+{
+    icon: MyListingsIcon,
+    title: "BlueRitt ProductVault",
+    type: "link",
+    active: false,
+    selected: false,
+    path: `${import.meta.env.BASE_URL}listings`,
+  },
 
   // {
   //   icon: ThirdPartyIcon,

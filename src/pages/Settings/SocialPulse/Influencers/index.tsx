@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, AlertCircle, Loader, X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, AlertCircle, Loader, X, ExternalLink, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '@/api';
+import { useUserSubscriptionAndSearchQuota } from '@/hooks/useUserDetails';
 
 interface Influencer {
   influencer_name: string;
@@ -1242,9 +1244,10 @@ interface PostsModalProps {
   isOpen: boolean;
   influencerName: string;
   onClose: () => void;
+  userPlan: string;
 }
 
-const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose }) => {
+const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose, userPlan }) => {
   const [posts, setPosts] = useState<InfluencerPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1253,6 +1256,16 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
   // Pagination state for posts
   const [currentPostsPage, setCurrentPostsPage] = useState(1);
   const postsPerPage = 20;
+
+  // Determine post limit based on plan
+  const getPostLimit = () => {
+    if (userPlan.toLowerCase() === 'trial') {
+      return 5; // Limited posts for trial
+    }
+    return 100; // All posts for paid plans
+  };
+
+  const postLimit = getPostLimit();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -1263,6 +1276,13 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
       setPosts([]);
       try {
         console.log('Fetching posts for influencer:', influencerName);
+        console.log('API Base URL:', import.meta.env.VITE_API_URL);
+        console.log('Request params:', {
+          influencer_name: influencerName,
+          country: 'US',
+          scope: 'ALL',
+          limit: postLimit.toString()
+        });
 
         // ✅ Call backend endpoint instead of RapidAPI directly - SECURITY FIX
         const response = await api.get('/products/amazon-trends/influencer-posts/', {
@@ -1270,10 +1290,11 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
             influencer_name: influencerName,
             country: 'US',
             scope: 'ALL',
-            limit: '100'
+            limit: postLimit.toString()
           }
         });
 
+        console.log('API Response Status:', response.status);
         console.log('API Response:', response.data);
 
         if (response.data.status === 'success') {
@@ -1299,18 +1320,33 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
           }
         } else {
           console.error('API Error:', response.data);
-          setError(`Failed to load posts: ${response.data.error || 'Unknown error'}`);
+          // Display user-friendly error message
+          const errorMessage = response.data.message || response.data.error || 'Unknown error';
+          setError(errorMessage);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching posts:', err);
-        setError('Failed to load posts. Please try again.');
+
+        // Handle different error types
+        if (err.response) {
+          // Server responded with error status
+          const errorData = err.response.data;
+          const errorMessage = errorData?.message || errorData?.error || 'Failed to load posts';
+          setError(errorMessage);
+        } else if (err.request) {
+          // Request was made but no response received
+          setError('Network error. Please check your connection and try again.');
+        } else {
+          // Something else happened
+          setError('Failed to load posts. Please try again.');
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchPosts();
-  }, [isOpen, influencerName]);
+  }, [isOpen, influencerName, postLimit]);
 
 
 
@@ -1327,9 +1363,22 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
       <div className="bg-white dark:bg-gray-800 rounded-lg max-w-6xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-            {influencerName}
-          </h2>
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              {influencerName}
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {userPlan.toLowerCase() === 'trial' ? (
+                <span className="text-orange-600 dark:text-orange-400 font-medium">
+                  Limited Posted Products (Upgrade to see all)
+                </span>
+              ) : (
+                <span className="text-green-600 dark:text-green-400 font-medium">
+                  All Posted Products
+                </span>
+              )}
+            </p>
+          </div>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
@@ -1626,12 +1675,29 @@ const PostsModal: React.FC<PostsModalProps> = ({ isOpen, influencerName, onClose
 };
 
 const InfluencersPage: React.FC = () => {
+  const navigate = useNavigate();
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInfluencer, setSelectedInfluencer] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const influencersPerPage = 20;
+
+  // Get user's subscription plan
+  const { quotaDetails } = useUserSubscriptionAndSearchQuota();
+  const userPlan = quotaDetails?.packageName || 'Trial';
+
+  // Determine influencer limit based on plan
+  const getInfluencerLimit = () => {
+    const plan = userPlan.toLowerCase();
+    if (plan === 'trial') return 10;
+    if (plan === 'basic') return 25;
+    if (plan === 'advance') return 50;
+    if (plan === 'premium') return Infinity; // No limit for Premium
+    return 10; // Default to trial limit
+  };
+
+  const influencerLimit = getInfluencerLimit();
 
   // Fetch influencer data with profile images
   useEffect(() => {
@@ -1667,6 +1733,13 @@ const InfluencersPage: React.FC = () => {
   const currentInfluencers = filteredInfluencers.slice(indexOfFirstInfluencer, indexOfLastInfluencer);
   const totalPages = Math.ceil(filteredInfluencers.length / influencersPerPage);
 
+  // Handler for upgrade button
+  const handleUpgradeClick = () => {
+    navigate('/settings/subscription', {
+      state: { activeTab: 'Plans' }
+    });
+  };
+
   // Reset to page 1 when search changes
   useEffect(() => {
     setCurrentPage(1);
@@ -1687,6 +1760,41 @@ const InfluencersPage: React.FC = () => {
           <p className="text-gray-600 dark:text-gray-400">
             Discover what Top Influencers are saying and see their trending posts and products
           </p>
+        </div>
+
+        {/* Plan Info Banner */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-lg p-4 mb-6 border border-blue-200 dark:border-gray-600">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-white dark:bg-gray-600 rounded-full p-2">
+                <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {userPlan} Plan
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-300">
+                  {userPlan.toLowerCase() === 'premium' ? (
+                    <>All Influencers • All Posted Products</>
+                  ) : (
+                    <>
+                      You can view up to {influencerLimit} influencers
+                      {userPlan.toLowerCase() === 'trial' && ' • Limited Posted Products'}
+                      {userPlan.toLowerCase() !== 'trial' && ' • All Posted Products'}
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+            {userPlan.toLowerCase() !== 'premium' && (
+              <button
+                onClick={handleUpgradeClick}
+                className="bg-[#ffa41c] hover:bg-[#e59419] text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm"
+              >
+                Upgrade Plan
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Search */}
@@ -1713,11 +1821,30 @@ const InfluencersPage: React.FC = () => {
         {!isLoading && filteredInfluencers.length > 0 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {currentInfluencers.map((influencer) => (
+              {currentInfluencers.map((influencer, index) => {
+                const globalIndex = indexOfFirstInfluencer + index;
+                const isLocked = globalIndex >= influencerLimit;
+
+                return (
               <div
                 key={influencer.influencer_name}
-                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col"
+                className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200 flex flex-col ${isLocked ? 'relative' : ''}`}
               >
+                {/* Blur overlay for locked influencers */}
+                {isLocked && (
+                  <div className="absolute inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 z-10 flex flex-col items-center justify-center">
+                    <div className="bg-white dark:bg-gray-800 rounded-full p-4 shadow-lg mb-3">
+                      <Lock className="w-8 h-8 text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Upgrade to View</p>
+                    <button
+                      onClick={handleUpgradeClick}
+                      className="bg-[#ffa41c] hover:bg-[#e59419] text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm"
+                    >
+                      Upgrade Plan
+                    </button>
+                  </div>
+                )}
                 {/* Profile Header */}
                 <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                   <div className="flex flex-col items-center text-center">
@@ -1798,7 +1925,8 @@ const InfluencersPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Pagination Controls */}
@@ -1852,6 +1980,7 @@ const InfluencersPage: React.FC = () => {
         isOpen={selectedInfluencer !== null}
         influencerName={selectedInfluencer || ''}
         onClose={() => setSelectedInfluencer(null)}
+        userPlan={userPlan}
       />
     </div>
   );

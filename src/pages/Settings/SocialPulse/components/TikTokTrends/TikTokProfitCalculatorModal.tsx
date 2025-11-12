@@ -6,6 +6,7 @@ import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
 import { type TikTokTrendingProduct, type SupplierInfo } from '@/api/tiktokTrends';
 import { useUserSubscriptionAndSearchQuota } from '@/hooks/useUserDetails';
 import { useNavigate } from 'react-router-dom';
+import { fetchPexelsFallbackImage, extractCategoryName } from '@/utils/pexelsImageFallback';
 
 interface TikTokProfitCalculatorModalProps {
   product: TikTokTrendingProduct;
@@ -211,7 +212,7 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
   };
 
   // Handle product save
-  const handleSaveProduct = () => {
+  const handleSaveProduct = async () => {
     // Prevent multiple saves
     if (isSaving || saveProductMutation.isPending) {
       console.log('🔥 Save already in progress, ignoring duplicate request');
@@ -260,11 +261,27 @@ const TikTokProfitCalculatorModal: React.FC<TikTokProfitCalculatorModalProps> = 
     const productAny = product as any; // Type assertion to access dynamic fields
 
     // Determine the best image URL (try multiple sources)
-    const bestImageUrl = product.image_url ||
+    let bestImageUrl = product.image_url ||
                         productAny.cover_url ||
                         productAny.image_url ||
                         (productAny.images && productAny.images[0]) ||
                         '';
+
+    // ✅ If no image found, fetch Freepik fallback
+    if (!bestImageUrl || bestImageUrl.trim() === '') {
+      try {
+        const searchQuery = productAny.url_title || product.title || extractCategoryName(productAny);
+        const cacheKey = `${product.id || ''}_${searchQuery}`;
+        console.log('🖼️ No product image found, fetching Freepik fallback for:', searchQuery);
+        const freepikImage = await fetchPexelsFallbackImage(searchQuery, cacheKey);
+        if (freepikImage) {
+          bestImageUrl = freepikImage;
+          console.log('✅ Freepik fallback image fetched:', freepikImage);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching Freepik fallback:', error);
+      }
+    }
 
     console.log('🔍 TikTok Product Save Debug:', {
       productId: product.id,

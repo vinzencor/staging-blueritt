@@ -181,6 +181,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
   const [hashtagPeriod, setHashtagPeriod] = useState('120');
   const [hashtagCountry, setHashtagCountry] = useState('GB'); // ? Default to UK
   const [hashtagIndustry, setHashtagIndustry] = useState('');
+  const [isCachedData, setIsCachedData] = useState<boolean | null>(null); // Track if data is from cache
 
   // Determine if we're on TikTok page
   const isTikTokPage = location.pathname.includes('/socialpulse/tiktok');
@@ -231,6 +232,9 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
         updateHashtagQuota(data.remaining_quota);
       }
 
+      // Set cache status for UI indicator
+      setIsCachedData(data.cache_hit === true);
+
       if (data.data && data.data.list && Array.isArray(data.data.list)) {
         setTrendingHashtags(data.data.list);
       } else {
@@ -254,10 +258,33 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
     <div className="lg:col-span-1">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sticky top-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Hash className="w-5 h-5 text-pink-600" />
-            TikTok Trending Hashtags
-          </h2>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <Hash className="w-5 h-5 text-pink-600" />
+              TikTok Trending Hashtags
+            </h2>
+            {/* Cache/New Search Indicator in Colored Box */}
+            {isCachedData !== null && trendingHashtags.length > 0 && (
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md w-fit ${
+                isCachedData
+                  ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700'
+                  : 'bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700'
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${
+                  isCachedData
+                    ? 'bg-green-600 dark:bg-green-400'
+                    : 'bg-blue-600 dark:bg-blue-400'
+                }`}></span>
+                <span className={`text-xs font-semibold ${
+                  isCachedData
+                    ? 'text-green-700 dark:text-green-300'
+                    : 'text-blue-700 dark:text-blue-300'
+                }`}>
+                  {isCachedData ? 'Saved from DB' : 'New Search'}
+                </span>
+              </div>
+            )}
+          </div>
           {/* Close button - only visible on mobile */}
           <button
             onClick={() => setIsMobileOpen(false)}

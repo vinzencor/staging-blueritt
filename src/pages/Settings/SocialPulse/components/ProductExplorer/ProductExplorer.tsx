@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Filter, Grid, List, Star, ShoppingCart, ExternalLink, Eye, Package, TrendingUp, Zap, X, CheckCircle, ChevronDown } from 'lucide-react';
+import { Search, Filter, Grid, List, Star, ShoppingCart, ExternalLink, Eye, Package, TrendingUp, Zap, X, CheckCircle, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
 import AmazonLoader from '../../../../../components/AmazonLoader';
@@ -87,6 +87,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const [autoStartSupplierDiscovery, setAutoStartSupplierDiscovery] = useState(false);
   const [selectedType, setSelectedType] = useState<string>('BEST_SELLERS');
   const [showAddOnsChoiceModalAmazon, setShowAddOnsChoiceModalAmazon] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   // API-based categories (fetched dynamically based on country)
   const [mainCategories, setMainCategories] = useState<any[]>([]);
@@ -236,6 +240,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         });
 
         console.log('✅ Search response:', result);
+        console.log('💾 Cache Hit Status:', result?.cache_hit);
+        console.log('📊 Remaining Quota:', result?.remaining_quota);
 
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
@@ -243,7 +249,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        console.log('Search products fetched:', result?.data?.products?.length || 0);
+        console.log('Search products fetched:', {
+          totalProducts: result?.data?.products?.length || 0,
+          cacheHit: result?.cache_hit,
+          remainingQuota: result?.remaining_quota
+        });
 
         return result;
       } catch (error) {
@@ -252,7 +262,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       }
     },
     enabled: false, // ✅ CRITICAL: Manual trigger only - no automatic fetching
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 0, // ✅ FIXED: Always fetch fresh data to check backend cache
     gcTime: 1000 * 60 * 30, // 30 minutes - prevent garbage collection refetches
     retry: 1, // Only retry once
     retryDelay: 2000, // Fixed 2 second delay
@@ -281,6 +291,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         });
 
         console.log('✅ Category response:', result);
+        console.log('💾 Cache Hit Status:', result?.cache_hit);
+        console.log('📊 Remaining Quota:', result?.remaining_quota);
 
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
@@ -288,7 +300,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
           updateAmazonSearchQuota(result.remaining_quota);
         }
 
-        console.log('Category products fetched:', result?.data?.products?.length || 0);
+        console.log('Category products fetched:', {
+          totalProducts: result?.data?.products?.length || 0,
+          cacheHit: result?.cache_hit,
+          remainingQuota: result?.remaining_quota
+        });
 
         return result;
       } catch (error) {
@@ -297,7 +313,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       }
     },
     enabled: false, // ✅ CRITICAL: Manual trigger only - no automatic fetching
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 0, // ✅ FIXED: Always fetch fresh data to check backend cache
     gcTime: 1000 * 60 * 30, // 30 minutes - prevent garbage collection refetches
     retry: 1, // Only retry once
     retryDelay: 2000, // Fixed 2 second delay
@@ -348,6 +364,8 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         });
 
         console.log('✅ Category products response:', result);
+        console.log('💾 Cache Hit Status:', result?.cache_hit);
+        console.log('📊 Remaining Quota:', result?.remaining_quota);
 
         // Update quota if remaining_quota is provided in response
         if (result?.remaining_quota !== undefined) {
@@ -357,7 +375,9 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
 
         console.log('🎯 Products Fetched:', {
           categoryId: selectedCategoryId,
-          totalProducts: result?.data?.products?.length || 0
+          totalProducts: result?.data?.products?.length || 0,
+          cacheHit: result?.cache_hit,
+          remainingQuota: result?.remaining_quota
         });
 
         // Return the result with shuffled products
@@ -368,7 +388,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       }
     },
     enabled: false, // ✅ CRITICAL: Disable ALL automatic fetching - only fetch when button is clicked
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 0, // ✅ FIXED: Always fetch fresh data to check backend cache
     gcTime: 1000 * 60 * 30, // 30 minutes - prevent garbage collection refetches
     retry: 1, // Only retry once
     retryDelay: 2000, // Fixed 2 second delay
@@ -641,10 +661,20 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const getCacheHitStatus = (): boolean | undefined => {
     // Check direct category products first (when category is selected)
     if (selectedCategoryId && directCategoryProductsData) {
+      console.log('🔍 Cache Hit Check (Category):', {
+        selectedCategoryId,
+        cache_hit: directCategoryProductsData.cache_hit,
+        fullData: directCategoryProductsData
+      });
       return directCategoryProductsData.cache_hit;
     }
 
     // Otherwise check current data based on view mode
+    console.log('🔍 Cache Hit Check (Other):', {
+      viewMode,
+      cache_hit: currentData?.cache_hit,
+      fullData: currentData
+    });
     return currentData?.cache_hit;
   };
 
@@ -665,6 +695,30 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   const finalError = getError();
   const cacheHit = getCacheHitStatus();
   const remainingQuota = getRemainingQuota();
+
+  console.log('📊 Final Display Values:', {
+    cacheHit,
+    remainingQuota,
+    productsCount: products.length,
+    selectedCategoryId,
+    viewMode
+  });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = products.slice(startIndex, endIndex);
+
+  // Reset to page 1 when products change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [products.length, viewMode, selectedCategoryId]);
+
+  // Scroll to top when page changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
   return (
     <div className="space-y-6">
@@ -1055,16 +1109,16 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         {!isLoading && products.length > 0 && (
           <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
             <span>
-              Showing {products.length} of {totalProducts.toLocaleString()} products
+              Showing {startIndex + 1}-{Math.min(endIndex, products.length)} of {products.length} products
             </span>
             <span>
-              Page {page}
+              Page {currentPage} of {totalPages}
             </span>
           </div>
         )}
 
         {/* ✅ Cache Hit Indicator - Shows when data is from 7-day cache */}
-        {!finalIsLoading && products.length > 0 && cacheHit && (
+        {!finalIsLoading && products.length > 0 && cacheHit === true && (
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg p-4 border border-green-200 dark:border-green-700 mb-4">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
@@ -1073,10 +1127,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               <div className="flex-1">
                 <h3 className="font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
                   <Zap className="w-4 h-4" />
-                  Loaded from Saved Results
+                  Loaded from Saved Results - Quota Not Deducted
                 </h3>
                 <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                  Quota was not used This data will remain available for 7 days from the first search.
+                  Quota Not Deducted. This data will remain available for 7 days from the first search.
                 </p>
               </div>
             </div>
@@ -1084,7 +1138,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         )}
 
         {/* ✅ Fresh Data Indicator - Shows when data is from API (quota deducted) */}
-        {!finalIsLoading && products.length > 0 && !cacheHit && remainingQuota !== undefined && (
+        {!finalIsLoading && products.length > 0 && cacheHit === false && remainingQuota !== undefined && (
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-700 mb-4">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
@@ -1093,10 +1147,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
               <div className="flex-1">
                 <h3 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
                   <Zap className="w-4 h-4" />
-                  Fresh Data from Amazon API - Quota Deducted
+                  New Search – Quota Deducted
                 </h3>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                  New data fetched from Amazon. Results cached for 7 days. Remaining searches: {remainingQuota}
+                  New data fetched from Amazon. 1 search quota deducted. Results cached for 7 days. Remaining searches: {remainingQuota}
                 </p>
               </div>
             </div>
@@ -1168,7 +1222,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
         ) : (
           <div className="p-3 sm:p-6 bg-white dark:bg-gray-800 ">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-10">
-              {products.map((product: any, index: number) => (
+              {paginatedProducts.map((product: any, index: number) => (
                 <ProductCard
                   key={`${product.asin}-${index}`}
                   product={product}
@@ -1178,6 +1232,80 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 />
               ))}
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {/* First page */}
+                  {currentPage > 3 && (
+                    <>
+                      <button
+                        onClick={() => setCurrentPage(1)}
+                        className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      >
+                        1
+                      </button>
+                      <span className="text-gray-500 dark:text-gray-400">...</span>
+                    </>
+                  )}
+
+                  {/* Page numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(pageNum => {
+                      return pageNum === currentPage ||
+                        pageNum === currentPage - 1 ||
+                        pageNum === currentPage + 1 ||
+                        (currentPage <= 2 && pageNum <= 3) ||
+                        (currentPage >= totalPages - 1 && pageNum >= totalPages - 2);
+                    })
+                    .map(pageNum => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`px-4 py-2 rounded-lg border transition-colors ${
+                          currentPage === pageNum
+                            ? 'bg-gradient-to-r from-[#ffa41c] to-[#ff6201] text-white border-transparent'
+                            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+
+                  {/* Last page */}
+                  {currentPage < totalPages - 2 && (
+                    <>
+                      <span className="text-gray-500 dark:text-gray-400">...</span>
+                      <button
+                        onClick={() => setCurrentPage(totalPages)}
+                        className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      >
+                        {totalPages}
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
         )}
         </div>
@@ -1257,7 +1385,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onViewDetails, onDis
           {/* Price and Rating */}
           <div className="flex items-center justify-between mb-3">
             <span className="text-lg font-bold text-green-600 dark:text-green-400">
-              {formatPrice(product.product_price || '')}
+              {formatPrice(product.product_price || '', country)}
             </span>
             {product.product_star_rating && (
               <div className="flex items-center text-sm text-[#2262a1] dark:text-blue-400">

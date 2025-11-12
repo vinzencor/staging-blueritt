@@ -923,7 +923,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   {supplier.is_assessed && (
                     <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
                       <Shield className="w-3 h-3 fill-current" />
-                      Assessed Supplier
+                      Verified
                     </span>
                   )}
 

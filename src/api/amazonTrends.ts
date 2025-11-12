@@ -479,6 +479,7 @@ export const getAmazonProductsByCategoryDirect = async ({
   maxPrice?: number;
 }): Promise<AmazonTrendingResponse> => {
   console.log('🔍 Amazon Products by Category API Call (via backend):', {
+    endpoint: '/products/amazon-trends/products-by-category/',
     categoryId,
     country,
     page,
@@ -509,8 +510,8 @@ export const getAmazonProductsByCategoryDirect = async ({
     params.max_price = maxPrice;
   }
 
-  // ✅ Use the correct endpoint: /products/products-by-category/
-  const response = await api.get('/products/products-by-category/', {
+  // ✅ FIXED: Use Amazon Trends endpoint with 7-day caching and cache_hit response
+  const response = await api.get('/products/amazon-trends/products-by-category/', {
     params,
   });
 
@@ -520,7 +521,9 @@ export const getAmazonProductsByCategoryDirect = async ({
     page,
     totalProducts: response.data?.data?.products?.length || 0,
     hasData: !!response.data?.data,
-    remaining_quota: response.data?.remaining_quota
+    cache_hit: response.data?.cache_hit,
+    remaining_quota: response.data?.remaining_quota,
+    fullResponse: response.data
   });
 
   return response.data;

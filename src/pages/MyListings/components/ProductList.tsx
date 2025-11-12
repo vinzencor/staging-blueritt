@@ -409,8 +409,8 @@ const ProductList: React.FC<ProductListProps> = ({
               key={product.id}
               className="border border-gray-200 dark:border-gray-700 rounded-md grid grid-cols-1 lg:grid-cols-2 mb-4 bg-white dark:bg-gray-900"
             >
-              {/* Amazon product card */}
-              <div>
+              {/* Product Details - Left Side */}
+              <div className="flex flex-col">
                 <div className="font-medium p-4 text-gray-500 dark:text-gray-400 flex justify-between lg:justify-between items-center">
                   <div>Search saved at: {formatDate(product.created_at)}</div>
 
@@ -440,122 +440,111 @@ const ProductList: React.FC<ProductListProps> = ({
                     <p className="font-semibold text-gray-900 dark:text-white">{product.name}</p>
                   </div>
                 )}
-                <SpkbgCards
-                  key={`amazon-${product.id}`}
-                  mode="basic"
-                  Title={hasAmazonData ? amazonData.name : "No name available"}
-                  Price={hasAmazonData ? amazonData.price : 0}
-                  Imgsrc={hasAmazonData ? amazonData.image || "" : ""}
-                  Asin={hasAmazonData ? amazonData.asin || "" : ""}
-                  Currency={hasAmazonData ? amazonData.currency || "" : ""}
-                  StarRating={
-                    hasAmazonData && amazonData.rating && amazonData.rating > 0
-                      ? amazonData.rating.toString()
-                      : "0"
-                  }
-                  SalesVolume={`${amazonData?.salesVolume}` || "0"}
-                  ratingCount={amazonData?.numRatings || 0}
-                  productOffers={amazonData?.productOffers || 0}
-                  BestSeller={
-                    hasAmazonData ? amazonData.isBestSeller || false : false
-                  }
-                  AmazonChoice={
-                    hasAmazonData ? amazonData.isAmazonChoice || false : false
-                  }
-                  IsPrime={hasAmazonData ? amazonData.isPrime || false : false}
-                  IsClimateFriendly={
-                    hasAmazonData
-                      ? amazonData.IsClimateFriendly || false
-                      : false
-                  }
-                  buttonCheck={false}
-                  Loading={false}
-                />
 
-                {/* ✅ Product Description Section - Only for Amazon/TikTok Trends */}
-                {isAmazonOrTikTok && (() => {
-                  const aboutProduct = product.amazon_product?.data?.about_product;
-                  const productDescription = product.amazon_product?.data?.product_description || product.description;
-
-                  return (aboutProduct && aboutProduct.length > 0) || productDescription ? (
-                    <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                        <i className="bi bi-file-text"></i>
-                        Product Description
-                      </h4>
-
-                      {/* About Product (Bullet Points) */}
-                      {aboutProduct && aboutProduct.length > 0 && (
-                        <div className="mb-3">
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Key Features:</p>
-                          <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                            {aboutProduct.slice(0, 5).map((point: string, idx: number) => (
-                              <li key={idx} className="leading-relaxed">{point}</li>
-                            ))}
-                          </ul>
+                {/* Product Information with Image in Small Box */}
+                <div className="p-4">
+                  <div className="flex items-start gap-4">
+                    {/* Product Image - Small Box */}
+                    <div className="flex-shrink-0">
+                      <div className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
+                        <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                          {hasAmazonData && amazonData.image ? (
+                            <img
+                              src={amazonData.image}
+                              alt={amazonData.name || "Product"}
+                              className="w-full h-full object-contain rounded-lg"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (!target.src.includes('placeholder-product.png')) {
+                                  target.src = '/placeholder-product.png';
+                                } else {
+                                  target.style.display = 'none';
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg flex items-center justify-center">
+                              <i className="bi bi-image text-2xl text-gray-400"></i>
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
+                    </div>
 
-                      {/* Product Description */}
-                      {productDescription && (
+                    {/* Product Details - Content */}
+                    <div className="flex-1 min-w-0">
+                      {/* Product Title */}
+                      <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                        {hasAmazonData ? amazonData.name : "No name available"}
+                      </div>
+
+                      {/* Product Info Grid */}
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                         <div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">Description:</p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-4">
-                            {productDescription}
-                          </p>
+                          <span className="text-gray-500 dark:text-gray-400">ASIN</span>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {hasAmazonData ? amazonData.asin || "N/A" : "N/A"}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 dark:text-gray-400">Price</span>
+                          <div className="font-medium text-green-600 dark:text-green-400">
+                            {hasAmazonData ? `${amazonData.currency || "$"} ${amazonData.price?.toLocaleString() || "0"}` : "N/A"}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 dark:text-gray-400">Original Price</span>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {hasAmazonData ? `${amazonData.currency || "$"} ${amazonData.price?.toLocaleString() || "0"}` : "N/A"}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 dark:text-gray-400">Rating Count</span>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {hasAmazonData ? (amazonData.numRatings || 0).toLocaleString() : "0"}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 dark:text-gray-400">Other Offers</span>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {hasAmazonData ? amazonData.productOffers || 0 : "0"}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 dark:text-gray-400">Monthly Sales Volume</span>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {hasAmazonData ? (amazonData.salesVolume || "0") : "0"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Star Rating */}
+                      {hasAmazonData && amazonData.rating && amazonData.rating > 0 && (
+                        <div className="mt-3 flex items-center gap-2">
+                          <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <svg
+                                key={i}
+                                className={`w-4 h-4 ${i < Math.floor(amazonData.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                          </div>
+                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                            {(amazonData.rating || 0).toFixed(1)}
+                          </span>
                         </div>
                       )}
                     </div>
-                  ) : null;
-                })()}
-
-                {/* Display profit information if available */}
-                {(() => {
-                  // Check for profit data from multiple sources
-                  const calcData = product.amazon_product?.calculation_data;
-                  const simpleProfitData = product.simple_profit_pro_data;
-
-                  // Try to get data from simple_profit_pro_data first (TikTok/Amazon Trends), then fallback to other sources
-                  const totalRevenue = product.total_revenue ||
-                    (typeof simpleProfitData === 'object' ? simpleProfitData?.pi_totalRevenue : null) ||
-                    calcData?.pi_totalRevenue;
-                  const grossProfit = product.gross_profit ||
-                    (typeof simpleProfitData === 'object' ? simpleProfitData?.grossProfitMargin : null) ||
-                    calcData?.grossProfit;
-                  const netProfit = product.net_profit ||
-                    (typeof simpleProfitData === 'object' ? simpleProfitData?.netProfitAfterTaxesMargin : null) ||
-                    calcData?.netProfit;
-
-                  return (totalRevenue || grossProfit || netProfit) ? (
-                    <div>
-                      {/* <h4 className="font-semibold text-gray-900 mb-3">Profit Informationa</h4> */}
-                      {/* <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                        {totalRevenue && (
-                          <div>
-                            <p className="text-gray-600">Total Revenue</p>
-                            <p className="font-semibold text-green-600">${parseFloat(totalRevenue as any).toFixed(2)}</p>
-                          </div>
-                        )}
-                        {grossProfit && (
-                          <div>
-                            <p className="text-gray-600">Gross Profit</p>
-                            <p className="font-semibold text-blue-600">${parseFloat(grossProfit as any).toFixed(2)}</p>
-                          </div>
-                        )}
-                        {netProfit && (
-                          <div>
-                            <p className="text-gray-600">Net Profit</p>
-                            <p className="font-semibold text-purple-600">${parseFloat(netProfit as any).toFixed(2)}</p>
-                          </div>
-                        )}
-                      </div> */}
-                    </div>
-                  ) : null;
-                })()}
+                  </div>
+                </div>
               </div>
 
               {/* Seller/Supplier Info - Show seller info for Amazon/TikTok or Alibaba supplier */}
-              <div>
+              <div className="flex flex-col">
                 <div className="flex justify-between items-center p-4 text-gray-500 dark:text-gray-400">
                   <div className="flex items-center font-bold text-gray-700 dark:text-gray-300">
                     <i className="bi bi-journal-bookmark-fill mr-2"></i>
@@ -579,19 +568,53 @@ const ProductList: React.FC<ProductListProps> = ({
                 ) : (
                   /* Show seller/supplier info for Amazon/TikTok products */
                   <div className="p-4">
+                    <h6 className="px-4 py-3 bg-yellow-50 dark:bg-yellow-900/20 border-b border-gray-200 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-300">
+                      {product.supplier_info ? 'Supplier Information' : 'Seller Details'}
+                    </h6>
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                        {product.supplier_info ? 'Supplier Information' : 'Seller Details'}
-                      </h4>
+                      {/* Supplier/Seller Info with Image in Small Box */}
+                      <div className="flex items-start gap-4 mb-4">
+                        {/* Supplier Product Image - Small Box */}
+                        {product.supplier_info?.supplier_product_image && (
+                          <div className="flex-shrink-0">
+                            <div className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
+                              <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
+                                <img
+                                  src={product.supplier_info.supplier_product_image}
+                                  alt={product.supplier_info.name || 'Supplier Product'}
+                                  className="w-full h-full object-contain rounded-lg"
+                                  onError={(e) => {
+                                    console.error('❌ Failed to load supplier product image:', product.supplier_info.supplier_product_image);
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Supplier/Seller Name */}
+                        {product.supplier_info && (
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                              {product.supplier_info.name || product.supplier_info.supplier_name || 'N/A'}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              Supplier
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         {/* Display supplier info if available (from TikTok/Amazon calculator) */}
                         {product.supplier_info ? (
                           <>
                             {/* Supplier Name */}
-                            <div className="col-span-2">
+                            <div className="col-span-2 ">
                               <span className="text-gray-600 dark:text-gray-400">Supplier Name:</span>
                               <div className="mt-1">
-                                <span className="font-bold text-gray-900 dark:text-white text-lg">
+                                <span className="font-semibold text-gray-900 dark:text-white ">
                                   {product.supplier_info.name || product.supplier_info.supplier_name || 'N/A'}
                                 </span>
                               </div>
@@ -683,17 +706,6 @@ const ProductList: React.FC<ProductListProps> = ({
                               </span>
                             </div>
 
-                            {/* AI Match Score */}
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">AI Match Score:</span>
-                              <span className="ml-2 font-bold text-purple-600 dark:text-purple-400">
-                                {product?.supplier_info?.ai_match_score !== undefined
-                                  ? Number(product.supplier_info.ai_match_score).toFixed(2)
-                                  : 'N/A'
-                                }%
-                              </span>
-                            </div>
-
                             {/* MOQ */}
                             <div>
                               <span className="text-gray-600 dark:text-gray-400">MOQ:</span>
@@ -735,52 +747,6 @@ const ProductList: React.FC<ProductListProps> = ({
                                 </span>
                               </div>
                             )}
-
-                            {/* Main Products */}
-                            {product.supplier_info.main_products && (
-                              <div className="col-span-2">
-                                <span className="text-gray-600 dark:text-gray-400">Main Products:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                  {Array.isArray(product.supplier_info.main_products)
-                                    ? product.supplier_info.main_products.join(', ')
-                                    : product.supplier_info.main_products}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Certifications */}
-                            {product.supplier_info.certifications && product.supplier_info.certifications.length > 0 && (
-                              <div className="col-span-2">
-                                <span className="text-gray-600 dark:text-gray-400">Certifications:</span>
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                  {product.supplier_info.certifications.map((cert: string, idx: number) => (
-                                    <span key={idx} className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-medium">
-                                      {cert}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Match Explanation */}
-                            {product.supplier_info.match_explanation && (
-                              <div className="col-span-2">
-                                <span className="text-gray-600 dark:text-gray-400">Match Explanation:</span>
-                                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 italic">
-                                  {product.supplier_info.match_explanation}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Product Source */}
-                            <div className="col-span-2">
-                              <span className="text-gray-600 dark:text-gray-400">Product Source:</span>
-                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' :
-                                  product.amazon_product?.source === 'amazon_trends' ? 'Amazon Trends' :
-                                    'TikTok Trends'}
-                              </span>
-                            </div>
                           </>
                         ) : (
                           /* Display Amazon/TikTok seller info - Enhanced for Amazon/TikTok Trends only */
@@ -890,36 +856,6 @@ const ProductList: React.FC<ProductListProps> = ({
                                   <span className="text-gray-600 dark:text-gray-400">Delivery Time:</span>
                                   <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerDeliveryTime || 'N/A'}</span>
                                 </div>
-
-                                {/* Product Source */}
-                                <div className="col-span-2">
-                                  <span className="text-gray-600 dark:text-gray-400">Product Source:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                    {product.amazon_product?.source === 'tiktok_trends' ? 'TikTok Trends' :
-                                     product.amazon_product?.source === 'amazon_trends' ? 'Amazon Trends' :
-                                     product.amazon_product?.source === 'amazon_explorer' ? 'Amazon Trends' :
-                                     'BlueRitt Explorer'}
-                                  </span>
-                                </div>
-
-                                {/* TikTok Metrics (if from TikTok) */}
-                                {product.amazon_product?.source === 'tiktok_trends' && (
-                                  <div className="col-span-2">
-                                    <span className="text-gray-600 dark:text-gray-400">TikTok Metrics:</span>
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                      {product.amazon_product?.data?.likes_count && (
-                                        <span className="bg-gradient-to-r from-pink-500 to-pink-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
-                                          ❤️ {product.amazon_product.data.likes_count.toLocaleString()} likes
-                                        </span>
-                                      )}
-                                      {product.amazon_product?.data?.sales_count && (
-                                        <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
-                                          🛒 {product.amazon_product.data.sales_count.toLocaleString()} sales
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
                               </>
                             ) : (
                               /* Original simple display for BlueRitt Explorer */
@@ -1014,13 +950,15 @@ const ProductList: React.FC<ProductListProps> = ({
 
           {/* ✅ Amazon Trends Products */}
           {groupedProducts.amazon_trends.length > 0 && (
+
+            
             <div className="mb-8">
               <div className="bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-700 dark:to-amber-700 rounded-lg p-4 mb-4 shadow-md">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
-                  Amazon Trends
+                  BlueRitt SocialPulse (Amazon Trends)
                 </h2>
                 <p className="text-orange-100 mt-1 text-sm">Products discovered through Amazon Trends & Amazon Explorer</p>
               </div>
