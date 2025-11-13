@@ -1399,7 +1399,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {activeModalTab === 'suppliers' ? 'BlueRitt SourceLink' : 'TikTok Product Details'}
+                {activeModalTab === 'suppliers' ? 'BlueRitt SourceLink' : 
+activeModalTab === 'shop-analysis' ? 'TikTok Product Analysis' : 
+ 'BlueRitt Product Details'}
               </h2>
               <button
                 onClick={handleCloseModal}
@@ -1457,6 +1459,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 {selectedProduct.url_title || 'TikTok Product'}
+                
               </div>
 
               <div className="flex items-center gap-3">
@@ -1487,8 +1490,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto">
+            
               {activeModalTab === 'overview' && (
                 <div className="p-6">
+<h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4> 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Product Image with Pexels Fallback */}
                     <div className="space-y-4">
@@ -1922,6 +1927,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
               {activeModalTab === 'suppliers' && (
                 <div className="p-6">
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Recommended Alibaba Suppliers for Your Product & AI Match Scores</h4>
                   <SuppliersTab
                     suppliers={suppliers}
                     isLoading={isSupplierDiscoveryLoading}
@@ -2149,11 +2155,13 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
   }
 
   return (
-    <div className="flex gap-6 h-[600px]">
+         <div className="flex gap-6 h-[600px]">
+        
       {/* Left Side - Product Details (Fixed) */}
       <div className="w-1/3 flex-shrink-0">
-        <div className="sticky top-0 bg-white dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-purple-600 p-4 shadow-lg h-[600px] flex flex-col">
+<div className="sticky top-0 bg-white dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-purple-600 p-4 shadow-lg h-[600px] flex flex-col">
           {/* Product Image */}
+
           <div className="mb-3">
             <ProductImageWithFallback product={product} className="rounded-xl w-full h-48 object-cover" />
           </div>
@@ -2222,6 +2230,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
       {/* Right Side - Suppliers List (Scrollable) */}
       <div className="flex-1 overflow-y-auto pr-2 h-[600px]">
+        
         <div className="space-y-3">
           {displaySuppliers.map((supplier) => (
             <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
@@ -2316,53 +2325,53 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
                 {/* AI Match Score - Circular Progress (Smaller) */}
                 <div className="flex items-center justify-end">
-                  <div className="relative h-[60px] w-[60px]">
-                    {/* Circular Progress Bar */}
-                    <svg className="transform -rotate-90" width="60" height="60">
-                      <circle
-                        cx="30"
-                        cy="30"
-                        r="26"
-                        stroke="#e5e7eb"
-                        strokeWidth="6"
-                        fill="none"
-                      />
-                      <circle
-                        cx="30"
-                        cy="30"
-                        r="26"
-                        stroke={
-                          (supplier.ai_match_score || 0) >= 80
-                            ? '#22c55e'
-                            : (supplier.ai_match_score || 0) >= 60
-                              ? '#eab308'
-                              : '#ef4444'
-                        }
-                        strokeWidth="6"
-                        strokeLinecap="round"
-                        fill="none"
-                        strokeDasharray={2 * Math.PI * 26}
-                        strokeDashoffset={
-                          2 * Math.PI * 26 * (1 - (supplier.ai_match_score || 0) / 100)
-                        }
-                      />
-                    </svg>
+                <div className="relative h-[90px] w-[90px]">
+                  {/* Circular Progress Bar */}
+                  <svg className="transform -rotate-90" width="90" height="90">
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke="#e5e7eb"
+                      strokeWidth="8"
+                      fill="none"
+                    />
+                    <circle
+                      cx="45"
+                      cy="45"
+                      r="40"
+                      stroke={
+                        (supplier.ai_match_score || 0) >= 80
+                          ? '#22c55e'
+                          : (supplier.ai_match_score || 0) >= 60
+                            ? '#eab308'
+                            : '#ef4444'
+                      }
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 40}
+                      strokeDashoffset={
+                        2 * Math.PI * 40 * (1 - (supplier.ai_match_score || 0) / 100)
+                      }
+                    />
+                  </svg>
 
-                    {/* Content in center */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div className="text-[9px] text-gray-500 dark:text-gray-400">AI Match</div>
-                      <div className="font-bold text-xs text-purple-600 dark:text-purple-400">
-                        {(supplier.ai_match_score || 0).toFixed(0)}%
-                      </div>
+                  {/* Content in center */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
+                    <div className="font-bold text-purple-600 dark:text-purple-400">
+                      {(supplier.ai_match_score || 0).toFixed(2)}%
                     </div>
                   </div>
                 </div>
+              </div>
               </div>
 
               {/* Key Details Grid - Compact */}
               <div className="grid grid-cols-2 gap-2 mb-2">
                 <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
-                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Min Order QTY</div>
+                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Minimum Order QTY</div>
                   <div className="font-semibold text-xs text-gray-900 dark:text-white">
                     {supplier.moq?.toLocaleString() || 'N/A'}
                   </div>
@@ -2374,7 +2383,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   </div>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
-                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Cost</div>
+                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Manufacturing Cost</div>
                   <div className="font-semibold text-xs text-gray-900 dark:text-white">
                     {supplier.estimated_price}
                   </div>
@@ -2385,10 +2394,13 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                     {supplier.response_rate}
                   </div>
                 </div>
-              </div>
-
-              {/* ✅ Star Rating Display - Separate Row */}
-              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 mb-2">
+                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Item id</div>
+                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                    {supplier.id}
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 mb-2">
                 <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-1 text-center">Supplier Rating</div>
                 <div className="flex items-center justify-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -2405,6 +2417,11 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   </span>
                 </div>
               </div>
+              </div>
+            
+
+              {/* ✅ Star Rating Display - Separate Row */}
+              
 
               {/* Additional Info - Compact */}
               <div className="space-y-1 mb-2">
@@ -2438,7 +2455,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                 {/* Calculate Button */}
                 <button
                   onClick={() => onCalculateClick(supplier)}
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-1 px-2 rounded-lg transition-all duration-200 font-medium text-md flex items-center gap-1"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
                 >
                   <DollarSign className="w-3 h-3" />
                   Select Supplier
@@ -2450,7 +2467,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                     href={supplier.contact_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-1 px-2 rounded-lg transition-all duration-200 font-medium text-md flex items-center gap-1"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
                   >
                     <ExternalLink className="w-3 h-3" />
                     Contact Supplier

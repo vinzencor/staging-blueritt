@@ -280,7 +280,7 @@ export const TikTokTopInfluencersWidget: React.FC<{ className?: string }> = ({ c
                     ? 'text-green-700 dark:text-green-300'
                     : 'text-blue-700 dark:text-blue-300'
                 }`}>
-                  {isCachedData ? 'Saved from DB' : 'New Search'}
+                  {isCachedData ? 'Quota Not Deducted' : 'Quota Deducted'}
                 </span>
               </div>
             )}

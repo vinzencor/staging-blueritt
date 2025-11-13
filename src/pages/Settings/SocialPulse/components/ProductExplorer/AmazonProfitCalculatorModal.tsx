@@ -92,25 +92,177 @@ interface EnhancedProfitCalculation {
 }
 
 const TAX_OPTIONS = [
-  { country: "United States", code: "US", vat: 0, gst: 10, salesTax: 0 },
-  { country: "Canada", code: "CA", vat: 0, gst: 5, salesTax: 13 },
-  { country: "Mexico", code: "MX", vat: 16, gst: 0, salesTax: 0 },
-  { country: "Brazil", code: "BR", vat: 5, gst: 5, salesTax: 0 },
-  { country: "United Kingdom", code: "GB", vat: 20, gst: 0, salesTax: 0 },
-  { country: "Germany", code: "DE", vat: 19, gst: 0, salesTax: 0 },
-  { country: "Sweden", code: "SE", vat: 25, gst: 0, salesTax: 0 },
-  { country: "Poland", code: "PL", vat: 23, gst: 0, salesTax: 0 },
-  { country: "Turkey", code: "TR", vat: 18, gst: 0, salesTax: 0 },
-  { country: "UAE", code: "AE", vat: 5, gst: 0, salesTax: 0 },
-  { country: "India", code: "IN", vat: 0, gst: 18, salesTax: 0 },
-  { country: "France", code: "FR", vat: 20, gst: 0, salesTax: 0 },
-  { country: "Italy", code: "IT", vat: 22, gst: 0, salesTax: 0 },
-  { country: "Spain", code: "ES", vat: 21, gst: 0, salesTax: 0 },
-  { country: "Netherlands", code: "NL", vat: 21, gst: 0, salesTax: 0 },
-  { country: "Saudi Arabia", code: "SA", vat: 15, gst: 0, salesTax: 0 },
-  { country: "Japan", code: "JP", vat: 10, gst: 0, salesTax: 0 },
-  { country: "Singapore", code: "SG", vat: 0, gst: 8, salesTax: 0 },
-  { country: "Australia", code: "AU", vat: 0, gst: 10, salesTax: 0 },
+  {
+    country: "United States",
+    code: "US",
+    vat: 0,
+    gst: 10,
+    salesTax: 0,
+    misc: 0,
+    salesTaxNote: "Sales Tax is variable by state (e.g., California, New York).",
+  },
+  {
+    country: "Canada",
+    code: "CA",
+    vat: 0,
+    gst: 5,
+    salesTax: 13,
+    misc: 0,
+    gstNote: "GST is variable by province (e.g., GST 5% or HST in certain regions like Ontario: 13%).",
+  },
+  {
+    country: "Mexico",
+    code: "MX",
+    vat: 16,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 16%.",
+  },
+  {
+    country: "Brazil",
+    code: "BR",
+    vat: 5,
+    gst: 5,
+    salesTax: 0,
+    misc: 3,
+    vatNote: "Brazil has complex tax structures including ICMS, IPI, PIS, and COFINS depending on the state.",
+  },
+  {
+    country: "United Kingdom",
+    code: "GB",
+    vat: 20,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 20%.",
+  },
+  {
+    country: "Germany",
+    code: "DE",
+    vat: 19,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 19%.",
+  },
+  {
+    country: "Sweden",
+    code: "SE",
+    vat: 25,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 25%.",
+  },
+  {
+    country: "Poland",
+    code: "PL",
+    vat: 23,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 23%.",
+  },
+  {
+    country: "Turkey",
+    code: "TR",
+    vat: 18,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 18%.",
+  },
+  {
+    country: "UAE",
+    code: "AE",
+    vat: 5,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 5%.",
+  },
+  {
+    country: "India",
+    code: "IN",
+    vat: 0,
+    gst: 18,
+    salesTax: 0,
+    misc: 0,
+    gstNote: "GST rates vary from 5% to 28%, depending on the product category.",
+  },
+  {
+    country: "France",
+    code: "FR",
+    vat: 20,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 20%.",
+  },
+  {
+    country: "Italy",
+    code: "IT",
+    vat: 22,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 22%.",
+  },
+  {
+    country: "Spain",
+    code: "ES",
+    vat: 21,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 21%.",
+  },
+  {
+    country: "Netherlands",
+    code: "NL",
+    vat: 21,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 21%.",
+  },
+  {
+    country: "Saudi Arabia",
+    code: "SA",
+    vat: 15,
+    gst: 0,
+    salesTax: 0,
+    misc: 0,
+    vatNote: "Standard VAT of 15%.",
+  },
+  {
+    country: "Japan",
+    code: "JP",
+    vat: 0,
+    gst: 0,
+    salesTax: 10,
+    misc: 0,
+    salesTaxNote: "Standard Consumption Tax of 10%.",
+  },
+  {
+    country: "Singapore",
+    code: "SG",
+    vat: 0,
+    gst: 8,
+    salesTax: 0,
+    misc: 0,
+    gstNote: "Standard GST of 8%.",
+  },
+  {
+    country: "Australia",
+    code: "AU",
+    vat: 0,
+    gst: 10,
+    salesTax: 0,
+    misc: 0,
+    gstNote: "Standard GST of 10%.",
+  },
 ];
 
 const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = ({
@@ -200,6 +352,8 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
     feedback: false,
     other: false,
   });
+
+  const [quantityError, setQuantityError] = useState<string>('');
 
   const [saveDescription, setSaveDescription] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -552,91 +706,234 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
     }));
   };
 
+  const roundOffToTwoDecimals = (num: number) => {
+    return Math.round(num * 100) / 100;
+  };
+
+  const getTaxNotes = () => {
+    const taxRegion = TAX_OPTIONS.find(
+      (opt) => opt.code === calculation.tax_region
+    );
+
+    if (!taxRegion) return null;
+
+    return (
+      <div className="mt-2 space-y-1">
+        {taxRegion?.vatNote && (
+          <p className="text-sm text-gray-600 dark:text-gray-400">{taxRegion?.vatNote}</p>
+        )}
+        {taxRegion?.gstNote && (
+          <p className="text-sm text-gray-600 dark:text-gray-400">{taxRegion?.gstNote}</p>
+        )}
+        {taxRegion?.salesTaxNote && (
+          <p className="text-sm text-gray-600 dark:text-gray-400">{taxRegion?.salesTaxNote}</p>
+        )}
+      </div>
+    );
+  };
+
   const updateCalculation = (field: keyof EnhancedProfitCalculation, value: number | string) => {
     const newCalc = { ...calculation, [field]: typeof value === 'string' ? parseFloat(value) || 0 : value };
 
-    // Product Information calculations
+    // Validate quantity vs order quantity
+    if (field === 'pi_quantity' || field === 'psc_orderQuantity') {
+      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
+      const orderQuantity = parseFloat(String(newCalc.psc_orderQuantity)) || 0;
+
+      if (quantity > 0 && orderQuantity > 0 && quantity > orderQuantity) {
+        setQuantityError('Quantity cannot be greater than Order Quantity');
+      } else {
+        setQuantityError('');
+      }
+    }
+
+    // Product Information calculations - EXACT MATCH TO MARGINMAX
     if (field === 'pi_sellingPrice' || field === 'pi_quantity') {
-      newCalc.pi_totalRevenue = newCalc.pi_sellingPrice * newCalc.pi_quantity;
+      const ans = Number(newCalc.pi_sellingPrice) * (newCalc.pi_quantity ? Number(newCalc.pi_quantity) : 0);
+      newCalc.pi_totalRevenue = ans ? roundOffToTwoDecimals(ans) : 0;
     }
 
-    // Product Sourcing Cost calculations
-    if (['psc_manufacturingCost', 'psc_shippingCost', 'psc_productLogoCost', 'psc_miscCost'].includes(field as string)) {
-      const costPerUnit = newCalc.psc_manufacturingCost + newCalc.psc_shippingCost + newCalc.psc_productLogoCost + newCalc.psc_miscCost;
-      newCalc.psc_perUnitCost = costPerUnit;
-      newCalc.psc_totalCost = costPerUnit * newCalc.psc_orderQuantity;
+    // Product Sourcing Cost calculations - EXACT MATCH TO MARGINMAX
+    if (['psc_manufacturingCost', 'psc_shippingCost', 'psc_productLogoCost', 'psc_miscCost', 'psc_orderQuantity'].includes(field as string)) {
+      const manufacturingCost = parseFloat(String(newCalc.psc_manufacturingCost)) || 0;
+      const shippingCost = parseFloat(String(newCalc.psc_shippingCost)) || 0;
+      const productLogoCost = parseFloat(String(newCalc.psc_productLogoCost)) || 0;
+      const miscCost = parseFloat(String(newCalc.psc_miscCost)) || 0;
+      const orderQuantity = parseFloat(String(newCalc.psc_orderQuantity)) || 0;
+
+      const costPerUnit = manufacturingCost + shippingCost + productLogoCost + miscCost;
+      const totalCost = costPerUnit * orderQuantity;
+
+      newCalc.psc_perUnitCost = roundOffToTwoDecimals(costPerUnit);
+      newCalc.psc_totalCost = roundOffToTwoDecimals(totalCost);
     }
 
-    if (field === 'psc_orderQuantity') {
-      newCalc.psc_totalCost = newCalc.psc_perUnitCost * newCalc.psc_orderQuantity;
+    // Fulfillment Model calculations - EXACT MATCH TO MARGINMAX
+    if (['fm_model', 'fm_referrfalFees', 'fm_fbaFulfillmentFees', 'fm_monthlyStorageFees', 'fm_longTermStorageFees', 'fm_inboundShippingCost', 'fm_shippingFees', 'fm_handlingCost', 'fm_storageCost', 'fm_miscCost', 'fm_returnsRate', 'pi_quantity'].includes(field as string)) {
+      const referrfalFees = parseFloat(String(newCalc.fm_referrfalFees)) || 0;
+      const fbaFulfillmentFees = parseFloat(String(newCalc.fm_fbaFulfillmentFees)) || 0;
+      const monthlyStorageFees = parseFloat(String(newCalc.fm_monthlyStorageFees)) || 0;
+      const longTermStorageFees = parseFloat(String(newCalc.fm_longTermStorageFees)) || 0;
+      const inboundShippingCost = parseFloat(String(newCalc.fm_inboundShippingCost)) || 0;
+      const shippingFees = parseFloat(String(newCalc.fm_shippingFees)) || 0;
+      const handlingCost = parseFloat(String(newCalc.fm_handlingCost)) || 0;
+      const storageCost = parseFloat(String(newCalc.fm_storageCost)) || 0;
+      const miscCost = parseFloat(String(newCalc.fm_miscCost)) || 0;
+      const returnsRate = parseFloat(String(newCalc.fm_returnsRate)) || 0;
+      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
+
+      let sum = 0;
+      if (newCalc.fm_model === "FBA") {
+        sum = referrfalFees + fbaFulfillmentFees + monthlyStorageFees + longTermStorageFees + inboundShippingCost + miscCost;
+      } else {
+        sum = referrfalFees + shippingFees + handlingCost + storageCost + miscCost;
+      }
+
+      const refundLoss = ((quantity || 0) * (returnsRate / 100) * (sum - referrfalFees)) / (quantity || 1);
+      const perUnitCost = sum + refundLoss;
+      const totalCost = perUnitCost * quantity;
+
+      newCalc.fm_perUnitCost = roundOffToTwoDecimals(perUnitCost);
+      newCalc.fm_totalCost = roundOffToTwoDecimals(totalCost);
     }
 
-    // Fulfillment Model calculations
-    if (['fm_referrfalFees', 'fm_fbaFulfillmentFees', 'fm_monthlyStorageFees', 'fm_longTermStorageFees', 'fm_inboundShippingCost', 'fm_shippingFees', 'fm_handlingCost', 'fm_storageCost', 'fm_miscCost'].includes(field as string)) {
-      const fmCostPerUnit = newCalc.fm_referrfalFees + newCalc.fm_fbaFulfillmentFees + newCalc.fm_monthlyStorageFees + newCalc.fm_longTermStorageFees + newCalc.fm_inboundShippingCost + newCalc.fm_shippingFees + newCalc.fm_handlingCost + newCalc.fm_storageCost + newCalc.fm_miscCost;
-      newCalc.fm_perUnitCost = fmCostPerUnit;
-      newCalc.fm_totalCost = fmCostPerUnit * newCalc.pi_quantity;
+    // Marketing calculations - EXACT MATCH TO MARGINMAX
+    if (['marc_marketingCost', 'marc_attributionCost', 'marc_influencerCost', 'marc_miscCost', 'marc_marketingVATCost', 'pi_quantity'].includes(field as string)) {
+      const marketingCost = parseFloat(String(newCalc.marc_marketingCost)) || 0;
+      const attributionCost = parseFloat(String(newCalc.marc_attributionCost)) || 0;
+      const influencerCost = parseFloat(String(newCalc.marc_influencerCost)) || 0;
+      const miscCost = parseFloat(String(newCalc.marc_miscCost)) || 0;
+      const marketingVATCost = parseFloat(String(newCalc.marc_marketingVATCost)) || 0;
+      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
+
+      const totalCost = marketingCost + attributionCost + influencerCost + miscCost + marketingVATCost;
+      const perUnitCost = totalCost / (quantity || 1);
+
+      newCalc.marc_totalCost = roundOffToTwoDecimals(totalCost);
+      newCalc.marc_perUnitCost = roundOffToTwoDecimals(perUnitCost);
     }
 
-    // Marketing calculations
-    if (['marc_marketingCost', 'marc_attributionCost', 'marc_influencerCost', 'marc_miscCost', 'marc_marketingVATCost'].includes(field as string)) {
-      const marcCostPerUnit = (newCalc.marc_marketingCost + newCalc.marc_attributionCost + newCalc.marc_influencerCost + newCalc.marc_miscCost + newCalc.marc_marketingVATCost) / newCalc.pi_quantity;
-      newCalc.marc_perUnitCost = marcCostPerUnit;
-      newCalc.marc_totalCost = newCalc.marc_marketingCost + newCalc.marc_attributionCost + newCalc.marc_influencerCost + newCalc.marc_miscCost + newCalc.marc_marketingVATCost;
-    }
-
-    // Tax calculations
-    if (['tax_region', 'tax_VAT', 'tax_GST', 'tax_salesTax', 'tax_miscCost'].includes(field as string)) {
+    // Tax calculations - EXACT MATCH TO MARGINMAX
+    if (['tax_region', 'tax_VAT', 'tax_GST', 'tax_salesTax', 'tax_miscCost', 'pi_sellingPrice', 'pi_quantity'].includes(field as string)) {
       if (field === 'tax_region') {
         const selectedTax = TAX_OPTIONS.find(t => t.code === value);
         if (selectedTax) {
           newCalc.tax_VAT = selectedTax.vat;
           newCalc.tax_GST = selectedTax.gst;
           newCalc.tax_salesTax = selectedTax.salesTax;
+          newCalc.tax_miscCost = selectedTax.misc || 0;
         }
       }
-      const taxPerUnit = ((newCalc.tax_VAT + newCalc.tax_GST + newCalc.tax_salesTax) / 100) * newCalc.pi_sellingPrice;
-      newCalc.tax_perUnitCost = taxPerUnit + (newCalc.tax_miscCost / newCalc.pi_quantity);
-      newCalc.tax_totalCost = (taxPerUnit * newCalc.pi_quantity) + newCalc.tax_miscCost;
+
+      const vat = parseFloat(String(newCalc.tax_VAT)) || 0;
+      const gst = parseFloat(String(newCalc.tax_GST)) || 0;
+      const salesTax = parseFloat(String(newCalc.tax_salesTax)) || 0;
+      const miscCost = parseFloat(String(newCalc.tax_miscCost)) || 0;
+      const sellingPrice = parseFloat(String(newCalc.pi_sellingPrice)) || 0;
+      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
+
+      const perUnitTotal = (vat / 100) * sellingPrice + (gst / 100) * sellingPrice + (salesTax / 100) * sellingPrice;
+      const taxForQty = perUnitTotal * quantity + miscCost;
+
+      newCalc.tax_perUnitCost = roundOffToTwoDecimals(perUnitTotal);
+      newCalc.tax_totalCost = roundOffToTwoDecimals(taxForQty);
     }
 
-    // Graphics calculations
-    if (['gc_imagingAndPhotographyCost', 'gc_videographyCost', 'gc_productPackingCost', 'gc_3dAnimationCost', 'gc_miscCost'].includes(field as string)) {
-      const gcCostPerUnit = (newCalc.gc_imagingAndPhotographyCost + newCalc.gc_videographyCost + newCalc.gc_productPackingCost + newCalc.gc_3dAnimationCost + newCalc.gc_miscCost) / newCalc.pi_quantity;
-      newCalc.gc_perUnitCost = gcCostPerUnit;
-      newCalc.gc_totalCost = newCalc.gc_imagingAndPhotographyCost + newCalc.gc_videographyCost + newCalc.gc_productPackingCost + newCalc.gc_3dAnimationCost + newCalc.gc_miscCost;
+    // Graphics calculations - EXACT MATCH TO MARGINMAX
+    if (['gc_imagingAndPhotographyCost', 'gc_videographyCost', 'gc_productPackingCost', 'gc_3dAnimationCost', 'gc_miscCost', 'pi_quantity'].includes(field as string)) {
+      const imagingAndPhotographyCost = parseFloat(String(newCalc.gc_imagingAndPhotographyCost)) || 0;
+      const videographyCost = parseFloat(String(newCalc.gc_videographyCost)) || 0;
+      const productPackingCost = parseFloat(String(newCalc.gc_productPackingCost)) || 0;
+      const animationCost = parseFloat(String(newCalc.gc_3dAnimationCost)) || 0;
+      const miscCost = parseFloat(String(newCalc.gc_miscCost)) || 0;
+      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
+
+      const totalGraphicsCost = imagingAndPhotographyCost + videographyCost + productPackingCost + animationCost + miscCost;
+      const gc_perUnitCost = totalGraphicsCost / (quantity || 1);
+
+      newCalc.gc_totalCost = roundOffToTwoDecimals(totalGraphicsCost);
+      newCalc.gc_perUnitCost = roundOffToTwoDecimals(gc_perUnitCost);
     }
 
-    // Feedback calculations
-    if (['pfc_vineProgramCost', 'pfc_miscCost'].includes(field as string)) {
-      const pfcCostPerUnit = (newCalc.pfc_vineProgramCost + newCalc.pfc_miscCost) / newCalc.pi_quantity;
-      newCalc.pfc_perUnitCost = pfcCostPerUnit;
-      newCalc.pfc_totalCost = newCalc.pfc_vineProgramCost + newCalc.pfc_miscCost;
+    // Feedback calculations - EXACT MATCH TO MARGINMAX
+    if (['pfc_vineProgramCost', 'pfc_miscCost', 'pi_quantity'].includes(field as string)) {
+      const vineProgramCost = parseFloat(String(newCalc.pfc_vineProgramCost)) || 0;
+      const miscCost = parseFloat(String(newCalc.pfc_miscCost)) || 0;
+      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
+
+      const totalCost = vineProgramCost + miscCost;
+      const perUnitCost = totalCost / (quantity || 1);
+
+      newCalc.pfc_totalCost = roundOffToTwoDecimals(totalCost);
+      newCalc.pfc_perUnitCost = roundOffToTwoDecimals(perUnitCost);
     }
 
-    // Other costs calculations
-    if (['oc_competitorProductSamples', 'oc_preLaunchSamples', 'oc_employeesCost', 'oc_anyOtherCost'].includes(field as string)) {
-      const ocCostPerUnit = (newCalc.oc_competitorProductSamples + newCalc.oc_preLaunchSamples + newCalc.oc_employeesCost + newCalc.oc_anyOtherCost) / newCalc.pi_quantity;
-      newCalc.oc_perUnitCost = ocCostPerUnit;
-      newCalc.oc_totalCost = newCalc.oc_competitorProductSamples + newCalc.oc_preLaunchSamples + newCalc.oc_employeesCost + newCalc.oc_anyOtherCost;
+    // Other costs calculations - EXACT MATCH TO MARGINMAX
+    if (['oc_competitorProductSamples', 'oc_preLaunchSamples', 'oc_employeesCost', 'oc_anyOtherCost', 'pi_quantity'].includes(field as string)) {
+      const preLaunchSamples = parseFloat(String(newCalc.oc_preLaunchSamples)) || 0;
+      const competitorProductSamples = parseFloat(String(newCalc.oc_competitorProductSamples)) || 0;
+      const employeesCost = parseFloat(String(newCalc.oc_employeesCost)) || 0;
+      const anyOtherCost = parseFloat(String(newCalc.oc_anyOtherCost)) || 0;
+      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
+
+      const totalCost = competitorProductSamples + employeesCost + anyOtherCost + preLaunchSamples;
+      const perUnitCost = totalCost / (quantity || 1);
+
+      newCalc.oc_totalCost = roundOffToTwoDecimals(totalCost);
+      newCalc.oc_perUnitCost = roundOffToTwoDecimals(perUnitCost);
     }
 
-    // Final profit calculations
-    const totalRevenue = newCalc.pi_totalRevenue;
+    // Final profit calculations - EXACT MATCH TO MARGINMAX
+    const totalRev = newCalc.pi_totalRevenue;
+    let grossProfitForQty = 0;
+    let grossProfitPerUnit = 0;
+    let netProfitBeforeTaxesPerUnit = 0;
+    let netProfitBeforeTaxesForQty = 0;
+    let netProfitAfterTaxesPerUnit = 0;
+    let netProfitAfterTaxesForQty = 0;
 
-    // Gross Profit = Revenue - Sourcing Cost - Fulfillment Cost
-    const grossProfitCosts = newCalc.psc_totalCost + newCalc.fm_totalCost;
-    newCalc.grossProfit = totalRevenue - grossProfitCosts;
-    newCalc.grossProfitMargin = totalRevenue > 0 ? (newCalc.grossProfit / totalRevenue) * 100 : 0;
+    if (newCalc.psc_totalCost && newCalc.psc_orderQuantity && newCalc.pi_quantity) {
+      grossProfitForQty = totalRev - newCalc.psc_totalCost - newCalc.fm_totalCost;
+      grossProfitPerUnit = grossProfitForQty / newCalc.pi_quantity;
 
-    // Net Profit (Before Tax) = Gross Profit - (Marketing + Graphics + Feedback + Other)
-    const netProfitCosts = newCalc.marc_totalCost + newCalc.gc_totalCost + newCalc.pfc_totalCost + newCalc.oc_totalCost;
-    newCalc.netProfitBeforeTaxes = newCalc.grossProfit - netProfitCosts;
-    newCalc.netProfitBeforeTaxesMargin = totalRevenue > 0 ? (newCalc.netProfitBeforeTaxes / totalRevenue) * 100 : 0;
+      netProfitBeforeTaxesPerUnit =
+        grossProfitPerUnit -
+        newCalc.marc_totalCost / newCalc.psc_orderQuantity -
+        newCalc.gc_totalCost / newCalc.psc_orderQuantity -
+        newCalc.pfc_totalCost / newCalc.psc_orderQuantity -
+        newCalc.oc_totalCost / newCalc.psc_orderQuantity;
 
-    // Net Profit (After Tax) = Net Profit Before Tax - Taxes
-    newCalc.netProfitAfterTaxes = newCalc.netProfitBeforeTaxes - newCalc.tax_totalCost;
-    newCalc.netProfitAfterTaxesMargin = totalRevenue > 0 ? (newCalc.netProfitAfterTaxes / totalRevenue) * 100 : 0;
+      netProfitBeforeTaxesForQty =
+        grossProfitForQty -
+        newCalc.marc_totalCost -
+        newCalc.gc_totalCost -
+        newCalc.pfc_totalCost -
+        newCalc.oc_totalCost;
+    } else if (newCalc.psc_totalCost === 0 && newCalc.psc_orderQuantity === 0 && newCalc.pi_quantity === 0) {
+      grossProfitForQty = 0;
+    } else {
+      grossProfitForQty = totalRev - newCalc.psc_totalCost - newCalc.fm_totalCost;
+    }
+
+    if (newCalc.tax_totalCost >= 0) {
+      netProfitAfterTaxesForQty = netProfitBeforeTaxesForQty - newCalc.tax_totalCost;
+      if (newCalc.psc_orderQuantity > 0) {
+        netProfitAfterTaxesPerUnit = netProfitAfterTaxesForQty / newCalc.psc_orderQuantity;
+      } else {
+        netProfitAfterTaxesPerUnit = 0;
+        netProfitAfterTaxesForQty = 0;
+      }
+    } else {
+      netProfitAfterTaxesForQty = 0;
+      netProfitAfterTaxesPerUnit = 0;
+    }
+
+    newCalc.grossProfit = roundOffToTwoDecimals(grossProfitForQty);
+    newCalc.grossProfitMargin = totalRev > 0 ? roundOffToTwoDecimals((grossProfitForQty / totalRev) * 100) : 0;
+    newCalc.netProfitBeforeTaxes = roundOffToTwoDecimals(netProfitBeforeTaxesForQty);
+    newCalc.netProfitBeforeTaxesMargin = totalRev > 0 ? roundOffToTwoDecimals((netProfitBeforeTaxesForQty / totalRev) * 100) : 0;
+    newCalc.netProfitAfterTaxes = roundOffToTwoDecimals(netProfitAfterTaxesForQty);
+    newCalc.netProfitAfterTaxesMargin = totalRev > 0 ? roundOffToTwoDecimals((netProfitAfterTaxesForQty / totalRev) * 100) : 0;
 
     setCalculation(newCalc);
   };
@@ -721,6 +1018,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.pi_sellingPrice}
                     onChange={(e) => updateCalculation('pi_sellingPrice', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -730,7 +1028,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                   <input
                     type="number"
                     step="0.01"
-                    value={calculation.pi_totalRevenue}
+                    value={calculation.pi_totalRevenue.toFixed(2)}
                     disabled
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
                   />
@@ -741,9 +1039,13 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     type="number"
                     value={calculation.pi_quantity}
                     onChange={(e) => updateCalculation('pi_quantity', parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    onFocus={(e) => e.target.select()}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${quantityError ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="100"
                   />
+                  {quantityError && (
+                    <p className="mt-1 text-sm text-red-600">{quantityError}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -769,6 +1071,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.psc_manufacturingCost}
                     onChange={(e) => updateCalculation('psc_manufacturingCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -780,6 +1083,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.psc_shippingCost}
                     onChange={(e) => updateCalculation('psc_shippingCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -791,6 +1095,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.psc_productLogoCost}
                     onChange={(e) => updateCalculation('psc_productLogoCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -802,6 +1107,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.psc_miscCost}
                     onChange={(e) => updateCalculation('psc_miscCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -812,6 +1118,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     type="number"
                     value={calculation.psc_orderQuantity}
                     onChange={(e) => updateCalculation('psc_orderQuantity', parseInt(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="100"
                   />
@@ -868,6 +1175,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       step="0.01"
                       value={calculation.fm_referrfalFees}
                       onChange={(e) => updateCalculation('fm_referrfalFees', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="0.00"
                     />
@@ -879,6 +1187,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       step="0.01"
                       value={calculation.fm_fbaFulfillmentFees}
                       onChange={(e) => updateCalculation('fm_fbaFulfillmentFees', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="0.00"
                     />
@@ -890,6 +1199,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       step="0.01"
                       value={calculation.fm_monthlyStorageFees}
                       onChange={(e) => updateCalculation('fm_monthlyStorageFees', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="0.00"
                     />
@@ -901,6 +1211,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       step="0.01"
                       value={calculation.fm_miscCost}
                       onChange={(e) => updateCalculation('fm_miscCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="0.00"
                     />
@@ -955,6 +1266,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.marc_marketingCost}
                     onChange={(e) => updateCalculation('marc_marketingCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -966,6 +1278,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.marc_attributionCost}
                     onChange={(e) => updateCalculation('marc_attributionCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -977,6 +1290,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.marc_influencerCost}
                     onChange={(e) => updateCalculation('marc_influencerCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -988,6 +1302,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.marc_miscCost}
                     onChange={(e) => updateCalculation('marc_miscCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -996,72 +1311,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
             )}
           </div>
 
-          {/* Taxes Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-red-50 to-pink-50'}`}>
-            <button
-              onClick={() => toggleSection('taxes')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-red-900 hover:text-red-700'}`}
-              disabled={isBasicOrTrial}
-            >
-              <span className="flex items-center gap-2">
-                {isBasicOrTrial && <Lock className="w-4 h-4" />}
-                {expandedSections.taxes ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Taxes
-                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
-              </span>
-            </button>
-            {expandedSections.taxes && (
-              <div className="mt-4 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tax Region</label>
-                  <select
-                    value={calculation.tax_region}
-                    onChange={(e) => updateCalculation('tax_region', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  >
-                    {TAX_OPTIONS.map(tax => (
-                      <option key={tax.code} value={tax.code}>{tax.country}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">VAT (%)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.tax_VAT}
-                      onChange={(e) => updateCalculation('tax_VAT', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">GST (%)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.tax_GST}
-                      onChange={(e) => updateCalculation('tax_GST', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Sales Tax (%)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.tax_salesTax}
-                      onChange={(e) => updateCalculation('tax_salesTax', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          
 
           {/* Graphics Section */}
           <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-cyan-50 to-blue-50'}`}>
@@ -1086,6 +1336,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.gc_imagingAndPhotographyCost}
                     onChange={(e) => updateCalculation('gc_imagingAndPhotographyCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -1097,6 +1348,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.gc_videographyCost}
                     onChange={(e) => updateCalculation('gc_videographyCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -1108,6 +1360,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.gc_productPackingCost}
                     onChange={(e) => updateCalculation('gc_productPackingCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -1119,6 +1372,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.gc_3dAnimationCost}
                     onChange={(e) => updateCalculation('gc_3dAnimationCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -1150,6 +1404,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.pfc_vineProgramCost}
                     onChange={(e) => updateCalculation('pfc_vineProgramCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -1161,6 +1416,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.pfc_miscCost}
                     onChange={(e) => updateCalculation('pfc_miscCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -1192,6 +1448,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.oc_competitorProductSamples}
                     onChange={(e) => updateCalculation('oc_competitorProductSamples', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -1203,6 +1460,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.oc_preLaunchSamples}
                     onChange={(e) => updateCalculation('oc_preLaunchSamples', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -1214,6 +1472,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.oc_employeesCost}
                     onChange={(e) => updateCalculation('oc_employeesCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="0.00"
                   />
@@ -1225,9 +1484,94 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     step="0.01"
                     value={calculation.oc_anyOtherCost}
                     onChange={(e) => updateCalculation('oc_anyOtherCost', parseFloat(e.target.value) || 0)}
+                    onFocus={(e) => e.target.select()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     placeholder="0.00"
                   />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Taxes Section */}
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-red-50 to-pink-50'}`}>
+            <button
+              onClick={() => toggleSection('taxes')}
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-red-900 hover:text-red-700'}`}
+              disabled={isBasicOrTrial}
+            >
+              <span className="flex items-center gap-2">
+                {isBasicOrTrial && <Lock className="w-4 h-4" />}
+                {expandedSections.taxes ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                Taxes
+                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
+              </span>
+            </button>
+            {expandedSections.taxes && (
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tax Region</label>
+                  <select
+                    value={calculation.tax_region}
+                    onChange={(e) => updateCalculation('tax_region', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <option value="">Select Tax Region</option>
+                    {TAX_OPTIONS.map(tax => (
+                      <option key={tax.code} value={tax.code}>{tax.country}</option>
+                    ))}
+                  </select>
+                  {calculation.tax_region && getTaxNotes()}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">VAT (%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.tax_VAT}
+                      onChange={(e) => updateCalculation('tax_VAT', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">GST (%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.tax_GST}
+                      onChange={(e) => updateCalculation('tax_GST', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Sales Tax (%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.tax_salesTax}
+                      onChange={(e) => updateCalculation('tax_salesTax', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Miscellaneous Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.tax_miscCost}
+                      onChange={(e) => updateCalculation('tax_miscCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      placeholder="0.00"
+                    />
+                  </div>
                 </div>
               </div>
             )}

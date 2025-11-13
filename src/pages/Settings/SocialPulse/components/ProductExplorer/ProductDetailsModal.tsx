@@ -581,9 +581,9 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col ">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white line-clamp-1">
-            Amazon Trending Product Details
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {activeTab === 'overview' ? 'BlueRitt Product Details' : activeTab === 'suppliers' ? 'BlueRitt SourceLink' : 'BlueRitt Product Details'}
+              </h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
@@ -621,6 +621,7 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
             </button>
           ))}
         </div>
+
         <div className="p-6 overflow-y-auto">
 
           {/* Content */}
@@ -730,6 +731,7 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
                     isLoading={detailsLoading}
                     error={detailsError}
                   />
+
                 )}
                 {/* {activeTab === 'reviews' && (
                 <ReviewsTab
@@ -788,7 +790,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, isLoading, 
   if (isLoading) {
     return (
       <div className="space-y-4">
+
         <div className="animate-pulse">
+
           <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
           <div className="h-4 bg-gray-200 rounded w-2/3"></div>
@@ -806,7 +810,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ product, details, isLoading, 
   }
 
   return (
+
     <div className="space-y-6">
+
       {/* Product Description */}
       {(details?.product_description || details?.product_title) && (
         <div>
@@ -1476,7 +1482,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             </div>
 
             {/* Key Details Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
                 <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Minimum Order QTY</div>
                 <div className="font-semibold text-gray-900 dark:text-white">
@@ -1501,6 +1507,13 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   {supplier.response_rate}
                 </div>
               </div>
+              <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Item id</div>
+                <div className="font-semibold text-gray-900 dark:text-white">
+                  {supplier.id}
+                </div>
+              </div>
+              
               {/* ✅ Star Rating Display */}
               <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
                 <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Supplier Rating</div>
@@ -1564,6 +1577,13 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
             {/* Action Buttons - Aligned to Right */}
             <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => onSelectSupplier(supplier)}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <Calculator className="w-4 h-4" />
+                Select Supplier
+              </button>
               <a
                 href={supplier.contact_url}
                 target="_blank"
@@ -1572,13 +1592,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
               >
                 Contact Supplier →
               </a>
-              <button
-                onClick={() => onSelectSupplier(supplier)}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Calculator className="w-4 h-4" />
-                Select Supplier
-              </button>
+              
             </div>
           </div>
         ))}

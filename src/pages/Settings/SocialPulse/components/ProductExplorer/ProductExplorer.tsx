@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Filter, Grid, List, Star, ShoppingCart, ExternalLink, Eye, Package, TrendingUp, Zap, X, CheckCircle, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -91,6 +91,9 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+
+  // Ref for product showcase section to scroll to
+  const productShowcaseRef = useRef<HTMLDivElement>(null);
 
   // API-based categories (fetched dynamically based on country)
   const [mainCategories, setMainCategories] = useState<any[]>([]);
@@ -715,9 +718,11 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
     setCurrentPage(1);
   }, [products.length, viewMode, selectedCategoryId]);
 
-  // Scroll to top when page changes
+  // Scroll to product showcase section when page changes
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (productShowcaseRef.current) {
+      productShowcaseRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }, [currentPage]);
 
   return (
@@ -1105,7 +1110,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
       </div>
 
       {/* Product Count and Products Grid */}
-      <div className="">
+      <div className="" ref={productShowcaseRef}>
         {!isLoading && products.length > 0 && (
           <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-4">
             <span>
@@ -1299,7 +1304,10 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${currentPage === totalPages
+                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
                   aria-label="Next page"
                 >
                   <ChevronRight className="w-5 h-5" />

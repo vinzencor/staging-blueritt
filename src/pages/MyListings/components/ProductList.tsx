@@ -386,530 +386,539 @@ const ProductList: React.FC<ProductListProps> = ({
       const amazonData = getAmazonData(product);
       const hasAmazonData = !!amazonData;
 
-          // Debug logging for SimpleProfitPro products
-          if (product.simple_profit_pro) {
-            console.log('🔍 SimpleProfitPro Product Debug:', {
-              productId: product.id,
-              productName: product.name,
-              simple_profit_pro: product.simple_profit_pro,
-              simple_profit_pro_data: product.simple_profit_pro_data,
-              total_revenue: product.total_revenue,
-              gross_profit: product.gross_profit,
-              net_profit: product.net_profit,
-              quantity: product.quantity,
-              supplier_info: product.supplier_info,
-              amazonData: amazonData,
-              rating: amazonData?.rating,
-              rawRating: product.amazon_product?.data?.product_star_rating
-            });
-          }
+      // Debug logging for SimpleProfitPro products
+      if (product.simple_profit_pro) {
+        console.log('🔍 SimpleProfitPro Product Debug:', {
+          productId: product.id,
+          productName: product.name,
+          simple_profit_pro: product.simple_profit_pro,
+          simple_profit_pro_data: product.simple_profit_pro_data,
+          total_revenue: product.total_revenue,
+          gross_profit: product.gross_profit,
+          net_profit: product.net_profit,
+          quantity: product.quantity,
+          supplier_info: product.supplier_info,
+          amazonData: amazonData,
+          rating: amazonData?.rating,
+          rawRating: product.amazon_product?.data?.product_star_rating
+        });
+      }
 
-          return (
-            <div
-              key={product.id}
-              className="border border-gray-200 dark:border-gray-700 rounded-md grid grid-cols-1 lg:grid-cols-2 mb-4 bg-white dark:bg-gray-900"
-            >
-              {/* Product Details - Left Side */}
-              <div className="flex flex-col">
-                <div className="font-medium p-4 text-gray-500 dark:text-gray-400 flex justify-between lg:justify-between items-center">
-                  <div>Search saved at: {formatDate(product.created_at)}</div>
+      return (
+        <div
+          key={product.id}
+          className="border border-gray-200 dark:border-gray-700 rounded-md grid grid-cols-1 lg:grid-cols-2 mb-4 bg-white dark:bg-gray-900"
+        >
+          {/* Product Details - Left Side */}
+          <div className="flex flex-col">
+            <div className="font-medium p-4 text-gray-500 dark:text-gray-400 flex justify-between lg:justify-between items-center">
+              <div>Search saved at: {formatDate(product.created_at)}</div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                      <i className="bi bi-journal-bookmark-fill"></i>
-                      Selected Product
-                    </div>
-                    <button
-                      onClick={() => handleDeleteProduct(product.id, product.name || 'this product')}
-                      disabled={deletingProductId === product.id}
-                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Delete product"
-                    >
-                      {deletingProductId === product.id ? (
-                        <div className="w-5 h-5 border-2 border-red-600 dark:border-red-400 border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <Trash2 className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <i className="bi bi-journal-bookmark-fill"></i>
+                  Selected Product
                 </div>
-                {/* Display product name if available */}
-                {product.name && (
-                  <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Product Name:</p>
-                    <p className="font-semibold text-gray-900 dark:text-white">{product.name}</p>
-                  </div>
-                )}
-
-                {/* Product Information with Image in Small Box */}
-                <div className="p-4">
-                  <div className="flex items-start gap-4">
-                    {/* Product Image - Small Box */}
-                    <div className="flex-shrink-0">
-                      <div className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
-                        <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                          {hasAmazonData && amazonData.image ? (
-                            <img
-                              src={amazonData.image}
-                              alt={amazonData.name || "Product"}
-                              className="w-full h-full object-contain rounded-lg"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                if (!target.src.includes('placeholder-product.png')) {
-                                  target.src = '/placeholder-product.png';
-                                } else {
-                                  target.style.display = 'none';
-                                }
-                              }}
-                            />
-                          ) : (
-                            <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg flex items-center justify-center">
-                              <i className="bi bi-image text-2xl text-gray-400"></i>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Product Details - Content */}
-                    <div className="flex-1 min-w-0">
-                      {/* Product Title */}
-                      <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2">
-                        {hasAmazonData ? amazonData.name : "No name available"}
-                      </div>
-
-                      {/* Product Info Grid */}
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">ASIN</span>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {hasAmazonData ? amazonData.asin || "N/A" : "N/A"}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">Price</span>
-                          <div className="font-medium text-green-600 dark:text-green-400">
-                            {hasAmazonData ? `${amazonData.currency || "$"} ${amazonData.price?.toLocaleString() || "0"}` : "N/A"}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">Original Price</span>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {hasAmazonData ? `${amazonData.currency || "$"} ${amazonData.price?.toLocaleString() || "0"}` : "N/A"}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">Rating Count</span>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {hasAmazonData ? (amazonData.numRatings || 0).toLocaleString() : "0"}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">Other Offers</span>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {hasAmazonData ? amazonData.productOffers || 0 : "0"}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 dark:text-gray-400">Monthly Sales Volume</span>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {hasAmazonData ? (amazonData.salesVolume || "0") : "0"}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Star Rating */}
-                      {hasAmazonData && amazonData.rating && amazonData.rating > 0 && (
-                        <div className="mt-3 flex items-center gap-2">
-                          <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                              <svg
-                                key={i}
-                                className={`w-4 h-4 ${i < Math.floor(amazonData.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                            ))}
-                          </div>
-                          <span className="text-xs text-gray-600 dark:text-gray-400">
-                            {(amazonData.rating || 0).toFixed(1)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                
               </div>
+            </div>
+            {/* Display product name if available */}
+            {product.name && (
+              <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Product Name:</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{product.name}</p>
+              </div>
+            )}
 
-              {/* Seller/Supplier Info - Show seller info for Amazon/TikTok or Alibaba supplier */}
-              <div className="flex flex-col">
-                <div className="flex justify-between items-center p-4 text-gray-500 dark:text-gray-400">
-                  <div className="flex items-center font-bold text-gray-700 dark:text-gray-300">
-                    <i className="bi bi-journal-bookmark-fill mr-2"></i>
-                    {product.alibaba_product && Object.keys(product.alibaba_product).length > 0
-                      ? "Selected Supplier"
-                      : "Seller Information"}
-                  </div>
-                  <div className="font-medium">
-                    Search last modified at: {formatDate(product.modified_at)}
+            {/* Product Information with Image in Small Box */}
+            <div className="p-4">
+              <div className="flex items-start gap-4">
+                {/* Product Image - Small Box */}
+                <div className="flex-shrink-0">
+                  <div className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
+                    <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                      {hasAmazonData && amazonData.image ? (
+                        <img
+                          src={amazonData.image}
+                          alt={amazonData.name || "Product"}
+                          className="w-full h-full object-contain rounded-lg"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (!target.src.includes('placeholder-product.png')) {
+                              target.src = '/placeholder-product.png';
+                            } else {
+                              target.style.display = 'none';
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gradient-to-br from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-lg flex items-center justify-center">
+                          <i className="bi bi-image text-2xl text-gray-400"></i>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Show Alibaba supplier if available */}
-                {product.alibaba_product &&
-                  Object.keys(product.alibaba_product).length > 0 ? (
-                  <SpkbgCards
-                    key={`alibaba-${product.id}`}
-                    showAIScore={false}
-                    {...mapToAlibabaProps(product.alibaba_product)}
-                  />
-                ) : (
-                  /* Show seller/supplier info for Amazon/TikTok products */
-                  <div className="p-4">
-                    <h6 className="px-4 py-3 bg-yellow-50 dark:bg-yellow-900/20 border-b border-gray-200 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-300">
-                      {product.supplier_info ? 'Supplier Information' : 'Seller Details'}
-                    </h6>
-                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                      {/* Supplier/Seller Info with Image in Small Box */}
-                      <div className="flex items-start gap-4 mb-4">
-                        {/* Supplier Product Image - Small Box */}
-                        {product.supplier_info?.supplier_product_image && (
-                          <div className="flex-shrink-0">
-                            <div className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
-                              <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
-                                <img
-                                  src={product.supplier_info.supplier_product_image}
-                                  alt={product.supplier_info.name || 'Supplier Product'}
-                                  className="w-full h-full object-contain rounded-lg"
-                                  onError={(e) => {
-                                    console.error('❌ Failed to load supplier product image:', product.supplier_info.supplier_product_image);
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                {/* Product Details - Content */}
+                <div className="flex-1 min-w-0">
+                  {/* Product Title */}
+                  <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                    {hasAmazonData ? amazonData.name : "No name available"}
+                  </div>
 
-                        {/* Supplier/Seller Name */}
-                        {product.supplier_info && (
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                              {product.supplier_info.name || product.supplier_info.supplier_name || 'N/A'}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              Supplier
-                            </div>
-                          </div>
-                        )}
+                  {/* Product Info Grid */}
+                  <div className="grid grid-cols-2 gap-x-4 text-xs">
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">ASIN</span>
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {hasAmazonData ? amazonData.asin || "N/A" : "N/A"}
                       </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        {/* Display supplier info if available (from TikTok/Amazon calculator) */}
-                        {product.supplier_info ? (
-                          <>
-                            {/* Supplier Name */}
-                            <div className="col-span-2 ">
-                              <span className="text-gray-600 dark:text-gray-400">Supplier Name:</span>
-                              <div className="mt-1">
-                                <span className="font-semibold text-gray-900 dark:text-white ">
-                                  {product.supplier_info.name || product.supplier_info.supplier_name || 'N/A'}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* ✅ Colorful Verification Badges Section - EXACT COPY from BlueRitt Explorer */}
-                            <div className="col-span-2">
-                              <span className="text-gray-600 dark:text-gray-400 mb-2 block">Verification Badges:</span>
-                              <div className="flex flex-wrap gap-2">
-                                {/* 1. Gold Supplier Badge - Score +15 (Highest bonus) */}
-                                {(product.supplier_info.verification_badge === 'Gold Supplier' ||
-                                  product.supplier_info.verification_status === 'Gold Supplier' ||
-                                  product.supplier_info.is_gold) && (
-                                  <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                    <Shield className="w-3 h-3 fill-current" />
-                                    Gold Supplier
-                                  </span>
-                                )}
-
-                                {/* 2. Verified Pro Badge - Score +12 */}
-                                {(product.supplier_info.verification_badge === 'Verified Pro' ||
-                                  product.supplier_info.verified_pro) && (
-                                  <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                    <Shield className="w-3 h-3 fill-current" />
-                                    Verified Pro
-                                  </span>
-                                )}
-
-                                {/* 3. Verified Supplier Badge - Score +10 */}
-                                {!product.supplier_info.verified_pro &&
-                                 (product.supplier_info.verification_badge === 'Verified Supplier' ||
-                                  product.supplier_info.verification_status === 'Verified' ||
-                                  product.supplier_info.verified_supplier) && (
-                                  <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                    <Shield className="w-3 h-3 fill-current" />
-                                    Verified
-                                  </span>
-                                )}
-
-                                {/* 4. Alibaba Guaranteed Badge - Score +8 */}
-                                {product.supplier_info.alibaba_guaranteed && (
-                                  <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                    <Shield className="w-3 h-3 fill-current" />
-                                    Alibaba Guaranteed
-                                  </span>
-                                )}
-
-                                {/* 5. Trade Assurance Badge - Score +8 */}
-                                {product.supplier_info.trade_assurance && (
-                                  <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                    <Shield className="w-3 h-3 fill-current" />
-                                    Trade Assurance
-                                  </span>
-                                )}
-
-                                {/* 6. Assessed Supplier Badge - Score +5 */}
-                                {!product.supplier_info.verified_pro &&
-                                 !product.supplier_info.verified_supplier &&
-                                 product.supplier_info.is_assessed && (
-                                  <span className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                    <Shield className="w-3 h-3 fill-current" />
-                                    Assessed
-                                  </span>
-                                )}
-
-                                {/* Store Age Badge */}
-                                {product.supplier_info.years_in_business !== undefined && product.supplier_info.years_in_business > 0 && (
-                                  <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                    <Shield className="w-3 h-3 fill-current" />
-                                    {product.supplier_info.years_in_business} {product.supplier_info.years_in_business === 1 ? 'Year' : 'Years'}
-                                  </span>
-                                )}
-
-                                {/* Rating Badge */}
-                                {product.supplier_info.rating !== undefined && product.supplier_info.rating > 0 && (
-                                  <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                    <Shield className="w-3 h-3 fill-current" />
-                                    {product.supplier_info.rating}/5 ⭐
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Location */}
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Location:</span>
-                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                {product.supplier_info.location || 'N/A'}
-                              </span>
-                            </div>
-
-                            {/* MOQ */}
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">MOQ:</span>
-                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                {product.supplier_info.moq || product.supplier_info.minimum_order || 'N/A'}
-                              </span>
-                            </div>
-
-                            {/* Lead Time */}
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Lead Time:</span>
-                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                {product.supplier_info.lead_time || 'N/A'}
-                              </span>
-                            </div>
-
-                            {/* Estimated Price */}
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Est. Price:</span>
-                              <span className="ml-2 font-bold text-green-600 dark:text-green-400">
-                                {product.supplier_info.estimated_price || 'N/A'}
-                              </span>
-                            </div>
-
-                            {/* Response Rate */}
-                            <div>
-                              <span className="text-gray-600 dark:text-gray-400">Response Rate:</span>
-                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                {product.supplier_info.response_rate || 'N/A'}
-                              </span>
-                            </div>
-
-                            {/* Total Transactions */}
-                            {product.supplier_info.total_transactions !== undefined && (
-                              <div>
-                                <span className="text-gray-600 dark:text-gray-400">Total Transactions:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                  {product.supplier_info.total_transactions.toLocaleString()}
-                                </span>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          /* Display Amazon/TikTok seller info - Enhanced for Amazon/TikTok Trends only */
-                          hasAmazonData && (
-                            isAmazonOrTikTok ? (
-                              /* ✅ Enhanced display for Amazon/TikTok Trends */
-                              <>
-                                {/* Seller Name */}
-                                <div className="col-span-2">
-                                  <span className="text-gray-600 dark:text-gray-400">Seller Name:</span>
-                                  <div className="mt-1">
-                                    <span className="font-bold text-gray-900 dark:text-white text-lg">
-                                      {amazonData.sellerName || 'N/A'}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* ✅ Product Rating & Reviews */}
-                                <div className="col-span-2">
-                                  <span className="text-gray-600 dark:text-gray-400 mb-2 block">Product Rating:</span>
-                                  <div className="flex flex-wrap gap-2 items-center">
-                                    {amazonData.rating && amazonData.rating > 0 ? (
-                                      <>
-                                        <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-md flex items-center gap-1">
-                                          ⭐ {amazonData.rating.toFixed(1)}/5
-                                        </span>
-                                        {amazonData.numRatings && amazonData.numRatings > 0 && (
-                                          <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
-                                            {amazonData.numRatings.toLocaleString()} reviews
-                                          </span>
-                                        )}
-                                      </>
-                                    ) : (
-                                      <span className="text-gray-500 dark:text-gray-400 text-sm">No rating available</span>
-                                    )}
-                                  </div>
-                                </div>
-
-                                {/* ✅ Seller Rating (if different from product rating) */}
-                                {amazonData.sellerRating && amazonData.sellerRating !== amazonData.rating && (
-                                  <div className="col-span-2">
-                                    <span className="text-gray-600 dark:text-gray-400 mb-2 block">Seller Rating:</span>
-                                    <div className="flex flex-wrap gap-2 items-center">
-                                      <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-md flex items-center gap-1">
-                                        ⭐ {amazonData.sellerRating.toFixed(1)}/5
-                                      </span>
-                                      {amazonData.sellerNumRatings && amazonData.sellerNumRatings > 0 && (
-                                        <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
-                                          {amazonData.sellerNumRatings.toLocaleString()} ratings
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* ✅ Product Badges */}
-                                <div className="col-span-2">
-                                  <span className="text-gray-600 dark:text-gray-400 mb-2 block">Product Badges:</span>
-                                  <div className="flex flex-wrap gap-2">
-                                    {amazonData.isBestSeller && (
-                                      <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                        <Shield className="w-3 h-3 fill-current" />
-                                        Best Seller
-                                      </span>
-                                    )}
-                                    {amazonData.isAmazonChoice && (
-                                      <span className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                        <Shield className="w-3 h-3 fill-current" />
-                                        Amazon's Choice
-                                      </span>
-                                    )}
-                                    {amazonData.isPrime && (
-                                      <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                        <Shield className="w-3 h-3 fill-current" />
-                                        Prime
-                                      </span>
-                                    )}
-                                    {amazonData.IsClimateFriendly && (
-                                      <span className="bg-gradient-to-r from-green-600 to-green-800 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                        <Shield className="w-3 h-3 fill-current" />
-                                        Climate Pledge Friendly
-                                      </span>
-                                    )}
-                                    {amazonData.salesVolume && amazonData.salesVolume > 0 && (
-                                      <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                        <Shield className="w-3 h-3 fill-current" />
-                                        {amazonData.salesVolume.toLocaleString()} sold
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-
-                                {/* Shipping & Delivery Info */}
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Ships From:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerShipsFrom || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Country:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerCountry || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Delivery:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.deliveryPrice || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Delivery Time:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerDeliveryTime || 'N/A'}</span>
-                                </div>
-                              </>
-                            ) : (
-                              /* Original simple display for BlueRitt Explorer */
-                              <>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Seller Name:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerName || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Seller Rating:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                                    {amazonData.sellerRating ? `${amazonData.sellerRating}/5` : 'N/A'}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Ships From:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerShipsFrom || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Country:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerCountry || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Delivery:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.deliveryPrice || 'N/A'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Delivery Time:</span>
-                                  <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerDeliveryTime || 'N/A'}</span>
-                                </div>
-                              </>
-                            )
-                          )
-                        )}
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Price</span>
+                      <div className="font-medium text-green-600 dark:text-green-400">
+                        {hasAmazonData ? `${amazonData.currency || "$"} ${amazonData.price?.toLocaleString() || "0"}` : "N/A"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Original Price</span>
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {hasAmazonData ? `${amazonData.currency || "$"} ${amazonData.price?.toLocaleString() || "0"}` : "N/A"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Rating Count</span>
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {hasAmazonData ? (amazonData.numRatings || 0).toLocaleString() : "0"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Other Offers</span>
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {hasAmazonData ? amazonData.productOffers || 0 : "0"}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-gray-400">Monthly Sales Volume</span>
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {hasAmazonData ? (amazonData.salesVolume || "0") : "0"}
                       </div>
                     </div>
                   </div>
-                )}
 
-                <div className="col-span-1 lg:col-span-2 flex justify-end p-2 border-t border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/listing-detail/${product.id}`);
-                    }}
-                    className="text-primary dark:text-blue-400 hover:underline font-medium"
-                  >
-                    View Details<i className="ti ti-arrow-right ml-1"></i>
-                  </button>
+                  {/* Star Rating */}
+                  {hasAmazonData && amazonData.rating && amazonData.rating > 0 && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <svg
+                            key={i}
+                            className={`w-4 h-4 ${i < Math.floor(amazonData.rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        {(amazonData.rating || 0).toFixed(1)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          );
-        });
+            <button
+                  onClick={() => handleDeleteProduct(product.id, product.name || 'this product')}
+                  disabled={deletingProductId === product.id}
+                  className="p-2 text-red-600 dark:text-red-400  dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Delete product"
+                >
+                  {deletingProductId === product.id ? (
+                    <div className="w-5 h-5 border-2 border-red-600 dark:border-red-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <Trash2 className="w-5 h-5" />
+                  )}
+                </button>
+          </div>
+
+          {/* Seller/Supplier Info - Show seller info for Amazon/TikTok or Alibaba supplier */}
+          <div className="flex flex-col">
+            <div className="font-medium p-4 text-gray-500 dark:text-gray-400 flex justify-between lg:justify-between items-center">
+
+
+              Search last modified at: {formatDate(product.modified_at)}
+
+              <div className="flex items-center gap-3">
+                <div className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <i className="bi bi-journal-bookmark-fill "></i>
+                  {product.alibaba_product && Object.keys(product.alibaba_product).length > 0
+                    ? "Selected Supplier"
+                    : "Seller Information"}
+                </div>
+                
+              </div>
+            </div>
+
+            {/* Show Alibaba supplier if available */}
+            {product.alibaba_product &&
+              Object.keys(product.alibaba_product).length > 0 ? (
+              <SpkbgCards
+                key={`alibaba-${product.id}`}
+                showAIScore={false}
+                {...mapToAlibabaProps(product.alibaba_product)}
+              />
+            ) : (
+              /* Show seller/supplier info for Amazon/TikTok products */
+              <div >
+                <div className="px-4 pt-[18px] pb-[18px] bg-yellow-50 dark:bg-yellow-900/20 border-b border-gray-200 dark:border-gray-700">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{product.supplier_info ? 'Supplier Information' : 'Seller Details'}</p>
+
+                </div>
+                <div className=" p-4">
+                  {/* Supplier/Seller Info with Image in Small Box */}
+                  <div className="flex items-start gap-4 ">
+                    {/* Supplier Product Image - Small Box */}
+                    {product.supplier_info?.supplier_product_image && (
+                      <div className="flex-shrink-0">
+                        <div className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
+                          <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
+                            <img
+                              src={product.supplier_info.supplier_product_image}
+                              alt={product.supplier_info.name || 'Supplier Product'}
+                              className="w-full h-full object-contain rounded-lg"
+                              onError={(e) => {
+                                console.error('❌ Failed to load supplier product image:', product.supplier_info.supplier_product_image);
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Supplier/Seller Name */}
+                    {product.supplier_info && (
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                          {product.supplier_info.name || product.supplier_info.supplier_name || "N/A"}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Supplier
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-4  text-xs">
+                    {/* Display supplier info if available (from TikTok/Amazon calculator) */}
+                    {product.supplier_info ? (
+                      <>
+                        {/* Supplier Name */}
+                        <div className="col-span-2 flex flex-wrap gap-2">
+                          <span className="text-gray-600 dark:text-gray-400">Supplier Name:</span>
+                          <div className="">
+                            <span className="font-semibold text-gray-900 dark:text-white ">
+                              {product.supplier_info.name || product.supplier_info.supplier_name || 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* ✅ Colorful Verification Badges Section - EXACT COPY from BlueRitt Explorer */}
+                        <div className="col-span-2">
+                          <div className="flex flex-wrap gap-2">
+                          <span className="text-gray-600 dark:text-gray-400 mb-2 block">Verification Badges:</span>
+                          <div className="flex flex-wrap gap-2">
+                            {/* 1. Gold Supplier Badge - Score +15 (Highest bonus) */}
+                            {(product.supplier_info.verification_badge === 'Gold Supplier' ||
+                              product.supplier_info.verification_status === 'Gold Supplier' ||
+                              product.supplier_info.is_gold) && (
+                                <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                  <Shield className="w-3 h-3 fill-current" />
+                                  Gold Supplier
+                                </span>
+                              )}
+
+                            {/* 2. Verified Pro Badge - Score +12 */}
+                            {(product.supplier_info.verification_badge === 'Verified Pro' ||
+                              product.supplier_info.verified_pro) && (
+                                <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                  <Shield className="w-3 h-3 fill-current" />
+                                  Verified Pro
+                                </span>
+                              )}
+
+                            {/* 3. Verified Supplier Badge - Score +10 */}
+                            {!product.supplier_info.verified_pro &&
+                              (product.supplier_info.verification_badge === 'Verified Supplier' ||
+                                product.supplier_info.verification_status === 'Verified' ||
+                                product.supplier_info.verified_supplier) && (
+                                <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                  <Shield className="w-3 h-3 fill-current" />
+                                  Verified
+                                </span>
+                              )}
+
+                            {/* 4. Alibaba Guaranteed Badge - Score +8 */}
+                            {product.supplier_info.alibaba_guaranteed && (
+                              <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                <Shield className="w-3 h-3 fill-current" />
+                                Alibaba Guaranteed
+                              </span>
+                            )}
+
+                            {/* 5. Trade Assurance Badge - Score +8 */}
+                            {product.supplier_info.trade_assurance && (
+                              <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                <Shield className="w-3 h-3 fill-current" />
+                                Trade Assurance
+                              </span>
+                            )}
+
+                            {/* 6. Assessed Supplier Badge - Score +5 */}
+                            {!product.supplier_info.verified_pro &&
+                              !product.supplier_info.verified_supplier &&
+                              product.supplier_info.is_assessed && (
+                                <span className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                  <Shield className="w-3 h-3 fill-current" />
+                                  Assessed
+                                </span>
+                              )}
+
+                            {/* Store Age Badge */}
+                            {product.supplier_info.years_in_business !== undefined && product.supplier_info.years_in_business > 0 && (
+                              <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                <Shield className="w-3 h-3 fill-current" />
+                                {product.supplier_info.years_in_business} {product.supplier_info.years_in_business === 1 ? 'Year' : 'Years'}
+                              </span>
+                            )}
+
+                            {/* Rating Badge */}
+                            {product.supplier_info.rating !== undefined && product.supplier_info.rating > 0 && (
+                              <span className="bg-gradient-to-r from-green-500 to-green-700 text-xs flex items-center justify-center font-semibold rounded-full text-white px-3 py-[6px]">
+                                <Shield className="w-3 h-3 fill-current" />
+                                {product.supplier_info.rating}/5 ⭐
+                              </span>
+                            )}
+                          </div>
+                          </div>
+                          
+                        </div>
+
+                        {/* Location */}
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Location:</span>
+                          <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                            {product.supplier_info.location || 'N/A'}
+                          </span>
+                        </div>
+
+                        {/* MOQ */}
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Minimum Order QTY:</span>
+                          <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                            {product.supplier_info.moq || product.supplier_info.minimum_order || 'N/A'}
+                          </span>
+                        </div>
+
+                        {/* Lead Time */}
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Lead Time:</span>
+                          <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                            {product.supplier_info.lead_time || 'N/A'}
+                          </span>
+                        </div>
+
+                        {/* Estimated Price */}
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Est. Price:</span>
+                          <span className="ml-2 font-bold text-green-600 dark:text-green-400">
+                            {product.supplier_info.estimated_price || 'N/A'}
+                          </span>
+                        </div>
+
+                        {/* Response Rate */}
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Response Rate:</span>
+                          <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                            {product.supplier_info.response_rate || 'N/A'}
+                          </span>
+                        </div>
+
+                        {/* Total Transactions */}
+                        {product.supplier_info.total_transactions !== undefined && (
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">Total Transactions:</span>
+                            <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                              {product.supplier_info.total_transactions.toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      /* Display Amazon/TikTok seller info - Enhanced for Amazon/TikTok Trends only */
+                      hasAmazonData && (
+                        isAmazonOrTikTok ? (
+                          /* ✅ Enhanced display for Amazon/TikTok Trends */
+                          <>
+                            {/* Seller Name */}
+                            <div className="col-span-2">
+                              <span className="text-gray-600 dark:text-gray-400">Seller Name:</span>
+                              <div className="mt-1">
+                                <span className="font-bold text-gray-900 dark:text-white text-lg">
+                                  {amazonData.sellerName || 'N/A'}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* ✅ Product Rating & Reviews */}
+                            <div className="col-span-2">
+                              <span className="text-gray-600 dark:text-gray-400 mb-2 block">Product Rating:</span>
+                              <div className="flex flex-wrap gap-2 items-center">
+                                {amazonData.rating && amazonData.rating > 0 ? (
+                                  <>
+                                    <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-md flex items-center gap-1">
+                                      ⭐ {amazonData.rating.toFixed(1)}/5
+                                    </span>
+                                    {amazonData.numRatings && amazonData.numRatings > 0 && (
+                                      <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
+                                        {amazonData.numRatings.toLocaleString()} reviews
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="text-gray-500 dark:text-gray-400 text-sm">No rating available</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* ✅ Seller Rating (if different from product rating) */}
+                            {amazonData.sellerRating && amazonData.sellerRating !== amazonData.rating && (
+                              <div className="col-span-2">
+                                <span className="text-gray-600 dark:text-gray-400 mb-2 block">Seller Rating:</span>
+                                <div className="flex flex-wrap gap-2 items-center">
+                                  <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-md flex items-center gap-1">
+                                    ⭐ {amazonData.sellerRating.toFixed(1)}/5
+                                  </span>
+                                  {amazonData.sellerNumRatings && amazonData.sellerNumRatings > 0 && (
+                                    <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md">
+                                      {amazonData.sellerNumRatings.toLocaleString()} ratings
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* ✅ Product Badges */}
+                            <div className="col-span-2">
+                              <span className="text-gray-600 dark:text-gray-400 mb-2 block">Product Badges:</span>
+                              <div className="flex flex-wrap gap-2">
+                                {amazonData.isBestSeller && (
+                                  <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Best Seller
+                                  </span>
+                                )}
+                                {amazonData.isAmazonChoice && (
+                                  <span className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Amazon's Choice
+                                  </span>
+                                )}
+                                {amazonData.isPrime && (
+                                  <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Prime
+                                  </span>
+                                )}
+                                {amazonData.IsClimateFriendly && (
+                                  <span className="bg-gradient-to-r from-green-600 to-green-800 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    Climate Pledge Friendly
+                                  </span>
+                                )}
+                                {amazonData.salesVolume && amazonData.salesVolume > 0 && (
+                                  <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                    <Shield className="w-3 h-3 fill-current" />
+                                    {amazonData.salesVolume.toLocaleString()} sold
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Shipping & Delivery Info */}
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Ships From:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerShipsFrom || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Country:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerCountry || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Delivery:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.deliveryPrice || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Delivery Time:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerDeliveryTime || 'N/A'}</span>
+                            </div>
+                          </>
+                        ) : (
+                          /* Original simple display for BlueRitt Explorer */
+                          <>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Seller Name:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerName || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Seller Rating:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                                {amazonData.sellerRating ? `${amazonData.sellerRating}/5` : 'N/A'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Ships From:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerShipsFrom || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Country:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerCountry || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Delivery:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.deliveryPrice || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600 dark:text-gray-400">Delivery Time:</span>
+                              <span className="ml-2 font-medium text-gray-900 dark:text-white">{amazonData.sellerDeliveryTime || 'N/A'}</span>
+                            </div>
+                          </>
+                        )
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="col-span-1 lg:col-span-2 flex justify-end p-2 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/listing-detail/${product.id}`);
+                }}
+                className="text-primary dark:text-blue-400 hover:underline font-medium"
+              >
+                View Details<i className="ti ti-arrow-right ml-1"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    });
   };
 
   return (
@@ -951,7 +960,7 @@ const ProductList: React.FC<ProductListProps> = ({
           {/* ✅ Amazon Trends Products */}
           {groupedProducts.amazon_trends.length > 0 && (
 
-            
+
             <div className="mb-8">
               <div className="bg-gradient-to-r from-orange-600 to-amber-600 dark:from-orange-700 dark:to-amber-700 rounded-lg p-4 mb-4 shadow-md">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">

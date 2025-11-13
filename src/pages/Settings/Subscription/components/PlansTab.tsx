@@ -727,118 +727,62 @@ const PlansTab = ({
                   <tr className=" text-[.875rem] font-semibold dark:border-defaultborder/10">Tiktok Trends</tr>
                   <tr className="border border-defaultborder dark:border-defaultborder/10">
                     <td className="text-center">TikTok Trending Product Searches</td>
-                    {plans.map((plan: Plan) => (
-                      <td key={plan.id} className="text-center">
-                        <div className="flex justify-center">
-                          {plan.features?.access_to_gross_profit ? (
-                            <div>
-                              {plan.features
-                                ?.no_of_gross_profit_calculations === -1
-                                ? "Unlimited"
-                                : plan.features
-                                    ?.no_of_gross_profit_calculations || 0}{" "}
-                              ASINs
-                            </div>
-                          ) : (
-                            <SpkBadge
-                              variant="danger/10"
-                              customClass="text-danger !p-1 leading-none !rounded-full"
-                            >
-                              <i className="ri-close-line align-middle font-semibold"></i>
-                            </SpkBadge>
-                          )}
-                        </div>
-                      </td>
-                    ))}
+                    {plans.map((plan: Plan, index: number) => {
+                      const searchValues = [10, 50, 100, 250];
+                      return (
+                        <td key={plan.id} className="text-center">
+                          <div className="flex justify-center">
+                            {searchValues[index] || 0} Searches
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
 
                   <tr className="border border-defaultborder dark:border-defaultborder/10">
                     <td className="text-center">Discover Suppliers (X Times) - Shared Limit</td>
-                    {plans.map((plan: Plan) => (
-                      <td key={plan.id} className="text-center">
-                        <div className="flex justify-center">
-                          {plan?.features?.access_to_net_profit &&
-                          typeof plan?.features
-                            ?.no_of_net_profit_calculations === "number" &&
-                          (plan.features.no_of_net_profit_calculations > 0 ||
-                            plan.features.no_of_net_profit_calculations ===
-                              -1) ? (
-                            <div>
-                              {plan.features.no_of_net_profit_calculations ===
-                              -1
-                                ? "Unlimited"
-                                : plan.features
-                                    .no_of_net_profit_calculations}{" "}
-                              ASINs
-                            </div>
-                          ) : (
-                            <SpkBadge
-                              variant="danger/10"
-                              customClass="text-danger !p-1 leading-none !rounded-full"
-                            >
-                              <i className="ri-close-line align-middle font-semibold"></i>
-                            </SpkBadge>
-                          )}
-                        </div>
-                      </td>
-                    ))}
+                    {plans.map((plan: Plan, index: number) => {
+                      const discoveryValues = [20, 100, 250, 600];
+                      return (
+                        <td key={plan.id} className="text-center">
+                          <div className="flex justify-center">
+                            {discoveryValues[index] || 0} Discoveries
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                   <tr className="border border-defaultborder dark:border-defaultborder/10">
                     <td className="text-center">Fetch Trending Hashtags</td>
-                    {plans.map((plan: Plan) => (
+                    {plans.map((plan: Plan, index: number) => {
+                      const fetchValues = [10, 50, 100, 250];
+                      return (
+                        <td key={plan.id} className="text-center">
+                          <div className="flex justify-center">
+                            {fetchValues[index] || 0} Fetches
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  <tr className="border border-defaultborder dark:border-defaultborder/10">
+                    <td className="text-center">Product Shop Analysis</td>
+                    {plans.map((plan: Plan, index: number) => (
                       <td key={plan.id} className="text-center">
                         <div className="flex justify-center">
-                          {plan?.features?.access_to_net_profit &&
-                          typeof plan?.features
-                            ?.no_of_net_profit_calculations === "number" &&
-                          (plan.features.no_of_net_profit_calculations > 0 ||
-                            plan.features.no_of_net_profit_calculations ===
-                              -1) ? (
-                            <div>
-                              {plan.features.no_of_net_profit_calculations ===
-                              -1
-                                ? "Unlimited"
-                                : plan.features
-                                    .no_of_net_profit_calculations}{" "}
-                              ASINs
-                            </div>
-                          ) : (
+                          {index === 0 ? (
                             <SpkBadge
                               variant="danger/10"
                               customClass="text-danger !p-1 leading-none !rounded-full"
                             >
                               <i className="ri-close-line align-middle font-semibold"></i>
                             </SpkBadge>
-                          )}
-                        </div>
-                      </td>
-                    ))}
-                  </tr>
-                  <tr className="border border-defaultborder dark:border-defaultborder/10">
-                    <td className="text-center">Product Shop Analysis</td>
-                    {plans.map((plan: Plan) => (
-                      <td key={plan.id} className="text-center">
-                        <div className="flex justify-center">
-                          {plan?.features?.access_to_net_profit &&
-                          typeof plan?.features
-                            ?.no_of_net_profit_calculations === "number" &&
-                          (plan.features.no_of_net_profit_calculations > 0 ||
-                            plan.features.no_of_net_profit_calculations ===
-                              -1) ? (
-                            <div>
-                              {plan.features.no_of_net_profit_calculations ===
-                              -1
-                                ? "Unlimited"
-                                : plan.features
-                                    .no_of_net_profit_calculations}{" "}
-                              ASINs
-                            </div>
                           ) : (
                             <SpkBadge
-                              variant="danger/10"
-                              customClass="text-danger !p-1 leading-none !rounded-full"
+                              variant="success/10"
+                              customClass="text-success !p-1 leading-none !rounded-full"
                             >
-                              <i className="ri-close-line align-middle font-semibold"></i>
+                              <i className="ri-check-line align-middle font-semibold"></i>
                             </SpkBadge>
                           )}
                         </div>
@@ -848,89 +792,42 @@ const PlansTab = ({
                   <tr className=" text-[.875rem] font-semibold dark:border-defaultborder/10">Amazon Trends</tr>
                   <tr className="border border-defaultborder dark:border-defaultborder/10">
                     <td className="text-center">Amazon Trending Product Searches</td>
-                    {plans.map((plan: Plan) => (
-                      <td key={plan.id} className="text-center">
-                        <div className="flex justify-center">
-                          {plan.features?.access_to_gross_profit ? (
-                            <div>
-                              {plan.features
-                                ?.no_of_gross_profit_calculations === -1
-                                ? "Unlimited"
-                                : plan.features
-                                    ?.no_of_gross_profit_calculations || 0}{" "}
-                              ASINs
-                            </div>
-                          ) : (
-                            <SpkBadge
-                              variant="danger/10"
-                              customClass="text-danger !p-1 leading-none !rounded-full"
-                            >
-                              <i className="ri-close-line align-middle font-semibold"></i>
-                            </SpkBadge>
-                          )}
-                        </div>
-                      </td>
-                    ))}
+                    {plans.map((plan: Plan, index: number) => {
+                      const searchValues = [10, 50, 100, 250];
+                      return (
+                        <td key={plan.id} className="text-center">
+                          <div className="flex justify-center">
+                            {searchValues[index] || 0} Searches
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
 
                   <tr className="border border-defaultborder dark:border-defaultborder/10">
                     <td className="text-center">Discover Suppliers (X Times)- Shared Limit</td>
-                    {plans.map((plan: Plan) => (
-                      <td key={plan.id} className="text-center">
-                        <div className="flex justify-center">
-                          {plan?.features?.access_to_net_profit &&
-                          typeof plan?.features
-                            ?.no_of_net_profit_calculations === "number" &&
-                          (plan.features.no_of_net_profit_calculations > 0 ||
-                            plan.features.no_of_net_profit_calculations ===
-                              -1) ? (
-                            <div>
-                              {plan.features.no_of_net_profit_calculations ===
-                              -1
-                                ? "Unlimited"
-                                : plan.features
-                                    .no_of_net_profit_calculations}{" "}
-                              ASINs
-                            </div>
-                          ) : (
-                            <SpkBadge
-                              variant="danger/10"
-                              customClass="text-danger !p-1 leading-none !rounded-full"
-                            >
-                              <i className="ri-close-line align-middle font-semibold"></i>
-                            </SpkBadge>
-                          )}
-                        </div>
-                      </td>
-                    ))}
+                    {plans.map((plan: Plan, index: number) => {
+                      const discoveryValues = [20, 100, 250, 600];
+                      return (
+                        <td key={plan.id} className="text-center">
+                          <div className="flex justify-center">
+                            {discoveryValues[index] || 0} Discoveries
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                   <tr className="border border-defaultborder dark:border-defaultborder/10">
                     <td className="text-center">Amazon Trending Product Description</td>
                     {plans.map((plan: Plan) => (
                       <td key={plan.id} className="text-center">
                         <div className="flex justify-center">
-                          {plan?.features?.access_to_net_profit &&
-                          typeof plan?.features
-                            ?.no_of_net_profit_calculations === "number" &&
-                          (plan.features.no_of_net_profit_calculations > 0 ||
-                            plan.features.no_of_net_profit_calculations ===
-                              -1) ? (
-                            <div>
-                              {plan.features.no_of_net_profit_calculations ===
-                              -1
-                                ? "Unlimited"
-                                : plan.features
-                                    .no_of_net_profit_calculations}{" "}
-                              ASINs
-                            </div>
-                          ) : (
-                            <SpkBadge
-                              variant="danger/10"
-                              customClass="text-danger !p-1 leading-none !rounded-full"
-                            >
-                              <i className="ri-close-line align-middle font-semibold"></i>
-                            </SpkBadge>
-                          )}
+                          <SpkBadge
+                            variant="success/10"
+                            customClass="text-success !p-1 leading-none !rounded-full"
+                          >
+                            <i className="ri-check-line align-middle font-semibold"></i>
+                          </SpkBadge>
                         </div>
                       </td>
                     ))}
@@ -940,61 +837,35 @@ const PlansTab = ({
 
                   <tr className="border border-defaultborder dark:border-defaultborder/10">
                     <td className="text-center">Influencers Included</td>
-                    {plans.map((plan: Plan) => (
-                      <td key={plan.id} className="text-center">
-                        <div className="flex justify-center">
-                          {plan.features?.access_to_gross_profit ? (
-                            <div>
-                              {plan.features
-                                ?.no_of_gross_profit_calculations === -1
-                                ? "Unlimited"
-                                : plan.features
-                                    ?.no_of_gross_profit_calculations || 0}{" "}
-                              ASINs
-                            </div>
-                          ) : (
-                            <SpkBadge
-                              variant="danger/10"
-                              customClass="text-danger !p-1 leading-none !rounded-full"
-                            >
-                              <i className="ri-close-line align-middle font-semibold"></i>
-                            </SpkBadge>
-                          )}
-                        </div>
-                      </td>
-                    ))}
+                    {plans.map((plan: Plan, index: number) => {
+                      const influencerValues = [10, 25, 50, 100];
+                      return (
+                        <td key={plan.id} className="text-center">
+                          <div className="flex justify-center">
+                            {influencerValues[index] || 0} ASINs
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
 
                   <tr className="border border-defaultborder dark:border-defaultborder/10">
                     <td className="text-center">Influencer Posted Products</td>
-                    {plans.map((plan: Plan) => (
-                      <td key={plan.id} className="text-center">
-                        <div className="flex justify-center">
-                          {plan?.features?.access_to_net_profit &&
-                          typeof plan?.features
-                            ?.no_of_net_profit_calculations === "number" &&
-                          (plan.features.no_of_net_profit_calculations > 0 ||
-                            plan.features.no_of_net_profit_calculations ===
-                              -1) ? (
-                            <div>
-                              {plan.features.no_of_net_profit_calculations ===
-                              -1
-                                ? "Unlimited"
-                                : plan.features
-                                    .no_of_net_profit_calculations}{" "}
-                              ASINs
-                            </div>
-                          ) : (
-                            <SpkBadge
-                              variant="danger/10"
-                              customClass="text-danger !p-1 leading-none !rounded-full"
-                            >
-                              <i className="ri-close-line align-middle font-semibold"></i>
-                            </SpkBadge>
-                          )}
-                        </div>
-                      </td>
-                    ))}
+                    {plans.map((plan: Plan, index: number) => {
+                      const productAccessLabels = [
+                        "Limited Posted Products",
+                        "All Posted Products",
+                        "All Posted Products",
+                        "All Posted Products"
+                      ];
+                      return (
+                        <td key={plan.id} className="text-center">
+                          <div className="flex justify-center">
+                            {productAccessLabels[index] || "Limited Posted Products"}
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                 </tbody>
               </table>
