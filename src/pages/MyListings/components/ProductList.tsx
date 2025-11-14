@@ -411,15 +411,12 @@ const ProductList: React.FC<ProductListProps> = ({
         >
           {/* Product Details - Left Side */}
           <div className="flex flex-col">
-            <div className="font-medium p-4 text-gray-500 dark:text-gray-400 flex justify-between lg:justify-between items-center">
+            <div className="font-medium p-4 text-gray-500 dark:text-gray-400 flex justify-between items-center">
               <div>Search saved at: {formatDate(product.created_at)}</div>
 
-              <div className="flex items-center gap-3">
-                <div className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                  <i className="bi bi-journal-bookmark-fill"></i>
-                  Selected Product
-                </div>
-                
+              <div className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <i className="bi bi-journal-bookmark-fill"></i>
+                Selected Product
               </div>
             </div>
             {/* Display product name if available */}
@@ -530,35 +527,16 @@ const ProductList: React.FC<ProductListProps> = ({
                 </div>
               </div>
             </div>
-            <button
-                  onClick={() => handleDeleteProduct(product.id, product.name || 'this product')}
-                  disabled={deletingProductId === product.id}
-                  className="p-2 text-red-600 dark:text-red-400  dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Delete product"
-                >
-                  {deletingProductId === product.id ? (
-                    <div className="w-5 h-5 border-2 border-red-600 dark:border-red-400 border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <Trash2 className="w-5 h-5" />
-                  )}
-                </button>
           </div>
 
           {/* Seller/Supplier Info - Show seller info for Amazon/TikTok or Alibaba supplier */}
           <div className="flex flex-col">
-            <div className="font-medium p-4 text-gray-500 dark:text-gray-400 flex justify-between lg:justify-between items-center">
+            <div className="font-medium p-4 text-gray-500 dark:text-gray-400 flex justify-between items-center">
+              <div>Search last modified at: {formatDate(product.modified_at)}</div>
 
-
-              Search last modified at: {formatDate(product.modified_at)}
-
-              <div className="flex items-center gap-3">
-                <div className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                  <i className="bi bi-journal-bookmark-fill "></i>
-                  {product.alibaba_product && Object.keys(product.alibaba_product).length > 0
-                    ? "Selected Supplier"
-                    : "Seller Information"}
-                </div>
-                
+              <div className="font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <i className="bi bi-journal-bookmark-fill"></i>
+                Selected Supplier
               </div>
             </div>
 
@@ -572,14 +550,13 @@ const ProductList: React.FC<ProductListProps> = ({
               />
             ) : (
               /* Show seller/supplier info for Amazon/TikTok products */
-              <div >
+              <div>
                 <div className="px-4 pt-[18px] pb-[18px] bg-yellow-50 dark:bg-yellow-900/20 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-sm text-gray-600 dark:text-gray-400">{product.supplier_info ? 'Supplier Information' : 'Seller Details'}</p>
-
                 </div>
-                <div className=" p-4">
+                <div className="p-4 space-y-4">
                   {/* Supplier/Seller Info with Image in Small Box */}
-                  <div className="flex items-start gap-4 ">
+                  <div className="flex items-start gap-4">
                     {/* Supplier Product Image - Small Box */}
                     {product.supplier_info?.supplier_product_image && (
                       <div className="flex-shrink-0">
@@ -602,7 +579,7 @@ const ProductList: React.FC<ProductListProps> = ({
                     {/* Supplier/Seller Name */}
                     {product.supplier_info && (
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                        <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
                           {product.supplier_info.name || product.supplier_info.supplier_name || "N/A"}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -612,25 +589,13 @@ const ProductList: React.FC<ProductListProps> = ({
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-x-4  text-xs">
-                    {/* Display supplier info if available (from TikTok/Amazon calculator) */}
-                    {product.supplier_info ? (
-                      <>
-                        {/* Supplier Name */}
-                        <div className="col-span-2 flex flex-wrap gap-2">
-                          <span className="text-gray-600 dark:text-gray-400">Supplier Name:</span>
-                          <div className="">
-                            <span className="font-semibold text-gray-900 dark:text-white ">
-                              {product.supplier_info.name || product.supplier_info.supplier_name || 'N/A'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* ✅ Colorful Verification Badges Section - EXACT COPY from BlueRitt Explorer */}
-                        <div className="col-span-2">
-                          <div className="flex flex-wrap gap-2">
-                          <span className="text-gray-600 dark:text-gray-400 mb-2 block">Verification Badges:</span>
-                          <div className="flex flex-wrap gap-2">
+                  {/* Display supplier info if available (from TikTok/Amazon calculator) */}
+                  {product.supplier_info && (
+                    <div className="space-y-4">
+                      {/* ✅ Colorful Verification Badges Section - Moved Down */}
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400 mb-2 block">Verification Badges:</span>
+                        <div className="flex flex-wrap gap-2">
                             {/* 1. Gold Supplier Badge - Score +15 (Highest bonus) */}
                             {(product.supplier_info.verification_badge === 'Gold Supplier' ||
                               product.supplier_info.verification_status === 'Gold Supplier' ||
@@ -702,11 +667,11 @@ const ProductList: React.FC<ProductListProps> = ({
                                 {product.supplier_info.rating}/5 ⭐
                               </span>
                             )}
-                          </div>
-                          </div>
-                          
                         </div>
+                      </div>
 
+                      {/* Supplier Details Grid - Increased Spacing */}
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
                         {/* Location */}
                         <div>
                           <span className="text-gray-600 dark:text-gray-400">Location:</span>
@@ -756,13 +721,16 @@ const ProductList: React.FC<ProductListProps> = ({
                             </span>
                           </div>
                         )}
-                      </>
-                    ) : (
-                      /* Display Amazon/TikTok seller info - Enhanced for Amazon/TikTok Trends only */
-                      hasAmazonData && (
-                        isAmazonOrTikTok ? (
-                          /* ✅ Enhanced display for Amazon/TikTok Trends */
-                          <>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Display Amazon/TikTok seller info if no supplier_info */}
+                  {!product.supplier_info && hasAmazonData && (
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+                      {isAmazonOrTikTok ? (
+                        /* ✅ Enhanced display for Amazon/TikTok Trends */
+                        <>
                             {/* Seller Name */}
                             <div className="col-span-2">
                               <span className="text-gray-600 dark:text-gray-400">Seller Name:</span>
@@ -897,14 +865,29 @@ const ProductList: React.FC<ProductListProps> = ({
                             </div>
                           </>
                         )
-                      )
-                    )}
-                  </div>
+                      }
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            <div className="col-span-1 lg:col-span-2 flex justify-end p-2 border-t border-gray-200 dark:border-gray-700">
+            {/* Bottom Action Buttons */}
+            <div className="col-span-1 lg:col-span-2 flex justify-between items-center gap-4 p-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => handleDeleteProduct(product.id, product.name || 'this product')}
+                disabled={deletingProductId === product.id}
+                className="flex items-center gap-2 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                title="Delete product"
+              >
+                {deletingProductId === product.id ? (
+                  <div className="w-5 h-5 border-2 border-red-600 dark:border-red-400 border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <Trash2 className="w-5 h-5" />
+                )}
+                Delete Record
+              </button>
+
               <button
                 onClick={(e) => {
                   e.stopPropagation();

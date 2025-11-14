@@ -7,6 +7,7 @@ import {
   Star,
   ChevronDown,
   Shield,
+  Info,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useUserSubscriptionAndSearchQuota } from '../../../../../hooks/useUserDetails';
@@ -734,7 +735,15 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {/* TikTok Trends Searches */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-100 dark:border-blue-700">
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Product Searches</div>
+                      <div className="flex items-center gap-1">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">TikTok Trend Searches</div>
+                        <div className="hs-tooltip ti-main-tooltip inline-block">
+                          <Info className="w-3 h-3 text-gray-400 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
+                          <span className="hs-tooltip-content ti-main-tooltip-content !py-2 !px-3 !bg-gray-900 dark:!bg-gray-700 !text-xs !text-white !max-w-xs !whitespace-normal" role="tooltip">
+                            Smart Search Credit Saver: Repeat the same search within 7 days - no credit used. In other cases, a search credit will apply. 7-day window ensures fresh results from BlueRitt
+                          </span>
+                        </div>
+                      </div>
                       <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-1">
                         {tiktokSearchQuotaDetails.quotaValue === -1 ? '∞' : tiktokSearchQuotaDetails.quotaValue}
                       </div>
@@ -742,7 +751,15 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
                     {/* Discover Suppliers */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-purple-100 dark:border-purple-700">
-                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Supplier Discoveries</div>
+                      <div className="flex items-center gap-1">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Supplier Discoveries</div>
+                        <div className="hs-tooltip ti-main-tooltip inline-block">
+                          <Info className="w-3 h-3 text-gray-400 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
+                          <span className="hs-tooltip-content ti-main-tooltip-content !py-2 !px-3 !bg-gray-900 dark:!bg-gray-700 !text-xs !text-white !max-w-xs !whitespace-normal" role="tooltip">
+                            Discover Smart - Save Your Credit Search: With Suppliers for the same product again within 7 days no credits deducted. After 7 days, one Discover Supplier credit applies per new search. Matches are refreshed regularly to keep results timely and relevant
+                          </span>
+                        </div>
+                      </div>
                       <div className="text-lg font-bold text-purple-600 dark:text-purple-400 mt-1">
                         {supplierQuotaDetails.quotaValue === -1 ? '∞' : supplierQuotaDetails.quotaValue}
                       </div>
@@ -1229,13 +1246,18 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                         {/* Action Buttons - Always at bottom */}
                         <div className="mt-auto space-y-2">
                           {/* Discover Suppliers Button */}
-                          <button
-                            onClick={() => handleDiscoverSuppliersFromCard(product)}
-                            className="w-full bg-[#213168] text-white py-2 px-3 rounded-lg hover:bg-[#0f1a35] transition-all duration-200 text-sm flex items-center justify-center gap-2"
-                          >
-                            <Zap className="w-4 h-4" />
-                            Discover Suppliers
-                          </button>
+                          <div className="hs-tooltip ti-main-tooltip w-full inline-block">
+                            <button
+                              onClick={() => handleDiscoverSuppliersFromCard(product)}
+                              className="w-full bg-[#213168] text-white py-2 px-3 rounded-lg hover:bg-[#0f1a35] transition-all duration-200 text-sm flex items-center justify-center gap-2 hs-tooltip-toggle"
+                            >
+                              <Zap className="w-4 h-4" />
+                              Discover Suppliers
+                            </button>
+                            <span className="hs-tooltip-content ti-main-tooltip-content !py-2 !px-3 !bg-gray-900 dark:!bg-gray-700 !text-xs !text-white !max-w-xs !whitespace-normal" role="tooltip">
+                              BlueRitt AI Engine matches your selected Product With Verified, Trade-assured, Gold and High-rated Suppliers, then generates an AI Match Score - the higher the score, the better the supplier fit.
+                            </span>
+                          </div>
 
                           {/* View Details Button */}
                           <button
@@ -1399,9 +1421,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {activeModalTab === 'suppliers' ? 'BlueRitt SourceLink' : 
-activeModalTab === 'shop-analysis' ? 'TikTok Product Analysis' : 
- 'BlueRitt Product Details'}
+                {activeModalTab === 'suppliers' ? 'BlueRitt SourceLink' :
+                  activeModalTab === 'shop-analysis' ? 'TikTok Product Analysis' :
+                    'BlueRitt Product Details'}
               </h2>
               <button
                 onClick={handleCloseModal}
@@ -1459,7 +1481,7 @@ activeModalTab === 'shop-analysis' ? 'TikTok Product Analysis' :
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 {selectedProduct.url_title || 'TikTok Product'}
-                
+
               </div>
 
               <div className="flex items-center gap-3">
@@ -1490,10 +1512,11 @@ activeModalTab === 'shop-analysis' ? 'TikTok Product Analysis' :
 
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto">
-            
+
+
               {activeModalTab === 'overview' && (
                 <div className="p-6">
-<h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4> 
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Product Image with Pexels Fallback */}
                     <div className="space-y-4">
@@ -1712,7 +1735,7 @@ activeModalTab === 'shop-analysis' ? 'TikTok Product Analysis' :
                           </div>
                         )}
 
-                        {selectedProduct.share && (
+                        {selectedProduct.share && selectedProduct.share > 0 && (
                           <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
                             <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
                               <Share2 className="w-5 h-5" />
@@ -1724,7 +1747,7 @@ activeModalTab === 'shop-analysis' ? 'TikTok Product Analysis' :
                           </div>
                         )}
 
-                        {selectedProduct.comment && (
+                        {selectedProduct.comment && selectedProduct.comment > 0 && (
                           <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
                             <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
                               <MessageCircle className="w-5 h-5" />
@@ -1926,8 +1949,16 @@ activeModalTab === 'shop-analysis' ? 'TikTok Product Analysis' :
               )}
 
               {activeModalTab === 'suppliers' && (
+                
                 <div className="p-6">
-                  <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Recommended Alibaba Suppliers for Your Product & AI Match Scores</h4>
+ <div className=" flex justify-between">
+            <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm md:text-lg lg:text-xl xl:text-2xl" >Your Selected Product</h4>
+            {activeModalTab === 'suppliers' && (
+              <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm sm:flex-wrap sm:ml-[70px] md:ml-[156px] md:text-lg lg:text-xl xl:text-2xl">
+                Recommended Alibaba Suppliers for Your Product & AI Match Scores
+              </h4>
+            )}
+          </div>
                   <SuppliersTab
                     suppliers={suppliers}
                     isLoading={isSupplierDiscoveryLoading}
@@ -2155,11 +2186,11 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
   }
 
   return (
-         <div className="flex gap-6 h-[600px]">
-        
+    <div className="flex gap-6 h-[600px]">
+
       {/* Left Side - Product Details (Fixed) */}
       <div className="w-1/3 flex-shrink-0">
-<div className="sticky top-0 bg-white dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-purple-600 p-4 shadow-lg h-[600px] flex flex-col">
+        <div className="sticky top-0 bg-white dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-purple-600 p-4 shadow-lg h-[600px] flex flex-col">
           {/* Product Image */}
 
           <div className="mb-3">
@@ -2214,23 +2245,12 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             )}
           </div>
 
-          {/* Analysis Summary */}
-          <div className="bg-gradient-to-r from-orange-50 to-orange-50 dark:from-orange-900/30 dark:to-orange-900/30 rounded-lg p-3 border border-orange-100 dark:border-purple-700 mt-auto">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-1.5 text-xs">
-              Supplier Analysis
-            </h4>
-            <div className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5">
-              <p>✓ Found {displaySuppliers.length} suppliers</p>
-              <p>✓ Analysis time: {analysisTime}s</p>
-              <p>✓ Ranked by AI match score</p>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Right Side - Suppliers List (Scrollable) */}
       <div className="flex-1 overflow-y-auto pr-2 h-[600px]">
-        
+
         <div className="space-y-3">
           {displaySuppliers.map((supplier) => (
             <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
@@ -2325,47 +2345,47 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
                 {/* AI Match Score - Circular Progress (Smaller) */}
                 <div className="flex items-center justify-end">
-                <div className="relative h-[90px] w-[90px]">
-                  {/* Circular Progress Bar */}
-                  <svg className="transform -rotate-90" width="90" height="90">
-                    <circle
-                      cx="45"
-                      cy="45"
-                      r="40"
-                      stroke="#e5e7eb"
-                      strokeWidth="8"
-                      fill="none"
-                    />
-                    <circle
-                      cx="45"
-                      cy="45"
-                      r="40"
-                      stroke={
-                        (supplier.ai_match_score || 0) >= 80
-                          ? '#22c55e'
-                          : (supplier.ai_match_score || 0) >= 60
-                            ? '#eab308'
-                            : '#ef4444'
-                      }
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      fill="none"
-                      strokeDasharray={2 * Math.PI * 40}
-                      strokeDashoffset={
-                        2 * Math.PI * 40 * (1 - (supplier.ai_match_score || 0) / 100)
-                      }
-                    />
-                  </svg>
+                  <div className="relative h-[90px] w-[90px]">
+                    {/* Circular Progress Bar */}
+                    <svg className="transform -rotate-90" width="90" height="90">
+                      <circle
+                        cx="45"
+                        cy="45"
+                        r="40"
+                        stroke="#e5e7eb"
+                        strokeWidth="8"
+                        fill="none"
+                      />
+                      <circle
+                        cx="45"
+                        cy="45"
+                        r="40"
+                        stroke={
+                          (supplier.ai_match_score || 0) >= 80
+                            ? '#22c55e'
+                            : (supplier.ai_match_score || 0) >= 60
+                              ? '#eab308'
+                              : '#ef4444'
+                        }
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        fill="none"
+                        strokeDasharray={2 * Math.PI * 40}
+                        strokeDashoffset={
+                          2 * Math.PI * 40 * (1 - (supplier.ai_match_score || 0) / 100)
+                        }
+                      />
+                    </svg>
 
-                  {/* Content in center */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
-                    <div className="font-bold text-purple-600 dark:text-purple-400">
-                      {(supplier.ai_match_score || 0).toFixed(2)}%
+                    {/* Content in center */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
+                      <div className="font-bold text-purple-600 dark:text-purple-400">
+                        {(supplier.ai_match_score || 0).toFixed(2)}%
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
               </div>
 
               {/* Key Details Grid - Compact */}
@@ -2401,27 +2421,27 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   </div>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 mb-2">
-                <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-1 text-center">Supplier Rating</div>
-                <div className="flex items-center justify-center gap-0.5">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`w-3 h-3 ${star <= (supplier.rating || 0)
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'fill-gray-300 text-gray-300 dark:fill-gray-500 dark:text-gray-500'
-                        }`}
-                    />
-                  ))}
-                  <span className="ml-1 text-xs font-semibold text-gray-900 dark:text-white">
-                    {supplier.rating ? supplier.rating.toFixed(1) : '0.0'}
-                  </span>
+                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-1 text-center">Supplier Rating</div>
+                  <div className="flex items-center justify-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-3 h-3 ${star <= (supplier.rating || 0)
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'fill-gray-300 text-gray-300 dark:fill-gray-500 dark:text-gray-500'
+                          }`}
+                      />
+                    ))}
+                    <span className="ml-1 text-xs font-semibold text-gray-900 dark:text-white">
+                      {supplier.rating ? supplier.rating.toFixed(1) : '0.0'}
+                    </span>
+                  </div>
                 </div>
               </div>
-              </div>
-            
+
 
               {/* ✅ Star Rating Display - Separate Row */}
-              
+
 
               {/* Additional Info - Compact */}
               <div className="space-y-1 mb-2">
@@ -2455,10 +2475,10 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                 {/* Calculate Button */}
                 <button
                   onClick={() => onCalculateClick(supplier)}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
+                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
                 >
-                  <DollarSign className="w-3 h-3" />
-                  Select Supplier
+                  <DollarSign className="w-3.5 h-3.5" />
+                  Calculate Profit
                 </button>
 
                 {/* Contact Supplier Button */}
@@ -2467,9 +2487,9 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                     href={supplier.contact_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
+                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
                   >
-                    <ExternalLink className="w-3 h-3" />
+                    <ExternalLink className="w-3.5 h-3.5" />
                     Contact Supplier
                   </a>
                 )}

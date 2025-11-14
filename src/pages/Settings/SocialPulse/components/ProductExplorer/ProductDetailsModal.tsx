@@ -582,8 +582,8 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {activeTab === 'overview' ? 'BlueRitt Product Details' : activeTab === 'suppliers' ? 'BlueRitt SourceLink' : 'BlueRitt Product Details'}
-              </h2>
+            {activeTab === 'overview' ? 'Amazon Trend Product Details' : activeTab === 'suppliers' ? 'BlueRitt SourceLink' : 'BlueRitt Product Details'}
+          </h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
@@ -617,12 +617,20 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
                 <span className="bg-purple-100 text-purple-800 text-xs text-center px-2 py-1 rounded-full">
                   {suppliers.length}
                 </span>
+
               )}
             </button>
           ))}
         </div>
-
         <div className="p-6 overflow-y-auto">
+          <div className=" flex justify-between">
+            <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm md:text-lg lg:text-xl xl:text-2xl" >Your Selected Product</h4>
+            {activeTab === 'suppliers' && (
+              <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm sm:flex-wrap sm:ml-[70px] md:ml-[156px] md:text-lg lg:text-xl xl:text-2xl">
+                Recommended Alibaba Suppliers for Your Product & AI Match Scores
+              </h4>
+            )}
+          </div>
 
           {/* Content */}
           <div className="flex gap-6 h-[calc(90vh-300px)] ">
@@ -719,21 +727,22 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
             </div>
 
             {/* Right Panel - Tabs */}
-            <div className="flex-1 flex flex-col ">
+            <div className="">
 
+              <div className="flex-1 flex flex-col ">
 
-              {/* Tab Content */}
-              <div className="flex-1 overflow-y-auto ">
-                {activeTab === 'overview' && (
-                  <OverviewTab
-                    product={product}
-                    details={details}
-                    isLoading={detailsLoading}
-                    error={detailsError}
-                  />
+                {/* Tab Content */}
+                <div className="flex-1 overflow-y-auto ">
+                  {activeTab === 'overview' && (
+                    <OverviewTab
+                      product={product}
+                      details={details}
+                      isLoading={detailsLoading}
+                      error={detailsError}
+                    />
 
-                )}
-                {/* {activeTab === 'reviews' && (
+                  )}
+                  {/* {activeTab === 'reviews' && (
                 <ReviewsTab
                   reviews={reviews}
                   isLoading={reviewsLoading}
@@ -748,16 +757,20 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
                   country={country}
                 />
               )} */}
-                {activeTab === 'suppliers' && (
-                  <SuppliersTab
-                    suppliers={suppliers}
-                    isLoading={isSupplierDiscoveryLoading}
-                    analysisTime={supplierAnalysisTime}
-                    onSelectSupplier={handleSelectSupplier}
-                  />
-                )}
+                  {activeTab === 'suppliers' && (
+                    <SuppliersTab
+                      suppliers={suppliers}
+                      isLoading={isSupplierDiscoveryLoading}
+                      analysisTime={supplierAnalysisTime}
+                      onSelectSupplier={handleSelectSupplier}
+                    />
+                  )}
+                </div>
               </div>
+
             </div>
+
+
           </div>
         </div>
       </div>
@@ -1347,9 +1360,12 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
       {/* Suppliers List - EXACT COPY from BlueRitt Explorer with Colorful Badges */}
       <div className="space-y-4">
+
         {displaySuppliers.map((supplier, index) => (
+
           <div key={index} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-2 hover:border-orange-300 dark:hover:border-orange-500 hover:shadow-lg transition-all duration-200">
             {/* ✅ Supplier Product Image */}
+
             {supplier.supplier_product_image && (
               <div className="mb-4">
                 <img
@@ -1482,7 +1498,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             </div>
 
             {/* Key Details Grid */}
-              <div className="grid grid-cols-2 gap-2 mb-2">
+            <div className="grid grid-cols-2 gap-2 mb-2">
               <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
                 <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Minimum Order QTY</div>
                 <div className="font-semibold text-gray-900 dark:text-white">
@@ -1513,7 +1529,7 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                   {supplier.id}
                 </div>
               </div>
-              
+
               {/* ✅ Star Rating Display */}
               <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-3 text-center">
                 <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Supplier Rating</div>
@@ -1576,23 +1592,23 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             )}
 
             {/* Action Buttons - Aligned to Right */}
-            <div className="mt-4 flex justify-end gap-3">
+            <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => onSelectSupplier(supplier)}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2"
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
               >
-                <Calculator className="w-4 h-4" />
-                Select Supplier
+                <DollarSign className="w-3.5 h-3.5" />
+                Calculate Profit
               </button>
               <a
                 href={supplier.contact_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-sm font-medium transition-colors"
+                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
               >
-                Contact Supplier →
+                <ExternalLink className="w-3.5 h-3.5" />
+                Contact Supplier
               </a>
-              
             </div>
           </div>
         ))}

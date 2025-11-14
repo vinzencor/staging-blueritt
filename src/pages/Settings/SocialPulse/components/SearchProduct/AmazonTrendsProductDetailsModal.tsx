@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { X, ExternalLink, Star, Package, Truck, DollarSign, Save, Shield, Zap } from 'lucide-react';
+import { X, ExternalLink, Star, Package, Truck, DollarSign, Save, Shield, Zap, Info } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 import {
@@ -130,7 +130,7 @@ const AmazonTrendsProductDetailsModal: React.FC<AmazonTrendsProductDetailsModalP
         {/* Modal Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Amazon Product Details
+            Amazon Trending Product Details
           </h2>
           <button
             onClick={onClose}
@@ -290,6 +290,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     <div className="space-y-6">
       {/* Product Information */}
       <div>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h3>
         <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Product Information</h4>
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-2">
           <div className="flex justify-between">
@@ -387,6 +388,19 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
   return (
     <div className="space-y-6">
+      {/* Supplier Heading with Tooltip */}
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+          Recommended Alibaba Suppliers for Your Product & AI Match Scores
+        </h3>
+        <div className="hs-tooltip ti-main-tooltip inline-block">
+          <Info className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
+          <span className="hs-tooltip-content ti-main-tooltip-content !py-2 !px-3 !bg-gray-900 dark:!bg-gray-700 !text-xs !text-white !max-w-xs !whitespace-normal" role="tooltip">
+            BlueRitt AI Engine matches your selected Product With Verified, Trade-assured, Gold and High-rated Suppliers, then generates an AI Match Score - the higher the score, the better the supplier fit.
+          </span>
+        </div>
+      </div>
+
       {/* ✅ Analysis Summary - EXACT COPY from BlueRitt Explorer */}
       <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg p-4 border border-purple-100 dark:border-purple-700">
         <div className="flex items-center justify-between">

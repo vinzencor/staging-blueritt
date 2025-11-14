@@ -733,7 +733,14 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
   };
 
   const updateCalculation = (field: keyof EnhancedProfitCalculation, value: number | string) => {
-    const newCalc = { ...calculation, [field]: typeof value === 'string' ? parseFloat(value) || 0 : value };
+    // Handle string fields (fm_model, tax_region) separately
+    const stringFields = ['fm_model', 'tax_region'];
+    const newCalc = {
+      ...calculation,
+      [field]: stringFields.includes(field as string)
+        ? value
+        : (typeof value === 'string' ? parseFloat(value) || 0 : value)
+    };
 
     // Validate quantity vs order quantity
     if (field === 'pi_quantity' || field === 'psc_orderQuantity') {
@@ -942,7 +949,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-[95vw] max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900">
           <div className="flex items-center gap-4">
@@ -964,6 +971,66 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
 
         {/* Content */}
         <div className="p-6 space-y-6">
+          {/* Selected Product and Selected Supplier Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Selected Product Card */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
+              <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100 mb-4">Selected Product</h3>
+              <div className="flex gap-4">
+                <img
+                  src={product.product_photo || '/placeholder-product.png'}
+                  alt={product.product_title}
+                  className="w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder-product.png';
+                  }}
+                />
+                <div className="flex-1 space-y-2">
+                  <p className="font-semibold text-gray-900 dark:text-white line-clamp-2">{product.product_title}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">ASIN:</span> {product.asin}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Price:</span> {product.product_price || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Rating:</span> {product.product_star_rating || 'N/A'} ({product.product_num_ratings?.toLocaleString() || 0} reviews)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Selected Supplier Card */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700">
+              <h3 className="text-lg font-bold text-green-900 dark:text-green-100 mb-4">Selected Supplier</h3>
+              <div className="flex gap-4">
+                <img
+                  src={supplier.supplier_product_image || '/placeholder-supplier.png'}
+                  alt={supplier.name}
+                  className="w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder-supplier.png';
+                  }}
+                />
+                <div className="flex-1 space-y-2">
+                  <p className="font-semibold text-gray-900 dark:text-white line-clamp-2">{supplier.name || supplier.supplier_name || 'N/A'}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Price:</span> {supplier.estimated_price || supplier.price_per_unit || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">MOQ:</span> {supplier.moq || supplier.minimum_order || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">Location:</span> {supplier.location || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="font-medium">AI Match:</span> {supplier.ai_match_score}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Profit Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg border border-orange-200 dark:border-orange-700">
@@ -1017,10 +1084,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.pi_sellingPrice.toFixed(2)}
+                      value={calculation.pi_sellingPrice}
                       onChange={(e) => updateCalculation('pi_sellingPrice', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1031,7 +1098,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       value={calculation.pi_quantity}
                       onChange={(e) => updateCalculation('pi_quantity', parseInt(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${quantityError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${quantityError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                       placeholder="0"
                     />
                     {quantityError && (
@@ -1082,10 +1149,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.psc_manufacturingCost.toFixed(2)}
+                      value={calculation.psc_manufacturingCost}
                       onChange={(e) => updateCalculation('psc_manufacturingCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1094,10 +1161,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.psc_shippingCost.toFixed(2)}
+                      value={calculation.psc_shippingCost}
                       onChange={(e) => updateCalculation('psc_shippingCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1106,10 +1173,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.psc_miscCost.toFixed(2)}
+                      value={calculation.psc_miscCost}
                       onChange={(e) => updateCalculation('psc_miscCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1120,7 +1187,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       value={calculation.psc_orderQuantity}
                       onChange={(e) => updateCalculation('psc_orderQuantity', parseInt(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0"
                     />
                   </div>
@@ -1163,29 +1230,29 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
             {expandedSections.fulfillment && (
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fulfillment Model*</label>
-                  <div className="flex gap-6">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Fulfillment Model*</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-3 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all hover:bg-purple-50 dark:hover:bg-purple-900/20 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50 dark:has-[:checked]:bg-purple-900/30 border-gray-300 dark:border-gray-600">
                       <input
                         type="radio"
                         name="fm_model"
                         value="FBA"
                         checked={calculation.fm_model === "FBA"}
                         onChange={(e) => updateCalculation('fm_model', e.target.value)}
-                        className="text-purple-600 focus:ring-purple-500"
+                        className="w-4 h-4 text-purple-600 focus:ring-2 focus:ring-purple-500 cursor-pointer"
                       />
-                      <span className="text-gray-900 dark:text-white font-medium">FBA</span>
+                      <span className="text-gray-900 dark:text-white font-semibold">FBA</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-3 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all hover:bg-purple-50 dark:hover:bg-purple-900/20 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50 dark:has-[:checked]:bg-purple-900/30 border-gray-300 dark:border-gray-600">
                       <input
                         type="radio"
                         name="fm_model"
                         value="FBM"
                         checked={calculation.fm_model === "FBM"}
                         onChange={(e) => updateCalculation('fm_model', e.target.value)}
-                        className="text-purple-600 focus:ring-purple-500"
+                        className="w-4 h-4 text-purple-600 focus:ring-2 focus:ring-purple-500 cursor-pointer"
                       />
-                      <span className="text-gray-900 dark:text-white font-medium">FBM</span>
+                      <span className="text-gray-900 dark:text-white font-semibold">FBM</span>
                     </label>
                   </div>
                 </div>
@@ -1197,10 +1264,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       <input
                         type="number"
                         step="0.01"
-                        value={calculation.fm_referrfalFees.toFixed(2)}
+                        value={calculation.fm_referrfalFees}
                         onChange={(e) => updateCalculation('fm_referrfalFees', parseFloat(e.target.value) || 0)}
                         onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="$ 0"
                       />
                     </div>
@@ -1209,10 +1276,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       <input
                         type="number"
                         step="0.01"
-                        value={calculation.fm_fbaFulfillmentFees.toFixed(2)}
+                        value={calculation.fm_fbaFulfillmentFees}
                         onChange={(e) => updateCalculation('fm_fbaFulfillmentFees', parseFloat(e.target.value) || 0)}
                         onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="$ 0"
                       />
                     </div>
@@ -1221,10 +1288,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       <input
                         type="number"
                         step="0.01"
-                        value={calculation.fm_monthlyStorageFees.toFixed(2)}
+                        value={calculation.fm_monthlyStorageFees}
                         onChange={(e) => updateCalculation('fm_monthlyStorageFees', parseFloat(e.target.value) || 0)}
                         onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="$ 0"
                       />
                     </div>
@@ -1233,11 +1300,55 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       <input
                         type="number"
                         step="0.01"
-                        value={calculation.fm_inboundShippingCost.toFixed(2)}
+                        value={calculation.fm_inboundShippingCost}
                         onChange={(e) => updateCalculation('fm_inboundShippingCost', parseFloat(e.target.value) || 0)}
                         onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other FBA Costs</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_miscCost}
+                        onChange={(e) => updateCalculation('fm_miscCost', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Returns/Refund Rate (Sellable)%</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_returnsRate}
+                        onChange={(e) => updateCalculation('fm_returnsRate', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cost/Unit*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_perUnitCost.toFixed(2)}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Cost*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_totalCost.toFixed(2)}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
                       />
                     </div>
                   </div>
@@ -1250,34 +1361,34 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       <input
                         type="number"
                         step="0.01"
-                        value={calculation.fm_referrfalFees.toFixed(2)}
+                        value={calculation.fm_referrfalFees}
                         onChange={(e) => updateCalculation('fm_referrfalFees', parseFloat(e.target.value) || 0)}
                         onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="$ 0"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Shipping Fees*</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Shipping Delivery Charges</label>
                       <input
                         type="number"
                         step="0.01"
-                        value={calculation.fm_shippingFees.toFixed(2)}
+                        value={calculation.fm_shippingFees}
                         onChange={(e) => updateCalculation('fm_shippingFees', parseFloat(e.target.value) || 0)}
                         onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="$ 0"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Handling Cost*</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fulfillment Cost</label>
                       <input
                         type="number"
                         step="0.01"
-                        value={calculation.fm_handlingCost.toFixed(2)}
+                        value={calculation.fm_handlingCost}
                         onChange={(e) => updateCalculation('fm_handlingCost', parseFloat(e.target.value) || 0)}
                         onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="$ 0"
                       />
                     </div>
@@ -1286,11 +1397,55 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       <input
                         type="number"
                         step="0.01"
-                        value={calculation.fm_storageCost.toFixed(2)}
+                        value={calculation.fm_storageCost}
                         onChange={(e) => updateCalculation('fm_storageCost', parseFloat(e.target.value) || 0)}
                         onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other FBM Costs</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_miscCost}
+                        onChange={(e) => updateCalculation('fm_miscCost', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Returns/Refund Rate (Sellable)%</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_returnsRate}
+                        onChange={(e) => updateCalculation('fm_returnsRate', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cost/Unit*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_perUnitCost.toFixed(2)}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Cost*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_totalCost.toFixed(2)}
+                        disabled
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
                       />
                     </div>
                   </div>
@@ -1302,10 +1457,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.fm_miscCost.toFixed(2)}
+                      value={calculation.fm_miscCost}
                       onChange={(e) => updateCalculation('fm_miscCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1314,10 +1469,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.fm_returnsRate.toFixed(2)}
+                      value={calculation.fm_returnsRate}
                       onChange={(e) => updateCalculation('fm_returnsRate', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="0"
                     />
                   </div>
@@ -1390,10 +1545,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.marc_marketingCost.toFixed(2)}
+                      value={calculation.marc_marketingCost}
                       onChange={(e) => updateCalculation('marc_marketingCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1402,10 +1557,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.marc_attributionCost.toFixed(2)}
+                      value={calculation.marc_attributionCost}
                       onChange={(e) => updateCalculation('marc_attributionCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1414,10 +1569,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.marc_influencerCost.toFixed(2)}
+                      value={calculation.marc_influencerCost}
                       onChange={(e) => updateCalculation('marc_influencerCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1426,10 +1581,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.marc_marketingVATCost.toFixed(2)}
+                      value={calculation.marc_marketingVATCost}
                       onChange={(e) => updateCalculation('marc_marketingVATCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1480,10 +1635,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.gc_imagingAndPhotographyCost.toFixed(2)}
+                      value={calculation.gc_imagingAndPhotographyCost}
                       onChange={(e) => updateCalculation('gc_imagingAndPhotographyCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1492,10 +1647,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.gc_videographyCost.toFixed(2)}
+                      value={calculation.gc_videographyCost}
                       onChange={(e) => updateCalculation('gc_videographyCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1504,10 +1659,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.gc_productPackingCost.toFixed(2)}
+                      value={calculation.gc_productPackingCost}
                       onChange={(e) => updateCalculation('gc_productPackingCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1516,10 +1671,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.gc_miscCost.toFixed(2)}
+                      value={calculation.gc_miscCost}
                       onChange={(e) => updateCalculation('gc_miscCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1570,10 +1725,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.pfc_vineProgramCost.toFixed(2)}
+                      value={calculation.pfc_vineProgramCost}
                       onChange={(e) => updateCalculation('pfc_vineProgramCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1582,10 +1737,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.pfc_miscCost.toFixed(2)}
+                      value={calculation.pfc_miscCost}
                       onChange={(e) => updateCalculation('pfc_miscCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1636,10 +1791,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.oc_preLaunchSamples.toFixed(2)}
+                      value={calculation.oc_preLaunchSamples}
                       onChange={(e) => updateCalculation('oc_preLaunchSamples', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1648,10 +1803,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.oc_competitorProductSamples.toFixed(2)}
+                      value={calculation.oc_competitorProductSamples}
                       onChange={(e) => updateCalculation('oc_competitorProductSamples', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1660,10 +1815,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.oc_employeesCost.toFixed(2)}
+                      value={calculation.oc_employeesCost}
                       onChange={(e) => updateCalculation('oc_employeesCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1672,10 +1827,10 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.oc_anyOtherCost.toFixed(2)}
+                      value={calculation.oc_anyOtherCost}
                       onChange={(e) => updateCalculation('oc_anyOtherCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
@@ -1725,11 +1880,11 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                   <select
                     value={calculation.tax_region}
                     onChange={(e) => updateCalculation('tax_region', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [&>option]:text-gray-900 [&>option]:dark:text-white [&>option]:bg-white [&>option]:dark:bg-gray-700"
                   >
-                    <option value="">Select Tax Region</option>
+                    <option value="" className="text-gray-500 dark:text-gray-400">Select Tax Region</option>
                     {TAX_OPTIONS.map(tax => (
-                      <option key={tax.code} value={tax.code}>{tax.country}</option>
+                      <option key={tax.code} value={tax.code} className="text-gray-900 dark:text-white bg-white dark:bg-gray-700">{tax.country}</option>
                     ))}
                   </select>
                   {calculation.tax_region && getTaxNotes()}
@@ -1824,9 +1979,9 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.tax_miscCost.toFixed(2)}
+                      value={calculation.tax_miscCost}
                       onChange={(e) => updateCalculation('tax_miscCost', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       placeholder="$ 0"
                     />
                   </div>
