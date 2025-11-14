@@ -998,64 +998,76 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
             </p>
           </div>
 
-          {/* Product Information Section */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4">
+          {/* Product Revenue Section */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4">
             <button
               onClick={() => toggleSection('product')}
-              className="w-full flex items-center justify-between font-semibold text-green-900 hover:text-green-700"
+              className="w-full flex items-center justify-between font-semibold text-green-900 dark:text-green-100 hover:text-green-700 dark:hover:text-green-300"
             >
               <span className="flex items-center gap-2">
                 {expandedSections.product ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Product Information
+                Product Revenue
               </span>
             </button>
             {expandedSections.product && (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Selling Price/Unit</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.pi_sellingPrice}
-                    onChange={(e) => updateCalculation('pi_sellingPrice', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Total Revenue</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.pi_totalRevenue.toFixed(2)}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                  <input
-                    type="number"
-                    value={calculation.pi_quantity}
-                    onChange={(e) => updateCalculation('pi_quantity', parseInt(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${quantityError ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="100"
-                  />
-                  {quantityError && (
-                    <p className="mt-1 text-sm text-red-600">{quantityError}</p>
-                  )}
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Selling Price*</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.pi_sellingPrice.toFixed(2)}
+                      onChange={(e) => updateCalculation('pi_sellingPrice', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Quantity*</label>
+                    <input
+                      type="number"
+                      value={calculation.pi_quantity}
+                      onChange={(e) => updateCalculation('pi_quantity', parseInt(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${quantityError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
+                      placeholder="0"
+                    />
+                    {quantityError && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{quantityError}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Revenue/Unit</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.pi_sellingPrice.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Product Revenue</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.pi_totalRevenue.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
+                    />
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
           {/* Product Sourcing Cost Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4">
             <button
               onClick={() => toggleSection('sourcing')}
-              className="w-full flex items-center justify-between font-semibold text-blue-900 hover:text-blue-700"
+              className="w-full flex items-center justify-between font-semibold text-blue-900 dark:text-blue-100 hover:text-blue-700 dark:hover:text-blue-300"
             >
               <span className="flex items-center gap-2">
                 {expandedSections.sourcing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -1063,75 +1075,85 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
               </span>
             </button>
             {expandedSections.sourcing && (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Manufacturing Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.psc_manufacturingCost}
-                    onChange={(e) => updateCalculation('psc_manufacturingCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.psc_shippingCost}
-                    onChange={(e) => updateCalculation('psc_shippingCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Logo Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.psc_productLogoCost}
-                    onChange={(e) => updateCalculation('psc_productLogoCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Other Sourcing Costs</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.psc_miscCost}
-                    onChange={(e) => updateCalculation('psc_miscCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="md:col-span-2 lg:col-span-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Order Quantity</label>
-                  <input
-                    type="number"
-                    value={calculation.psc_orderQuantity}
-                    onChange={(e) => updateCalculation('psc_orderQuantity', parseInt(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="100"
-                  />
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Manufacturing*</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.psc_manufacturingCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('psc_manufacturingCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Shipping Cost*</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.psc_shippingCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('psc_shippingCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other Sourcing Costs</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.psc_miscCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('psc_miscCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Order Quantity*</label>
+                    <input
+                      type="number"
+                      value={calculation.psc_orderQuantity}
+                      onChange={(e) => updateCalculation('psc_orderQuantity', parseInt(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sourcing Cost/Unit</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.psc_perUnitCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Sourcing Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.psc_totalCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
+                    />
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Fulfillment Model Section */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+          {/* Fulfillment Cost Section */}
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4">
             <button
               onClick={() => toggleSection('fulfillment')}
-              className="w-full flex items-center justify-between font-semibold text-purple-900 hover:text-purple-700"
+              className="w-full flex items-center justify-between font-semibold text-purple-900 dark:text-purple-100 hover:text-purple-700 dark:hover:text-purple-300"
             >
               <span className="flex items-center gap-2">
                 {expandedSections.fulfillment ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -1141,79 +1163,182 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
             {expandedSections.fulfillment && (
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Model</label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fulfillment Model*</label>
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
                         name="fm_model"
                         value="FBA"
                         checked={calculation.fm_model === "FBA"}
                         onChange={(e) => updateCalculation('fm_model', e.target.value)}
-                        className="text-purple-600"
+                        className="text-purple-600 focus:ring-purple-500"
                       />
-                      FBA
+                      <span className="text-gray-900 dark:text-white font-medium">FBA</span>
                     </label>
-                    <label className="flex items-center gap-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="radio"
                         name="fm_model"
                         value="FBM"
                         checked={calculation.fm_model === "FBM"}
                         onChange={(e) => updateCalculation('fm_model', e.target.value)}
-                        className="text-purple-600"
+                        className="text-purple-600 focus:ring-purple-500"
                       />
-                      FBM
+                      <span className="text-gray-900 dark:text-white font-medium">FBM</span>
                     </label>
                   </div>
                 </div>
+
+                {calculation.fm_model === "FBA" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amazon Fees*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_referrfalFees.toFixed(2)}
+                        onChange={(e) => updateCalculation('fm_referrfalFees', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fulfillment Cost*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_fbaFulfillmentFees.toFixed(2)}
+                        onChange={(e) => updateCalculation('fm_fbaFulfillmentFees', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Storage Cost*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_monthlyStorageFees.toFixed(2)}
+                        onChange={(e) => updateCalculation('fm_monthlyStorageFees', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Inbounding Cost</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_inboundShippingCost.toFixed(2)}
+                        onChange={(e) => updateCalculation('fm_inboundShippingCost', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {calculation.fm_model === "FBM" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amazon Fees*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_referrfalFees.toFixed(2)}
+                        onChange={(e) => updateCalculation('fm_referrfalFees', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Shipping Fees*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_shippingFees.toFixed(2)}
+                        onChange={(e) => updateCalculation('fm_shippingFees', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Handling Cost*</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_handlingCost.toFixed(2)}
+                        onChange={(e) => updateCalculation('fm_handlingCost', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Storage Cost</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculation.fm_storageCost.toFixed(2)}
+                        onChange={(e) => updateCalculation('fm_storageCost', parseFloat(e.target.value) || 0)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="$ 0"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Referral Fees</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other FBA Costs</label>
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.fm_referrfalFees}
-                      onChange={(e) => updateCalculation('fm_referrfalFees', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Fulfillment Fees</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.fm_fbaFulfillmentFees}
-                      onChange={(e) => updateCalculation('fm_fbaFulfillmentFees', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Storage Fees</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.fm_monthlyStorageFees}
-                      onChange={(e) => updateCalculation('fm_monthlyStorageFees', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Other Fulfillment Costs</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.fm_miscCost}
+                      value={calculation.fm_miscCost.toFixed(2)}
                       onChange={(e) => updateCalculation('fm_miscCost', parseFloat(e.target.value) || 0)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="0.00"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Returns/Refund fee (Refillable)%</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.fm_returnsRate.toFixed(2)}
+                      onChange={(e) => updateCalculation('fm_returnsRate', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cost/Unit</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.fm_perUnitCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Cost*</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.fm_totalCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
                     />
                   </div>
                 </div>
@@ -1243,278 +1368,364 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
             )}
           </div>
 
-          {/* Marketing Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-yellow-50 to-orange-50'}`}>
+          {/* Marketing Cost Section */}
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20'}`}>
             <button
               onClick={() => toggleSection('marketing')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-yellow-900 hover:text-yellow-700'}`}
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-yellow-900 dark:text-yellow-100 hover:text-yellow-700 dark:hover:text-yellow-300'}`}
               disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
                 {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.marketing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Marketing & Advertising
+                Marketing Cost
                 {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.marketing && (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Marketing Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.marc_marketingCost}
-                    onChange={(e) => updateCalculation('marc_marketingCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Attribution Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.marc_attributionCost}
-                    onChange={(e) => updateCalculation('marc_attributionCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Influencer Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.marc_influencerCost}
-                    onChange={(e) => updateCalculation('marc_influencerCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Other Marketing Costs</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.marc_miscCost}
-                    onChange={(e) => updateCalculation('marc_miscCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pay-per-Click(PPC)*</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.marc_marketingCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('marc_marketingCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Attribution Links</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.marc_attributionCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('marc_attributionCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Promotion/Other Costs</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.marc_influencerCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('marc_influencerCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PPC VAT(if Applicable)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.marc_marketingVATCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('marc_marketingVATCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Marketing Cost/Unit</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.marc_perUnitCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Marketing Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.marc_totalCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
+                    />
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          
-
-          {/* Graphics Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-cyan-50 to-blue-50'}`}>
+          {/* Graphics Design Cost Section */}
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20'}`}>
             <button
               onClick={() => toggleSection('graphics')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-cyan-900 hover:text-cyan-700'}`}
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-cyan-900 dark:text-cyan-100 hover:text-cyan-700 dark:hover:text-cyan-300'}`}
               disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
                 {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.graphics ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Graphics & Content
+                Graphics Design Cost
                 {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.graphics && (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Photography Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.gc_imagingAndPhotographyCost}
-                    onChange={(e) => updateCalculation('gc_imagingAndPhotographyCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Videography Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.gc_videographyCost}
-                    onChange={(e) => updateCalculation('gc_videographyCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Packing Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.gc_productPackingCost}
-                    onChange={(e) => updateCalculation('gc_productPackingCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">3D Animation Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.gc_3dAnimationCost}
-                    onChange={(e) => updateCalculation('gc_3dAnimationCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">A+ Content*</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.gc_imagingAndPhotographyCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('gc_imagingAndPhotographyCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Videography</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.gc_videographyCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('gc_videographyCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Packaging</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.gc_productPackingCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('gc_productPackingCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other Content Costs</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.gc_miscCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('gc_miscCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Graphics Cost/Unit</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.gc_perUnitCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Graphics Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.gc_totalCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
+                    />
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Feedback Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-teal-50 to-green-50'}`}>
+          {/* Reviewer Program Cost Section */}
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20'}`}>
             <button
               onClick={() => toggleSection('feedback')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-teal-900 hover:text-teal-700'}`}
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-teal-900 dark:text-teal-100 hover:text-teal-700 dark:hover:text-teal-300'}`}
               disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
                 {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.feedback ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Product Feedback
+                Reviewer Program Cost
                 {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.feedback && (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Vine Program Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.pfc_vineProgramCost}
-                    onChange={(e) => updateCalculation('pfc_vineProgramCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Other Feedback Costs</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.pfc_miscCost}
-                    onChange={(e) => updateCalculation('pfc_miscCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Related Expenses</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.pfc_vineProgramCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('pfc_vineProgramCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other Associated Costs</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.pfc_miscCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('pfc_miscCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Cost/Unit</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.pfc_perUnitCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Review Prog. Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.pfc_totalCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
+                    />
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Other Costs Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50'}`}>
+          {/* Additional Costs Section */}
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20'}`}>
             <button
               onClick={() => toggleSection('other')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-indigo-900 hover:text-indigo-700'}`}
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-indigo-900 dark:text-indigo-100 hover:text-indigo-700 dark:hover:text-indigo-300'}`}
               disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
                 {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.other ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Other Costs
+                Additional Costs
                 {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.other && (
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Competitor Samples</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.oc_competitorProductSamples}
-                    onChange={(e) => updateCalculation('oc_competitorProductSamples', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Pre-Launch Samples</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.oc_preLaunchSamples}
-                    onChange={(e) => updateCalculation('oc_preLaunchSamples', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Employees Cost</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.oc_employeesCost}
-                    onChange={(e) => updateCalculation('oc_employeesCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Other Costs</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={calculation.oc_anyOtherCost}
-                    onChange={(e) => updateCalculation('oc_anyOtherCost', parseFloat(e.target.value) || 0)}
-                    onFocus={(e) => e.target.select()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pre-launch Samples</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.oc_preLaunchSamples.toFixed(2)}
+                      onChange={(e) => updateCalculation('oc_preLaunchSamples', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Competitor Samples</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.oc_competitorProductSamples.toFixed(2)}
+                      onChange={(e) => updateCalculation('oc_competitorProductSamples', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Employees Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.oc_employeesCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('oc_employeesCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Miscellaneous Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.oc_anyOtherCost.toFixed(2)}
+                      onChange={(e) => updateCalculation('oc_anyOtherCost', parseFloat(e.target.value) || 0)}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Cost/Unit</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.oc_perUnitCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Additional Cost</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.oc_totalCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
+                    />
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Taxes Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-red-50 to-pink-50'}`}>
+          {/* Taxes (if applicable) Section */}
+          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20'}`}>
             <button
               onClick={() => toggleSection('taxes')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-red-900 hover:text-red-700'}`}
+              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-red-900 dark:text-red-100 hover:text-red-700 dark:hover:text-red-300'}`}
               disabled={isBasicOrTrial}
             >
               <span className="flex items-center gap-2">
                 {isBasicOrTrial && <Lock className="w-4 h-4" />}
                 {expandedSections.taxes ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Taxes
+                Taxes (if applicable)
                 {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
               </span>
             </button>
             {expandedSections.taxes && (
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tax Region</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Region</label>
                   <select
                     value={calculation.tax_region}
                     onChange={(e) => updateCalculation('tax_region', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="">Select Tax Region</option>
                     {TAX_OPTIONS.map(tax => (
@@ -1523,53 +1734,123 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                   </select>
                   {calculation.tax_region && getTaxNotes()}
                 </div>
+
+                {/* VAT, GST, Sales Tax Sliders and Miscellaneous Cost */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* VAT Slider */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">VAT (%)</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">VAT</label>
+                      <input
+                        type="number"
+                        value={calculation.tax_VAT}
+                        min={0}
+                        max={100}
+                        onChange={(e) => {
+                          const val = Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
+                          updateCalculation('tax_VAT', val);
+                        }}
+                        className="w-12 h-6 text-xs rounded-md border border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 p-1 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      />
+                    </div>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
                       value={calculation.tax_VAT}
-                      onChange={(e) => updateCalculation('tax_VAT', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="0.00"
+                      onChange={(e) => updateCalculation('tax_VAT', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-600"
                     />
                   </div>
+
+                  {/* GST Slider */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">GST (%)</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">GST</label>
+                      <input
+                        type="number"
+                        value={calculation.tax_GST}
+                        min={0}
+                        max={100}
+                        onChange={(e) => {
+                          const val = Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
+                          updateCalculation('tax_GST', val);
+                        }}
+                        className="w-12 h-6 text-xs rounded-md border border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 p-1 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      />
+                    </div>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
                       value={calculation.tax_GST}
-                      onChange={(e) => updateCalculation('tax_GST', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="0.00"
+                      onChange={(e) => updateCalculation('tax_GST', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-600"
                     />
                   </div>
+
+                  {/* Sales Tax Slider */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Sales Tax (%)</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sales Tax</label>
+                      <input
+                        type="number"
+                        value={calculation.tax_salesTax}
+                        min={0}
+                        max={100}
+                        onChange={(e) => {
+                          const val = Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
+                          updateCalculation('tax_salesTax', val);
+                        }}
+                        className="w-12 h-6 text-xs rounded-md border border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 p-1 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      />
+                    </div>
                     <input
-                      type="number"
-                      step="0.01"
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={1}
                       value={calculation.tax_salesTax}
-                      onChange={(e) => updateCalculation('tax_salesTax', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="0.00"
+                      onChange={(e) => updateCalculation('tax_salesTax', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-600"
                     />
                   </div>
+
+                  {/* Miscellaneous Cost */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Miscellaneous Cost</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Miscellaneous Cost</label>
                     <input
                       type="number"
                       step="0.01"
-                      value={calculation.tax_miscCost}
+                      value={calculation.tax_miscCost.toFixed(2)}
                       onChange={(e) => updateCalculation('tax_miscCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="0.00"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="$ 0"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Taxes/Unit</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.tax_perUnitCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Taxes</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={calculation.tax_totalCost.toFixed(2)}
+                      disabled
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
                     />
                   </div>
                 </div>
