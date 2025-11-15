@@ -449,6 +449,56 @@ const getProcessedProductData = (
   apiData: TAmazonProduct,
   searchCountry: string
 ) => {
+  // 🔍 Console log to debug the structure
+  console.log('🔍 getProcessedProductData - Input:', {
+    apiData,
+    hasData: !!apiData?.data,
+    data: apiData?.data,
+    hasOffer: !!apiData?.offer,
+    offer: apiData?.offer,
+    searchCountry,
+  });
+
+  // ✅ Handle case where apiData.data is undefined (for saved products)
+  if (!apiData || !apiData.data) {
+    console.error('❌ getProcessedProductData - apiData.data is undefined:', apiData);
+    // Return a default/empty structure
+    return {
+      asin: (apiData as any)?.asin || 'N/A',
+      name: (apiData as any)?.product_title || (apiData as any)?.title || 'N/A',
+      price: 0,
+      originalPrice: 0,
+      image: (apiData as any)?.product_photo || (apiData as any)?.image || '',
+      rating: null,
+      numRatings: 0,
+      availability: 'N/A',
+      currency: '$',
+      isBestSeller: false,
+      isAmazonChoice: false,
+      isPrime: false,
+      salesVolume: 0,
+      productOffers: 0,
+      deliveryPrice: 'N/A',
+      productNumRatings: 0,
+      categoryPath: 'N/A',
+      itemWeight: 'N/A',
+      dimensions: 'N/A',
+      delivery: 'N/A',
+      bestSellerRank: 'N/A',
+      customerReviews: '',
+      IsClimateFriendly: false,
+      sellerName: 'N/A',
+      sellerId: 'N/A',
+      sellerRating: null,
+      sellerNumRatings: null,
+      sellerCountry: 'N/A',
+      sellerDeliveryTime: 'N/A',
+      sellerShipsFrom: 'N/A',
+      sellerLink: 'N/A',
+      productUrl: '',
+    };
+  }
+
   let parsedPrice = parsePrice(apiData.data.product_price, searchCountry);
   const parsedOriginalPrice = parsePrice(
     apiData.data.product_original_price || "$0",

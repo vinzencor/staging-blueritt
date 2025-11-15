@@ -691,6 +691,8 @@ export const discoverSuppliers = async (productData: {
     query: productData.title,  // Backend expects 'query' not 'title'
     asin: productData.asin || 'UNKNOWN',  // ASIN is required by backend
     country: 'US',  // Default country
+    limit: '25',  // ✅ Request exactly 25 suppliers
+    min_rating: '4.3',  // ✅ Lower rating threshold from 4.9 to 4.3 to get more results
   });
 
   console.log('🔍 Amazon Supplier Discovery Request:', `/products/suppliers/discover/?${params.toString()}`);

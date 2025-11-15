@@ -8,30 +8,61 @@ interface AlibabaCardProps {
 
 
 const AlibabaCard: React.FC<AlibabaCardProps> = ({ alibabaProduct }) => {
-  
+
   const mapToSpkbgProps = (product: TAlibabaProduct) => {
-    const mainImage = product.item.images[0];
+    // ✅ Add null checks for nested properties
+    if (!product || !product.item) {
+      return {
+        mode: "alibaba" as const,
+        Title: "No Alibaba data available",
+        Price: 0,
+        Imgsrc: "",
+        Currency: "",
+        Asin: "",
+        itemId: "",
+        companyName: "",
+        Country: "",
+        contactName: "",
+        storeAge: "",
+        storeServiceScore: "N/A",
+        StarRating: "0",
+        BestSeller: false,
+        AmazonChoice: false,
+        SalesVolume: 0,
+        IsPrime: false,
+        storeUrl: "",
+        IsClimateFriendly: false,
+        minOrderQuantity: 0,
+        isGoldMember: false,
+        isVerified: false,
+        TradeAssurance: false,
+        isAssessed: false,
+        buttonCheck: false,
+        productScore: ''
+      } as any;
+    }
+
+    const mainImage = product.item.images?.[0] || "";
     const storeServiceScore =
-      product.item.seller_store.storeEvaluates.find(
+      product.item.seller_store?.storeEvaluates?.find(
         (evaluate) => evaluate.title === "Store Service"
       )?.score || "N/A";
 
-    const productPrice = product.item.sku.def.priceModule.priceList[0].price
-      ? product.item.sku.def.priceModule.priceList[0].price
-      : product.item.sku.def.priceModule.priceList[0].minPrice;
+    const priceList = product.item.sku?.def?.priceModule?.priceList || [];
+    const productPrice = priceList[0]?.price || priceList[0]?.minPrice || 0;
 
     return {
       mode: "alibaba" as const,
-      Title: product.item.title,
+      Title: product.item.title || "No title",
       Price: productPrice,
       Imgsrc: mainImage,
-      Currency: product.item.sku.def.priceModule.currencyCode,
-      Asin: product.item.itemId,
-      itemId: product.item.itemId,
-      companyName: product.item.company.companyName,
+      Currency: product.item.sku?.def?.priceModule?.currencyCode || "",
+      Asin: product.item.itemId || "",
+      itemId: product.item.itemId || "",
+      companyName: product.item.company?.companyName || "",
       Country: product.item.company_details?.companyAddress?.country || "",
-      contactName: product.item.company.companyContact?.name,
-      storeAge: product.item.seller_store.storeAge,
+      contactName: product.item.company?.companyContact?.name || "",
+      storeAge: product.item.seller_store?.storeAge || "",
       storeServiceScore: storeServiceScore,
       StarRating: storeServiceScore,
       BestSeller: false,
@@ -40,7 +71,7 @@ const AlibabaCard: React.FC<AlibabaCardProps> = ({ alibabaProduct }) => {
       IsPrime: false,
       storeUrl: "",
       IsClimateFriendly: false,
-      minOrderQuantity: product.item.sku.def.quantityModule.minOrder.quantityFormatted,
+      minOrderQuantity: product.item.sku?.def?.quantityModule?.minOrder?.quantityFormatted || 0,
       isGoldMember: product.item.company_details?.status?.gold || false,
       isVerified: product.item.company_details?.status?.verified || false,
       TradeAssurance: product.item.company_details?.status?.tradeAssurance || false,

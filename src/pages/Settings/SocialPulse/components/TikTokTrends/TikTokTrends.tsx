@@ -3,7 +3,6 @@ import {
   TrendingUp, Package, Filter, Search, CheckCircle, Loader2, ExternalLink, Heart, MessageCircle, Share2, Play, Zap, Truck, X, AlertCircle, ShoppingCart, Eye,
   MousePointer, Users, Hash,
   DollarSign,
-  CreditCard,
   Star,
   ChevronDown,
   Shield,
@@ -595,31 +594,56 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
     }
 
     // ✅ Fetch TikTok Shop Analysis data (pricing and shop information)
-    if (product.third_ecom_category?.id) {
-      console.log('🛍️ Fetching TikTok Shop Analysis for category:', product.third_ecom_category.id);
-      console.log('📦 Product title for keyword:', product.url_title || product.title);
-      setIsShopAnalysisLoading(true);
-      setShopAnalysisError(null);
+    console.log('🛍️ Starting TikTok Shop Analysis fetch...');
+    console.log('📦 Product data:', product);
+    console.log('📦 third_ecom_category:', product.third_ecom_category);
+    console.log('📦 first_ecom_category:', product.first_ecom_category);
 
-      try {
-        // Use product title as keyword for shop analysis
-        const keyword = product.url_title || product.title || 'trending product';
-        const shopAnalysisResponse = await getTikTokShopAnalysis(product.third_ecom_category.id, keyword);
-        setShopAnalysisData(shopAnalysisResponse);
-        console.log('✅ Shop Analysis data loaded:', shopAnalysisResponse);
-        console.log('💰 Products found:', shopAnalysisResponse.products?.length || 0);
-      } catch (error: any) {
-        console.error('❌ Error fetching Shop Analysis data:', error);
-        setShopAnalysisError(error.message || 'Failed to load shop analysis data');
-        // Set empty data on error
-        setShopAnalysisData(null);
-      } finally {
-        setIsShopAnalysisLoading(false);
+    setIsShopAnalysisLoading(true);
+    setShopAnalysisError(null);
+
+    try {
+      // ✅ Use third_ecom_category?.value as keyword
+      const keyword = product.third_ecom_category?.value || product.name || product.title || 'trending product';
+
+      // ✅ Always use 'US' as region
+      const region = 'US';
+
+      // ✅ Use first_ecom_category?.id as category_id
+      const categoryId = product.first_ecom_category?.id;
+
+      console.log('🔍 Calling getTikTokShopAnalysis with params:', {
+        keyword,
+        region,
+        categoryId
+      });
+
+      const shopAnalysisResponse = await getTikTokShopAnalysis(keyword, region, categoryId);
+
+      setShopAnalysisData(shopAnalysisResponse);
+      console.log('✅ analysisPriceData - Shop Analysis data loaded:', shopAnalysisResponse);
+      console.log('💰 analysisPriceData - Products found:', shopAnalysisResponse.products?.length || 0);
+
+      if (shopAnalysisResponse.products && shopAnalysisResponse.products.length > 0) {
+        const firstProduct = shopAnalysisResponse.products[0];
+        console.log('✅ analysisPriceData - First product from shop analysis:', {
+          title: firstProduct.title,
+          price: firstProduct.price,
+          priceType: typeof firstProduct.price,
+          currency: firstProduct.currency,
+          shop_name: firstProduct.shop_name,
+          fullProduct: firstProduct,
+        });
       }
-    } else {
-      console.log('⚠️ No third_ecom_category.id found for Shop Analysis');
+
+      console.log('📊 analysisPriceData - Full shop analysis response:', JSON.stringify(shopAnalysisResponse, null, 2));
+    } catch (error: any) {
+      console.error('❌ Error fetching Shop Analysis data:', error);
+      setShopAnalysisError(error.message || 'Failed to load shop analysis data');
+      // Set empty data on error
       setShopAnalysisData(null);
-      setShopAnalysisError(null);
+    } finally {
+      setIsShopAnalysisLoading(false);
     }
   };
 
@@ -671,15 +695,34 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       return;
     }
 
-    console.log('🔍 Starting supplier discovery for:', product.url_title || product.title);
+    // ✅ Use Shop Analysis data if available for more accurate supplier matching
+    let productTitle = product.url_title || product.title || 'TikTok Product';
+    let productPrice = product.price || 'N/A';
+
+    // Check if we have Shop Analysis data with products
+    if (shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0) {
+      const firstShopProduct = shopAnalysisData.products[0];
+      console.log('✅ Using Shop Analysis data for supplier discovery:', firstShopProduct);
+
+      // Use Shop Analysis product title and price for better accuracy
+      productTitle = firstShopProduct.title || productTitle;
+      productPrice = firstShopProduct.price ? `$${firstShopProduct.price.toFixed(2)}` : productPrice;
+
+      console.log('📦 Shop Analysis Product Title:', productTitle);
+      console.log('💰 Shop Analysis Product Price:', productPrice);
+    } else {
+      console.log('⚠️ No Shop Analysis data available, using original product data');
+    }
+
+    console.log('🔍 Starting supplier discovery for:', productTitle);
     setIsSupplierDiscoveryLoading(true);
     setActiveModalTab('suppliers');
 
     try {
       const response = await discoverSuppliers({
-        title: product.url_title || product.title || 'TikTok Product',
+        title: productTitle,
         id: product.id || 'tiktok-product',
-        price: product.price || 'N/A',
+        price: productPrice,
         category: product.first_ecom_category?.value || product.third_ecom_category?.value || 'TikTok Product'
       });
 
@@ -1516,34 +1559,52 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
               {activeModalTab === 'overview' && (
                 <div className="p-6">
-                  <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Product Image with Pexels Fallback */}
-                    <div className="space-y-4">
-                      <ProductImageWithFallback product={selectedProduct} className="rounded-xl" />
-
-                      {/* Category */}
-                      {selectedProduct.first_ecom_category && (
-                        <div className="text-center">
-                          <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-4 py-2 rounded-full text-sm font-medium">
-                            {selectedProduct.first_ecom_category.value}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Product Information */}
-                    <div className="space-y-6">
-                      {/* Title */}
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                          {selectedProduct.url_title || 'Trending Product'}
+                  {/* Show loading state during AI analysis */}
+                  {isShopAnalysisLoading && (
+                    <div className="flex items-center justify-center min-h-[400px]">
+                      <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin text-purple-600 dark:text-purple-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                          Analyzing Product...
                         </h3>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm">
+                          Please wait while we fetch pricing and product data
+                        </p>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Show content only after AI analysis completes */}
+                  {!isShopAnalysisLoading && (shopAnalysisData || shopAnalysisError) && (
+                    <>
+                      <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Product Image with Pexels Fallback */}
+                        <div className="space-y-4">
+                          <ProductImageWithFallback product={selectedProduct} className="rounded-xl" />
+
+                          {/* Category */}
+                          {selectedProduct.first_ecom_category && (
+                            <div className="text-center">
+                              <span className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 text-pink-800 dark:text-pink-300 px-4 py-2 rounded-full text-sm font-medium">
+                                {selectedProduct.first_ecom_category.value}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Product Information */}
+                        <div className="space-y-6">
+                          {/* Title */}
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                              {selectedProduct.url_title || 'Trending Product'}
+                            </h3>
+                          </div>
 
                       {/* Price Information from Shop Analysis - Show only first matching product */}
                       {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border-2 border-green-500 dark:border-green-600 shadow-lg">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border-2">
                           <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
                             TikTok Shop Price
@@ -1552,60 +1613,12 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                             const firstProduct = shopAnalysisData.products[0];
                             return (
                               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
-                                <div className="mb-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 h-40 flex items-center justify-center">
-                                  <img
-                                    src={firstProduct.image_url || `https://picsum.photos/400/400?random=${Date.now()}`}
-                                    alt={firstProduct.title}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      if (!target.src.includes('picsum')) {
-                                        target.src = `https://picsum.photos/400/400?random=${Date.now()}`;
-                                      }
-                                    }}
-                                  />
-                                </div>
+                                
                                 <div className="text-center">
                                   {/* Clickable Price - Opens Calculator */}
                                   <button
                                     onClick={() => {
-                                      // Create a mock supplier object from shop product data
-                                      const mockSupplier: SupplierInfo & { isTikTokShopProduct?: boolean; tiktokShopPrice?: number } = {
-                                        id: firstProduct.id,
-                                        name: firstProduct.shop_name || 'TikTok Shop',
-                                        supplier_name: firstProduct.shop_name || 'TikTok Shop',
-                                        location: firstProduct.shipping_info.ship_from || 'Unknown',
-                                        verification_status: 'verified',
-                                        verification_badge: 'Gold',
-                                        years_in_business: 5,
-                                        main_products: firstProduct.title,
-                                        certifications: [],
-                                        contact_method: 'TikTok Shop',
-                                        ai_match_score: 85,
-                                        match_explanation: 'High-quality TikTok Shop product with good sales data',
-                                        moq: 1,
-                                        lead_time: '7-15 days',
-                                        estimated_price: `$${firstProduct.price.toFixed(2)}`,
-                                        contact_url: '',
-                                        response_rate: '95%',
-                                        trade_assurance: firstProduct.shipping_info.free_shipping,
-                                        isTikTokShopProduct: true,
-                                        tiktokShopPrice: firstProduct.price
-                                      };
-
-                                      // Create a mock product object with TikTok Shop data
-                                      const mockProduct = {
-                                        ...selectedProduct,
-                                        price: firstProduct.price,
-                                        title: firstProduct.title,
-                                        image_url: firstProduct.image_url,
-                                        sales_count: firstProduct.sales_count,
-                                        isTikTokShopProduct: true
-                                      };
-
-                                      setSelectedProduct(mockProduct);
-                                      setSelectedSupplier(mockSupplier);
-                                      setShowProfitCalculator(true);
+                                      // TODO: Add new implementation here
                                     }}
                                     className="group cursor-pointer inline-block w-full"
                                   >
@@ -1617,9 +1630,9 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                     </div>
                                   </button>
 
-                                  <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3 mt-3">
+                                  {/* <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3 mt-3">
                                     Currency: {firstProduct.currency}
-                                  </div>
+                                  </div> */}
                                   <div className="text-sm text-gray-700 dark:text-gray-200 mb-4 line-clamp-2 font-medium">
                                     {firstProduct.title}
                                   </div>
@@ -1650,13 +1663,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                                         </div>
                                       </div>
                                     )}
-                                    {firstProduct.shipping_info.free_shipping && (
-                                      <div className="bg-purple-100 dark:bg-purple-900/50 rounded-lg p-3 col-span-2 border border-purple-200 dark:border-purple-700">
-                                        <div className="text-sm text-purple-700 dark:text-purple-300 font-bold">
-                                          ✓ Free Shipping Available
-                                        </div>
-                                      </div>
-                                    )}
+                                    
                                   </div>
 
                                   {/* View All Products Link */}
@@ -1762,7 +1769,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
                       {/* Additional Metrics */}
                       <div className="space-y-4">
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Additional Metrics</h4>
+                        {/* Only show heading after AI analysis completes */}
+                        {!isShopAnalysisLoading && (shopAnalysisData || shopAnalysisError) && (
+                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Additional Metrics</h4>
+                        )}
                         <div className="grid grid-cols-2 gap-4">
                           {selectedProduct.impression && (
                             <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700 text-center">
@@ -1808,14 +1818,15 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                               </span>
                             </div>
                           )}
-                          {selectedProduct.cost && (
-                            <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 rounded-lg p-4 text-center border border-orange-200 dark:border-orange-700">
-                              <div className="flex items-center justify-center gap-2 text-orange-600 dark:text-orange-400 mb-2">
-                                <CreditCard className="w-5 h-5" />
-                                <span className="font-medium">Total Ad Spend</span>
+                          {/* ✅ Show Shop Analysis Price instead of cost */}
+                          {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
+                            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
+                              <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
+                                <DollarSign className="w-5 h-5" />
+                                <span className="font-medium">TikTok Shop Price</span>
                               </div>
                               <span className="font-semibold text-gray-900 dark:text-white">
-                                {selectedProduct.cost}
+                                ${shopAnalysisData.products[0].price.toFixed(2)}
                               </span>
                             </div>
                           )}
@@ -1846,7 +1857,10 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       {/* Creative Center Data - Age Demographics and Hashtags */}
                       {!isCreativeCenterLoading && (
                         <div className="space-y-6">
-                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Audience Insights</h4>
+                          {/* Only show heading after AI analysis completes */}
+                          {!isShopAnalysisLoading && (shopAnalysisData || shopAnalysisError) && (
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Audience Insights</h4>
+                          )}
 
                           {/* Debug Info - Enable to troubleshoot */}
                           {/* <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded max-h-40 overflow-y-auto">
@@ -1945,20 +1959,24 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       </div>
                     </div>
                   </div>
+                    </>
+                  )}
                 </div>
               )}
 
               {activeModalTab === 'suppliers' && (
-                
+
                 <div className="p-6">
- <div className=" flex justify-between">
-            <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm md:text-lg lg:text-xl xl:text-2xl" >Your Selected Product</h4>
-            {activeModalTab === 'suppliers' && (
-              <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm sm:flex-wrap sm:ml-[70px] md:ml-[156px] md:text-lg lg:text-xl xl:text-2xl">
-                Recommended Alibaba Suppliers for Your Product & AI Match Scores
-              </h4>
-            )}
-          </div>
+                  <div className=" flex justify-between">
+                    {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
+                      <h4 className=" font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4>
+                    )}
+                    {activeModalTab === 'suppliers' && suppliers && suppliers.length > 0 && (
+                      <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm sm:flex-wrap sm:ml-[70px] md:ml-[217px] md:text-lg lg:text-xl xl:text-2xl">
+                        Recommended Alibaba Suppliers for Your Product & AI Match Scores
+                      </h4>
+                    )}
+                  </div>
                   <SuppliersTab
                     suppliers={suppliers}
                     isLoading={isSupplierDiscoveryLoading}
@@ -2030,17 +2048,28 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
       )}
 
       {/* Profit Calculator Modal */}
-      {showProfitCalculator && selectedProduct && selectedSupplier && (
-        <TikTokProfitCalculatorModal
-          product={selectedProduct}
-          supplier={selectedSupplier}
-          isOpen={showProfitCalculator}
-          onClose={() => {
-            setShowProfitCalculator(false);
-            setSelectedSupplier(null);
-          }}
-        />
-      )}
+      {showProfitCalculator && selectedProduct && selectedSupplier && (() => {
+        console.log('💰 analysisPriceData - Passing shop analysis to Profit Calculator:', {
+          hasShopAnalysisData: !!shopAnalysisData,
+          hasProducts: !!shopAnalysisData?.products,
+          productsCount: shopAnalysisData?.products?.length || 0,
+          firstProductPrice: shopAnalysisData?.products?.[0]?.price,
+          firstProductTitle: shopAnalysisData?.products?.[0]?.title,
+          shopAnalysisData: shopAnalysisData,
+        });
+        return (
+          <TikTokProfitCalculatorModal
+            product={selectedProduct}
+            supplier={selectedSupplier}
+            shopAnalysisData={shopAnalysisData}
+            isOpen={showProfitCalculator}
+            onClose={() => {
+              setShowProfitCalculator(false);
+              setSelectedSupplier(null);
+            }}
+          />
+        );
+      })()}
 
       {/* Add-ons Choice Modal */}
       <AddOnsChoiceModal

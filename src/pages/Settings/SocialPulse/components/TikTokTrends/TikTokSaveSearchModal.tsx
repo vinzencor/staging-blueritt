@@ -11,6 +11,7 @@ interface TikTokSaveSearchModalProps {
   product: TikTokTrendingProduct;
   isOpen: boolean;
   onClose: () => void;
+  shopAnalysisPrice?: number; // ✅ Add Shop Analysis price prop
 }
 
 interface Category {
@@ -24,6 +25,7 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
   product,
   isOpen,
   onClose,
+  shopAnalysisPrice, // ✅ Receive Shop Analysis price
 }) => {
   const [productName, setProductName] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -127,15 +129,17 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
 
     setIsSaving(true);
 
-    // Transform TikTok product data to match backend expectations (same structure as Amazon)
-    // Price is already a string from the API
-    const formattedPrice = product.price || '$0.00';
-    const numericPrice = parseFloat(product.price?.replace(/[^0-9.]/g, '') || '0');
+    // ✅ Use Shop Analysis price if available, otherwise use product price
+    const priceToUse = shopAnalysisPrice !== undefined ? shopAnalysisPrice : parseFloat(product.price?.replace(/[^0-9.]/g, '') || '0');
+    const formattedPrice = `$${priceToUse.toFixed(2)}`;
+    const numericPrice = priceToUse;
 
     console.log('🔥 TikTok Save Product Debug:', {
       productId: product.id,
       productTitle: product.title,
       rawPrice: product.price,
+      shopAnalysisPrice: shopAnalysisPrice,
+      priceToUse: priceToUse,
       formattedPrice,
       numericPrice,
       imageUrl: product.image_url || product.cover_url,
@@ -150,6 +154,36 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
       description: `TikTok Trends Product - ID: ${product.id}`,
       category: selectedCategory,
       amazon_product: {
+        // ✅ TikTok Creative Center fields at root level (not nested in data)
+        source: 'tiktok_trends',
+        saved_at: new Date().toISOString(),
+        comment: (product as any).comment || 0,
+        cost: (product as any).cost || 0,
+        cover_url: (product as any).cover_url || product.image_url || product.cover_url || '',
+        cpa: (product as any).cpa || 0,
+        ctr: (product as any).ctr || 0,
+        cvr: (product as any).cvr || 0,
+        impression: (product as any).impression || 0,
+        like: (product as any).like || 0,
+        play_six_rate: (product as any).play_six_rate || 0,
+        post: (product as any).post || 0,
+        post_change: (product as any).post_change || 0,
+        share: (product as any).share || 0,
+        url_title: (product as any).url_title || '',
+        ecom_type: (product as any).ecom_type || '',
+        first_ecom_category: (product as any).first_ecom_category || null,
+        second_ecom_category: (product as any).second_ecom_category || null,
+        third_ecom_category: (product as any).third_ecom_category || null,
+        comments_count: (product as any).comments_count || (product as any).comment || 0,
+        post_count: (product as any).post_count || (product as any).post || 0,
+        gmv: (product as any).gmv || 0,
+        // Additional TikTok fields
+        likes_count: product.likes_count || 0,
+        shares_count: product.shares_count || 0,
+        views_count: product.views_count || 0,
+        sales_count: product.sales_count || 0,
+        trending_score: product.trending_score || 0,
+        // Keep data nested for compatibility
         data: {
           asin: product.id || 'tiktok_product',
           product_title: product.title,
@@ -167,12 +201,6 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
           climate_pledge_friendly: false,
           country: product.country || 'US',
           currency: 'USD',
-          // TikTok specific fields
-          likes_count: product.likes_count || 0,
-          shares_count: product.shares_count || 0,
-          views_count: product.views_count || 0,
-          sales_count: product.sales_count || 0,
-          trending_score: product.trending_score || 0,
           seller_name: product.seller_name || 'TikTok Shop',
           seller_country: product.country || 'US',
           seller_rating: product.rating || 0,
@@ -196,8 +224,6 @@ const TikTokSaveSearchModal: React.FC<TikTokSaveSearchModalProps> = ({
           product_condition: 'New',
           currency: 'USD'
         },
-        source: 'tiktok_trends',
-        saved_at: new Date().toISOString(),
       },
       // Default values for required fields
       selling_price: numericPrice,

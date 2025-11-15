@@ -1,95 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { X, Calculator, Save, ChevronDown, ChevronUp, Lock } from 'lucide-react';
-import { toast } from 'react-toastify';
-import { saveProducts, getCategory, createCategory } from '@/api/savedProducts';
-import { type AmazonProduct, type SupplierInfo } from '@/api/amazonExplorer';
-import { useUserSubscriptionAndSearchQuota } from '@/hooks/useUserDetails';
-import { useNavigate } from 'react-router-dom';
+import * as Yup from "yup";
+import { useFormik } from "formik";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import Pageheader from "@/components/common/page-header/pageheader";
+import SearchesAlert from "@/@spk/uielements/SearchesAlert";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+import Icon from "@/assets/images/brand-logos/icon.png";
+import Stepper from "@/components/common/Stepper";
+import { getAmazonProductDetail } from "@/api/product";
+import {
+  getProfitProCalculations,
+  saveProducts,
+  updateProducts,
+  getCategory,
+  createCategory,
+} from "@/api/savedProducts";
+import Input from "@/components/common/input/Input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/common/select/Select";
+import Button from "@/components/common/button/Button";
+import { Package, Truck, Star, Shield } from "lucide-react";
+import { COUNTRY_OPTIONS } from "@/utils/constants";
+import type { TAlibabaProduct, TAmazonProduct } from "@/types/product";
+import type { SupplierInfo } from "@/api/amazonExplorer";
+import { useUserSubscriptionAndSearchQuota } from "@/hooks/useUserDetails";
+import { EAccessTypes, QuotaNames } from "@/enum";
+import FormInput from "@/pages/ProfitPro/components/FormInput";
+import SliderInput from "@/pages/ProfitPro/components/SliderInput";
+import AlibabaCard from "@/pages/ProfitPro/components/AlibabaCard";
+import AmazonCard from "@/pages/ProfitPro/components/AmazonCard";
+import RevenueCalculationCard from "@/pages/ProfitPro/components/RevenueCalculationCard";
 
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  image?: string;
-}
+import "reactjs-popup/dist/index.css";
 
-interface AmazonProfitCalculatorModalProps {
-  product: AmazonProduct;
-  supplier: SupplierInfo;
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { useSelector } from "react-redux";
+import { AxiosError } from "axios";
 
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-  image?: string;
-}
-
-interface EnhancedProfitCalculation {
-  pi_sellingPrice: number;
-  pi_totalRevenue: number;
-  pi_quantity: number;
-  psc_manufacturingCost: number;
-  psc_shippingCost: number;
-  psc_productLogoCost: number;
-  psc_miscCost: number;
-  psc_orderQuantity: number;
-  psc_perUnitCost: number;
-  psc_totalCost: number;
-  fm_model: string;
-  fm_referrfalFees: number;
-  fm_fbaFulfillmentFees: number;
-  fm_monthlyStorageFees: number;
-  fm_longTermStorageFees: number;
-  fm_inboundShippingCost: number;
-  fm_returnsRate: number;
-  fm_shippingFees: number;
-  fm_handlingCost: number;
-  fm_storageCost: number;
-  fm_miscCost: number;
-  fm_perUnitCost: number;
-  fm_totalCost: number;
-  marc_marketingCost: number;
-  marc_attributionCost: number;
-  marc_influencerCost: number;
-  marc_miscCost: number;
-  marc_marketingVATCost: number;
-  marc_totalCost: number;
-  marc_perUnitCost: number;
-  tax_region: string;
-  tax_VAT: number;
-  tax_GST: number;
-  tax_salesTax: number;
-  tax_miscCost: number;
-  tax_perUnitCost: number;
-  tax_totalCost: number;
-  gc_imagingAndPhotographyCost: number;
-  gc_videographyCost: number;
-  gc_productPackingCost: number;
-  gc_3dAnimationCost: number;
-  gc_miscCost: number;
-  gc_totalCost: number;
-  gc_perUnitCost: number;
-  pfc_vineProgramCost: number;
-  pfc_miscCost: number;
-  pfc_totalCost: number;
-  pfc_perUnitCost: number;
-  oc_competitorProductSamples: number;
-  oc_preLaunchSamples: number;
-  oc_employeesCost: number;
-  oc_anyOtherCost: number;
-  oc_totalCost: number;
-  oc_perUnitCost: number;
-  grossProfit: number;
-  grossProfitMargin: number;
-  netProfitBeforeTaxes: number;
-  netProfitBeforeTaxesMargin: number;
-  netProfitAfterTaxes: number;
-  netProfitAfterTaxesMargin: number;
-}
 
 const TAX_OPTIONS = [
   {
@@ -99,7 +53,9 @@ const TAX_OPTIONS = [
     gst: 10,
     salesTax: 0,
     misc: 0,
-    salesTaxNote: "Sales Tax is variable by state (e.g., California, New York).",
+
+    salesTaxNote:
+      "Sales Tax is variable by state (e.g., California, New York).",
   },
   {
     country: "Canada",
@@ -108,7 +64,8 @@ const TAX_OPTIONS = [
     gst: 5,
     salesTax: 13,
     misc: 0,
-    gstNote: "GST is variable by province (e.g., GST 5% or HST in certain regions like Ontario: 13%).",
+    gstNote:
+      "GST is variable by province (e.g., GST 5% or HST in certain regions like Ontario: 13%).",
   },
   {
     country: "Mexico",
@@ -126,7 +83,8 @@ const TAX_OPTIONS = [
     gst: 5,
     salesTax: 0,
     misc: 3,
-    vatNote: "Brazil has complex tax structures including ICMS, IPI, PIS, and COFINS depending on the state.",
+    vatNote:
+      "Brazil has complex tax structures including ICMS, IPI, PIS, and COFINS depending on the state.",
   },
   {
     country: "United Kingdom",
@@ -189,11 +147,12 @@ const TAX_OPTIONS = [
     gst: 18,
     salesTax: 0,
     misc: 0,
-    gstNote: "GST rates vary from 5% to 28%, depending on the product category.",
+    gstNote:
+      "GST rates vary from 5% to 28%, depending on the product category.",
   },
   {
     country: "France",
-    code: "FR",
+    code: "",
     vat: 20,
     gst: 0,
     salesTax: 0,
@@ -202,7 +161,7 @@ const TAX_OPTIONS = [
   },
   {
     country: "Italy",
-    code: "IT",
+    code: "",
     vat: 22,
     gst: 0,
     salesTax: 0,
@@ -211,7 +170,7 @@ const TAX_OPTIONS = [
   },
   {
     country: "Spain",
-    code: "ES",
+    code: "",
     vat: 21,
     gst: 0,
     salesTax: 0,
@@ -220,7 +179,7 @@ const TAX_OPTIONS = [
   },
   {
     country: "Netherlands",
-    code: "NL",
+    code: "",
     vat: 21,
     gst: 0,
     salesTax: 0,
@@ -229,7 +188,7 @@ const TAX_OPTIONS = [
   },
   {
     country: "Saudi Arabia",
-    code: "SA",
+    code: "",
     vat: 15,
     gst: 0,
     salesTax: 0,
@@ -238,7 +197,7 @@ const TAX_OPTIONS = [
   },
   {
     country: "Japan",
-    code: "JP",
+    code: "",
     vat: 0,
     gst: 0,
     salesTax: 10,
@@ -247,7 +206,7 @@ const TAX_OPTIONS = [
   },
   {
     country: "Singapore",
-    code: "SG",
+    code: "",
     vat: 0,
     gst: 8,
     salesTax: 0,
@@ -256,166 +215,525 @@ const TAX_OPTIONS = [
   },
   {
     country: "Australia",
-    code: "AU",
+    code: "",
     vat: 0,
     gst: 10,
     salesTax: 0,
     misc: 0,
     gstNote: "Standard GST of 10%.",
   },
+  { country: "", code: "", vat: 0, gst: 0, salesTax: 0, misc: 0 },
 ];
+
+const validationSchema = Yup.object({
+  pi_sellingPrice: Yup.number()
+    .label("Selling Price")
+    .required("Selling Price  is required.")
+    .typeError(
+      "Selling Price must be a valid number. Please enter a numeric value."
+    ),
+  pi_quantity: Yup.number()
+    .required("Units Sold (Product Revenue) is required.")
+    .typeError(
+      "Units Sold must be a valid number. Please enter a numeric value."
+    ),
+  pi_totalRevenue: Yup.number()
+    .label("Total Revenue")
+    .required("Total Revenue (Product Revenue) field is required.")
+    .typeError(
+      "Total Revenue must be a valid number. Please enter a numeric value."
+    ),
+
+  psc_manufacturingCost: Yup.number()
+    .label("Product Manufacturing")
+    .required("Product Manufacturing is required.")
+    .typeError(
+      "Product Manufacturing must be a valid number. Please enter a numeric value."
+    ),
+  psc_shippingCost: Yup.number()
+    .label("Shipping Cost")
+    .required("Shipping Cost is required.")
+    .typeError(
+      "Shipping Cost must be a valid number. Please enter a numeric value."
+    ),
+  psc_productLogoCost: Yup.number()
+    .label("Product Logo Cost")
+    .optional()
+    .typeError(
+      "Product Logo Cost must be a valid number. Please enter a numeric value."
+    ),
+  psc_orderQuantity: Yup.number()
+    .label("Order Quantity")
+    .required("Order Quantity is required.")
+    .typeError(
+      "Order Quantity must be a valid number. Please enter a numeric value."
+    ),
+  psc_miscCost: Yup.number()
+    .label("Other Sourcing Costs")
+    .optional()
+    .typeError(
+      "Other Sourcing Costs must be a valid number. Please enter a numeric value."
+    ),
+  psc_perUnitCost: Yup.number()
+    .label("Cost Per Unit")
+    .required("Cost Per Unit (Product Sourcing Cost) is required.")
+    .typeError(
+      "Cost Per Unit must be a valid number. Please enter a numeric value."
+    ),
+  psc_totalCost: Yup.number()
+    .label("Total Cost")
+    .required("Total Cost (Product Sourcing Cost) is required.")
+    .typeError(
+      "Total Cost must be a valid number. Please enter a numeric value."
+    ),
+
+  fm_model: Yup.string()
+    .required("Fulfillment Model is required.")
+    .default("FBA"),
+  fm_referrfalFees: Yup.number()
+    .label("Amazon Fees")
+    .required("Amazon Fees (Fulfillment Model) is required.")
+    .typeError(
+      "Amazon Fees must be a valid number. Please enter a numeric value."
+    ),
+  fm_fbaFulfillmentFees: Yup.number()
+    .label("Fulfillment Cost")
+    .required("Fulfillment Cost is required.")
+    .typeError(
+      "Fulfillment Cost must be a valid number. Please enter a numeric value."
+    ),
+  fm_monthlyStorageFees: Yup.number()
+    .label("Storage Cost")
+    .required("Storage Cost is required.")
+    .typeError("Storage Cost is required."),
+  fm_longTermStorageFees: Yup.number()
+    .label("Inbounding Cost")
+    .optional()
+    .typeError(
+      "Inbounding Cost must be a valid number. Please enter a numeric value."
+    ),
+  fm_inboundShippingCost: Yup.number()
+    .label("Other FBA Costs")
+    .optional()
+    .typeError(
+      "Other FBA Costs must be a valid number. Please enter a numeric value."
+    ),
+  fm_returnsRate: Yup.number()
+    .label("Returns Rate")
+    .required("Returns Rate is required.")
+    .typeError(
+      "Returns Rate must be a valid number. Please enter a numeric value."
+    ),
+  fm_shippingFees: Yup.number()
+    .label("Shipping Delivery Charges")
+    .optional()
+    .typeError(
+      "Shipping Delivery Charges must be a valid number. Please enter a numeric value."
+    ),
+  fm_handlingCost: Yup.number()
+    .label("Fulfillment Cost")
+    .optional()
+    .typeError(
+      "Fulfillment Cost must be a valid number. Please enter a numeric value."
+    ),
+  fm_storageCost: Yup.number()
+    .label("Storage Cost")
+    .optional()
+    .typeError(
+      "Storage Cost must be a valid number. Please enter a numeric value."
+    ),
+  fm_miscCost: Yup.number()
+    .label("Other FBM Cost")
+    .optional()
+    .typeError(
+      "Other FBM Cost must be a valid number. Please enter a numeric value."
+    ),
+  fm_totalCost: Yup.number()
+    .label("Total Cost")
+    .required("Total Cost (Fulfillment Model) is required.")
+    .typeError(
+      "Total Cost must be a valid number. Please enter a numeric value."
+    ),
+  fm_perUnitCost: Yup.number()
+    .label("Cost Per Unit")
+    .required("Cost Per Unit (Fulfillment Model) is required.")
+    .typeError(
+      "Total Cost must be a valid number. Please enter a numeric value."
+    ),
+
+  marc_marketingCost: Yup.string().required("Marketing Cost is required."),
+  marc_attributionCost: Yup.number()
+    .label("Attribution Links")
+    .optional()
+    .typeError(
+      "Attribution Links must be a valid number. Please enter a numeric value."
+    ),
+  marc_influencerCost: Yup.number()
+    .label("Prmotion/Other Costs")
+    .optional()
+    .typeError(
+      "Prmotion/Other Costs must be a valid number. Please enter a numeric value."
+    ),
+  marc_miscCost: Yup.number()
+    .label("PPC VAT(if Applicable)")
+    .optional()
+    .typeError(
+      "PPC VAT(if Applicable) must be a valid number. Please enter a numeric value."
+    ),
+  marc_marketingVATCost: Yup.number()
+    .label("Marketing VAT Cost")
+    .optional()
+    .typeError(
+      "Marketing VAT Cost must be a valid number. Please enter a numeric value."
+    ),
+  marc_totalCost: Yup.number()
+    .label("Total Cost")
+    .optional()
+    .typeError(
+      "Total Cost must be a valid number. Please enter a numeric value."
+    ),
+  marc_perUnitCost: Yup.number()
+    .label("Per Unit Cost")
+    .optional()
+    .typeError(
+      "Per Unit Cost must be a valid number. Please enter a numeric value."
+    ),
+
+  tax_region: Yup.string().optional(),
+  tax_VAT: Yup.number()
+    .label("VAT")
+    .optional()
+    .typeError("VAT must be a valid number. Please enter a numeric value."),
+  tax_GST: Yup.number()
+    .label("GST")
+    .optional()
+    .typeError("GST must be a valid number. Please enter a numeric value."),
+  tax_salesTax: Yup.number()
+    .label("Sales Tax")
+    .optional()
+    .typeError(
+      "Sales Tax must be a valid number. Please enter a numeric value."
+    ),
+  tax_miscCost: Yup.number()
+    .label("Miscellaneous Cost")
+    .optional()
+    .typeError(
+      "Miscellaneous Cost must be a valid number. Please enter a numeric value."
+    ),
+  tax_perUnitCost: Yup.number().optional(),
+  tax_totalCost: Yup.number().optional(),
+
+  gc_imagingAndPhotographyCost: Yup.number().required(
+    "Imaging and Photography Cost is required."
+  ),
+  gc_videographyCost: Yup.number().optional(),
+  gc_productPackingCost: Yup.number().optional(),
+  gc_3dAnimationCost: Yup.number().optional(),
+  gc_miscCost: Yup.number().optional(),
+  gc_totalCost: Yup.number().optional(),
+  gc_perUnitCost: Yup.number().optional(),
+
+  pfc_vineProgramCost: Yup.number().optional(),
+  pfc_miscCost: Yup.number().optional(),
+  pfc_totalCost: Yup.number().optional(),
+  pfc_perUnitCost: Yup.number().optional(),
+
+  oc_competitorProductSamples: Yup.number().optional(),
+  oc_preLaunchSamples: Yup.number()
+    .label("Pre-Launch Samples")
+    .optional()
+    .typeError(
+      "Pre-Launch Samples must be a valid number. Please enter a numeric value."
+    ),
+  oc_employeesCost: Yup.number().optional(),
+  oc_anyOtherCost: Yup.number().optional(),
+  oc_totalCost: Yup.number().optional(),
+  oc_perUnitCost: Yup.number().optional(),
+});
+
+
+
+type AmazonProfitCalculatorModalProps = {
+  product?: TAmazonProduct | any;
+  supplier?: TAlibabaProduct | SupplierInfo | any;
+  isOpen: boolean;
+  onClose: () => void;
+};
 
 const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = ({
   product,
   supplier,
   isOpen,
-  onClose,
+  onClose
 }) => {
   const navigate = useNavigate();
-  const { quotaDetails } = useUserSubscriptionAndSearchQuota();
+  const scannerSelectedSupplier = useSelector(
+    (state: any) => state.scannerSelectedSupplier
+  );
+  const scannerActiveComponent = useSelector(
+    (state: any) => state.scannerActiveComponent
+  );
+  const profitProSource = useSelector((state: any) => state.profitProSource);
+  const dispatch = useDispatch();
+  const [alibabaProductFromState, setAlibabaProductFromState] =
+    useState<TAlibabaProduct | null>(null);
+  const [amazonProductFromState, setAmazonProductFromState] =
+    useState<TAmazonProduct | null>(null);
+  const [visualSearchImageURL, setVisualSearchImageURL] = useState<
+    string | null
+  >(null);
+  // Popup state
+  const [showAIScore, setShowAIScore] = useState(false);
 
-  // ✅ Check if user has access to Net Profit features (Advance & Premium only)
-  const userPlan = quotaDetails?.packageName?.toLowerCase() || 'trial';
-  const hasNetProfitAccess = userPlan === 'advance' || userPlan === 'premium';
-  const isBasicOrTrial = userPlan === 'basic' || userPlan === 'trial';
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isSecondPopupOpen, setIsSecondPopupOpen] = useState(false);
+  const [isPopupLoading, setIsPopupLoading] = useState(false);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [newCategory, setNewCategory] = useState("");
 
-  const [calculation, setCalculation] = useState<EnhancedProfitCalculation>({
-    pi_sellingPrice: 0,
-    pi_totalRevenue: 0,
-    pi_quantity: 100,
-    psc_manufacturingCost: 0,
-    psc_shippingCost: 0,
-    psc_productLogoCost: 0,
-    psc_miscCost: 0,
-    psc_orderQuantity: 100,
-    psc_perUnitCost: 0,
-    psc_totalCost: 0,
-    fm_model: 'FBA',
-    fm_referrfalFees: 0,
-    fm_fbaFulfillmentFees: 0,
-    fm_monthlyStorageFees: 0,
-    fm_longTermStorageFees: 0,
-    fm_inboundShippingCost: 0,
-    fm_returnsRate: 5,
-    fm_shippingFees: 0,
-    fm_handlingCost: 0,
-    fm_storageCost: 0,
-    fm_miscCost: 0,
-    fm_perUnitCost: 0,
-    fm_totalCost: 0,
-    marc_marketingCost: 0,
-    marc_attributionCost: 0,
-    marc_influencerCost: 0,
-    marc_miscCost: 0,
-    marc_marketingVATCost: 0,
-    marc_totalCost: 0,
-    marc_perUnitCost: 0,
-    tax_region: 'US',
-    tax_VAT: 0,
-    tax_GST: 10,
-    tax_salesTax: 0,
-    tax_miscCost: 0,
-    tax_perUnitCost: 0,
-    tax_totalCost: 0,
-    gc_imagingAndPhotographyCost: 0,
-    gc_videographyCost: 0,
-    gc_productPackingCost: 0,
-    gc_3dAnimationCost: 0,
-    gc_miscCost: 0,
-    gc_totalCost: 0,
-    gc_perUnitCost: 0,
-    pfc_vineProgramCost: 0,
-    pfc_miscCost: 0,
-    pfc_totalCost: 0,
-    pfc_perUnitCost: 0,
-    oc_competitorProductSamples: 0,
-    oc_preLaunchSamples: 0,
-    oc_employeesCost: 0,
-    oc_anyOtherCost: 0,
-    oc_totalCost: 0,
-    oc_perUnitCost: 0,
-    grossProfit: 0,
-    grossProfitMargin: 0,
-    netProfitBeforeTaxes: 0,
-    netProfitBeforeTaxesMargin: 0,
-    netProfitAfterTaxes: 0,
-    netProfitAfterTaxesMargin: 0,
+  const [saveDescription, setSaveDescription] = useState("");
+  const [isComingFromMatcher, setIsComingFromMatcher] = useState(true);
+
+  // If the user is coming after saving the listing.
+  const { saveID } = useParams();
+  // Search for Amazon Product if user is not coming from matcher
+  const [searchString, setSearchString] = useState("");
+  const [country, setCountry] = useState(COUNTRY_OPTIONS[0].value);
+
+  // Amazon Product to be used in this page
+  const [amazonProduct, setAmazonProduct] = useState<TAmazonProduct | null>(
+    amazonProductFromState
+  );
+  const [alibabaProduct, setAlibabaProduct] = useState<TAlibabaProduct | null>(
+    alibabaProductFromState
+  );
+
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+
+  //getCategory
+  const { data, refetch } = useQuery({
+    queryKey: ["getCategories"],
+    queryFn: getCategory,
   });
 
-  const [expandedSections, setExpandedSections] = useState({
-    product: true,
-    sourcing: true,
-    fulfillment: true,
-    marketing: false,
-    taxes: false,
-    graphics: false,
-    feedback: false,
-    other: false,
-  });
-
-  const [quantityError, setQuantityError] = useState<string>('');
-
-  const [saveDescription, setSaveDescription] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [saveTitle, setSaveTitle] = useState('');
-  const [showSaveSection, setShowSaveSection] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-
-  // Initialize calculation with product data
   useEffect(() => {
-    if (isOpen && product && supplier) {
-      const productPrice = parseFloat(product.product_price?.replace(/[^0-9.]/g, '') || '0');
-      const supplierPrice = parseFloat(supplier.estimated_price?.replace(/[^0-9.]/g, '') || '0');
-      const quantity = 100;
-      const shippingCost = 2.5;
+    if (!newCategory) {
+      refetch(); // Refetch when newCategory is reset (meaning a new category was added)
+    }
+  }, [newCategory, refetch]);
 
-      // Calculate initial values
-      const totalRevenue = productPrice * quantity;
-      const perUnitCost = supplierPrice + shippingCost;
-      const totalSourcingCost = perUnitCost * quantity;
+  //createCategory
 
-      // Estimate Amazon fees (15% referral fee + $3 FBA fee)
-      const referralFee = productPrice * 0.15;
-      const fbaFee = 3.0;
-      const storageFee = 0.75;
-      const totalFulfillmentPerUnit = referralFee + fbaFee + storageFee;
-      const totalFulfillmentCost = totalFulfillmentPerUnit * quantity;
+  useEffect(() => {
+    if (data) {
+      setCategories(data.data);
+    }
+  }, [data]);
 
-      // Calculate profits
-      const grossProfit = totalRevenue - totalSourcingCost;
-      const grossProfitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
-      const netProfitBeforeTaxes = totalRevenue - totalSourcingCost - totalFulfillmentCost;
-      const netProfitBeforeTaxesMargin = totalRevenue > 0 ? (netProfitBeforeTaxes / totalRevenue) * 100 : 0;
-      const netProfitAfterTaxes = netProfitBeforeTaxes; // No tax costs initially
-      const netProfitAfterTaxesMargin = totalRevenue > 0 ? (netProfitAfterTaxes / totalRevenue) * 100 : 0;
+  // Data for the final profit cards
+  const [profitAndRev, setProfitAndRev] = useState({
+    revPerUnt: 0,
+    totalRev: 0,
 
-      setCalculation({
-        pi_sellingPrice: productPrice,
-        pi_totalRevenue: totalRevenue,
-        pi_quantity: quantity,
-        psc_manufacturingCost: supplierPrice,
-        psc_shippingCost: shippingCost,
+    totalCostPerUnit: 0,
+    totalCostForQty: 0,
+
+    grossProfitPerUnit: 0,
+    grossProfitForQty: 0,
+
+    netProfitBeforeTaxesPerUnit: 0,
+    netProfitBeforeTaxesForQty: 0,
+
+    netProfitAfterTaxesPerUnit: 0,
+    netProfitAfterTaxesForQty: 0,
+
+    totalNetProfitAfterTaxes: 0,
+  });
+
+  // Check if the user is coming from the matcher flow
+
+  // API to get ProfitPro Calculations in case user is coming after saving the listing.
+  const {
+    data: profitProCalculationsFromAPI,
+    isFetching: isLoadingProfitProCalculations,
+  } = useQuery({
+    queryKey: ["getProfitProCalculations", saveID],
+    queryFn: () => {
+      // Empty string is passed to avoid linter errors. The API will run only if saveID is present, ensured by `enabled` flag
+      return getProfitProCalculations({ saveID: saveID || "" });
+    },
+    staleTime: 0,
+    enabled: !!saveID,
+  });
+  const {
+    quotaDetails,
+    updateQuota,
+    isLoading: isQuotaLoading,
+    checkAccess,
+  } = useUserSubscriptionAndSearchQuota(QuotaNames.NoOfNetProfitCalculations);
+
+  // API to get Amazon Product Detail in case of a new search
+  const {
+    data: amazonProductFromAPI,
+    refetch: productDetailRefetch,
+    isLoading: isAmazonProductLoading,
+    error: amazonProductError,
+  } = useQuery({
+    queryKey: [
+      "getAmazonProductDetail",
+      searchString,
+      country,
+      QuotaNames.NoOfNetProfitCalculations,
+    ],
+    queryFn: () =>
+      getAmazonProductDetail({
+        asin: searchString,
+        country: country,
+        source: QuotaNames.NoOfNetProfitCalculations,
+      }),
+    enabled: false, // Disable automatic fetching
+    retry: false,
+  });
+
+  const { mutate: saveProductsMutate } = useMutation({
+    mutationFn: saveProducts,
+    onSuccess: () => {
+      toast.success("Product Saved");
+      setIsPopupLoading(false);
+      setSaveDescription("");
+      setSaveTitle("");
+      // setIsPopupOpen(false);
+      navigate("/listings");
+    },
+    onError: (e) => {
+      toast.error(e.message);
+      setIsPopupLoading(false);
+      // setIsPopupOpen(false);
+    },
+  });
+
+  const { mutate: updateProductsMutate } = useMutation({
+    mutationFn: updateProducts,
+    onSuccess: () => {
+      toast.success("Product Updated");
+      setIsPopupLoading(false);
+      // setSaveDescription('');
+      // setSaveTitle('');
+      // setIsPopupOpen(false);
+      navigate(-1);
+    },
+    onError: (e) => {
+      toast.error(e.message);
+      setIsPopupLoading(false);
+      // setIsPopupOpen(false);
+    },
+  });
+
+  const { mutate: updateCategoryMutate, isPending } = useMutation({
+    mutationFn: createCategory,
+    onSuccess: () => {
+      toast.success("New Category Created");
+      setIsPopupLoading(false);
+      setIsSecondPopupOpen(false);
+      setNewCategory("");
+    },
+    onError: (e) => {
+      toast.error(e.message);
+      setIsPopupLoading(false);
+      setIsSecondPopupOpen(false);
+    },
+  });
+
+  const getTaxNotes = () => {
+    const taxRegion = TAX_OPTIONS.find(
+      (opt) => opt.code === formik.values.tax_region
+    );
+
+    if (!taxRegion) return null;
+
+    return (
+      <>
+        {taxRegion?.vatNote && (
+          <p className="text-sm text-gray-500">{taxRegion?.vatNote}</p>
+        )}
+        {taxRegion?.gstNote && (
+          <p className="text-sm text-gray-500">{taxRegion?.gstNote}</p>
+        )}
+        {taxRegion?.salesTaxNote && (
+          <p className="text-sm text-gray-500">{taxRegion?.salesTaxNote}</p>
+        )}
+      </>
+    );
+  };
+
+  const roundOffToTwoDecimals = (num: number) => {
+    return Math.round(num * 100) / 100;
+  };
+
+  const saveProductSubmit = () => {
+    saveProductsMutate(getDataForMutation());
+    // setIsPopupOpen(false);
+    setSaveTitle("");
+    setSaveDescription("");
+    setIsPopupLoading(true);
+    setSelectedCategory("");
+  };
+
+  const openSecondPopup = () => {
+    setIsSecondPopupOpen(true);
+  };
+
+  const closePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  const closeSecondPopup = () => {
+    setIsSecondPopupOpen(false);
+  };
+
+  const getInitialValues = () => {
+    const selectedProductRegion = amazonProduct
+      ? amazonProduct.parameters.country
+      : COUNTRY_OPTIONS[0].value;
+    const taxRegion = TAX_OPTIONS.find(
+      (opt) => opt.code === selectedProductRegion
+    );
+
+    if (!profitProCalculationsFromAPI) {
+      return {
+        // Product Information -> pi
+        pi_sellingPrice: 0,
+        pi_totalRevenue: 0,
+        pi_quantity: 0,
+
+        // Product Sourcing Cost -> psc
+        psc_manufacturingCost: 0,
+        psc_shippingCost: 0,
         psc_productLogoCost: 0,
+        psc_orderQuantity: 0,
+        oc_preLaunchSamples: 0,
         psc_miscCost: 0,
-        psc_orderQuantity: quantity,
-        psc_perUnitCost: perUnitCost,
-        psc_totalCost: totalSourcingCost,
-        fm_model: 'FBA',
-        fm_referrfalFees: referralFee,
-        fm_fbaFulfillmentFees: fbaFee,
-        fm_monthlyStorageFees: storageFee,
+        psc_perUnitCost: 0,
+        psc_totalCost: 0,
+
+        // Fulfillment model -> fm
+        fm_model: "FBA",
+        fm_referrfalFees: 0,
+        fm_fbaFulfillmentFees: 0,
+        fm_monthlyStorageFees: 0,
         fm_longTermStorageFees: 0,
         fm_inboundShippingCost: 0,
-        fm_returnsRate: 5,
+        fm_returnsRate: 0,
+
         fm_shippingFees: 0,
         fm_handlingCost: 0,
         fm_storageCost: 0,
         fm_miscCost: 0,
-        fm_perUnitCost: totalFulfillmentPerUnit,
-        fm_totalCost: totalFulfillmentCost,
+        fm_totalCost: 0,
+        fm_perUnitCost: 0,
+
+        // Marketing, Advertisement and Ranking Cost -> marc
         marc_marketingCost: 0,
         marc_attributionCost: 0,
         marc_influencerCost: 0,
@@ -423,13 +741,17 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
         marc_marketingVATCost: 0,
         marc_totalCost: 0,
         marc_perUnitCost: 0,
-        tax_region: 'US',
-        tax_VAT: 0,
-        tax_GST: 10,
-        tax_salesTax: 0,
-        tax_miscCost: 0,
+
+        // Taxes
+        tax_region: taxRegion?.code || "",
+        tax_VAT: taxRegion?.vat || 0,
+        tax_GST: taxRegion?.gst || 0,
+        tax_salesTax: taxRegion?.salesTax || 0,
+        tax_miscCost: taxRegion?.misc || 0,
         tax_perUnitCost: 0,
         tax_totalCost: 0,
+
+        // Graphics Cost -> gc
         gc_imagingAndPhotographyCost: 0,
         gc_videographyCost: 0,
         gc_productPackingCost: 0,
@@ -437,1706 +759,4080 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
         gc_miscCost: 0,
         gc_totalCost: 0,
         gc_perUnitCost: 0,
+
+        // Product Feedback Cost -> pfc
         pfc_vineProgramCost: 0,
         pfc_miscCost: 0,
         pfc_totalCost: 0,
         pfc_perUnitCost: 0,
+        // Other costs -> oc
         oc_competitorProductSamples: 0,
-        oc_preLaunchSamples: 0,
         oc_employeesCost: 0,
         oc_anyOtherCost: 0,
         oc_totalCost: 0,
         oc_perUnitCost: 0,
-        grossProfit,
-        grossProfitMargin,
-        netProfitBeforeTaxes,
-        netProfitBeforeTaxesMargin,
-        netProfitAfterTaxes,
-        netProfitAfterTaxesMargin,
-      });
+      };
+    } else {
+      const data = profitProCalculationsFromAPI?.data;
 
-      setSaveTitle(product.product_title || '');
-      setSaveDescription(`Amazon Product - ASIN: ${product.asin} | Supplier: ${supplier.name}`);
+      return {
+        // Product Information -> pi
+        pi_sellingPrice: parseFloat(data.product?.selling_price) || 0,
+        pi_totalRevenue: parseFloat(data.product?.total_revenue) || 0,
+        pi_quantity: parseFloat(data.product?.quantity) || 0,
+
+        // Product Sourcing Cost -> psc
+        psc_manufacturingCost:
+          parseFloat(data.sourcing_cost?.manufacturing_cost) || 0,
+        psc_shippingCost: parseFloat(data.sourcing_cost?.shipping_cost) || 0,
+        psc_productLogoCost: parseFloat(data.sourcing_cost?.logo_box_cost) || 0,
+        psc_orderQuantity: parseFloat(data.sourcing_cost?.order_quantity) || 0,
+        psc_miscCost: parseFloat(data.sourcing_cost?.miscellaneous_cost) || 0,
+        psc_perUnitCost: parseFloat(data.sourcing_cost?.cost_per_unit) || 0,
+        psc_totalCost: parseFloat(data.sourcing_cost?.total) || 0,
+
+        // Fulfillment model -> fm
+        fm_model: data.fulfillment?.fulfillment_type || "FBA",
+        fm_referrfalFees: parseFloat(data.fulfillment?.referral_fees) || 0,
+        fm_fbaFulfillmentFees:
+          parseFloat(data.fulfillment?.fba_fulfillment_fees) || 0,
+        fm_monthlyStorageFees:
+          parseFloat(data.fulfillment?.monthly_storage_fees) || 0,
+        fm_longTermStorageFees:
+          parseFloat(data.fulfillment?.long_term_storage_fees) || 0,
+        fm_inboundShippingCost:
+          parseFloat(data.fulfillment?.inbound_shipping_cost) || 0,
+        fm_returnsRate: parseFloat(data.fulfillment?.returns_refunds_rate) || 0,
+
+        fm_shippingFees: parseFloat(data.fulfillment?.shipping_fee) || 0,
+        fm_handlingCost: parseFloat(data.fulfillment?.handling_cost) || 0,
+        fm_storageCost: parseFloat(data.fulfillment?.storage_cost) || 0,
+        fm_miscCost: parseFloat(data.fulfillment?.miscellaneous_cost) || 0,
+        fm_perUnitCost: parseFloat(data.fulfillment?.cost_per_unit) || 0,
+        fm_totalCost: parseFloat(data.fulfillment?.total) || 0,
+
+        // Marketing, Advertisement and Ranking Cost -> marc
+        marc_marketingCost: parseFloat(data.marketing?.ppc_costs) || 0,
+        marc_attributionCost: parseFloat(data.marketing?.attribution_costs) || 0,
+        marc_influencerCost:
+          parseFloat(data.marketing?.influencer_promotion_costs) || 0,
+        marc_miscCost: parseFloat(data.marketing?.miscellaneous_cost) || 0,
+        marc_marketingVATCost: parseFloat(data.marketing?.ppc_vat_costs) || 0,
+        marc_totalCost: parseFloat(data.marketing?.total) || 0,
+        marc_perUnitCost: parseFloat(data.marketing?.cost_per_unit) || 0,
+
+        // Taxes
+        tax_region: data.taxes?.region || "",
+        tax_VAT: parseFloat(data.taxes?.vat) || 0,
+        tax_GST: parseFloat(data.taxes?.gst) || 0,
+        tax_salesTax: parseFloat(data.taxes?.sales_tax) || 0,
+        tax_miscCost: parseFloat(data.taxes?.miscellaneous_cost) || 0,
+        tax_perUnitCost: parseFloat(data.taxes?.total_taxes_unit) || 0,
+        tax_totalCost: parseFloat(data.taxes?.total_taxes_qty) || 0,
+
+        // Graphics Cost -> gc
+        gc_imagingAndPhotographyCost:
+          parseFloat(data.graphics?.imaging_photography) || 0,
+        gc_videographyCost: parseFloat(data.graphics?.videography_cost) || 0,
+        gc_productPackingCost:
+          parseFloat(data.graphics?.product_packaging_cost) || 0,
+        gc_3dAnimationCost: parseFloat(data.graphics?.animation_cost) || 0,
+        gc_miscCost: parseFloat(data.graphics?.miscellaneous_cost) || 0,
+        gc_totalCost: parseFloat(data.graphics?.total) || 0,
+        gc_perUnitCost: parseFloat(data.graphics?.cost_per_unit) || 0,
+
+        // Product Feedback Cost -> pfc
+        pfc_vineProgramCost: parseFloat(data.vine_misc?.vine_program) || 0,
+        pfc_miscCost: parseFloat(data.vine_misc?.miscellaneous_cost) || 0,
+        pfc_totalCost: parseFloat(data.vine_misc?.total) || 0,
+        pfc_perUnitCost: parseFloat(data.vine_misc?.cost_per_unit) || 0,
+
+        // Other costs -> oc
+        oc_competitorProductSamples:
+          parseFloat(data.other_costs?.competitor_samples) || 0,
+        oc_preLaunchSamples:
+          parseFloat(data.other_costs?.pre_launch_samples) || 0,
+        oc_employeesCost: parseFloat(data.other_costs?.employee_cost) || 0,
+        oc_anyOtherCost: parseFloat(data.other_costs?.other_cost) || 0,
+        oc_totalCost: parseFloat(data.other_costs?.total) || 0,
+        oc_perUnitCost: parseFloat(data.other_costs?.cost_per_unit) || 0,
+      };
     }
-  }, [isOpen, product, supplier]);
+  };
 
-  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await getCategory();
-        setCategories(response.data || []);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
+  const getDataForMutation = () => {
+    // Helper function to safely convert to fixed decimal
+    const toFixed = (value: any, decimals: number = 2) => {
+      const num = typeof value === 'string' ? parseFloat(value) : value;
+      return isNaN(num) ? '0.00' : num.toFixed(decimals);
     };
 
-    if (isOpen) {
-      fetchCategories();
+    const data: any = {
+      name: saveTitle,
+      description: saveDescription,
+      category:
+        selectedCategory ||
+        profitProCalculationsFromAPI?.data?.product?.category,
+      saveNewCategory: newCategory,
+
+      // Product Information -> pi
+      selling_price: toFixed(formik.values.pi_sellingPrice),
+      quantity: formik.values.pi_quantity,
+      total_revenue: toFixed(formik.values.pi_totalRevenue),
+
+      // Product Sourcing Cost -> psc
+      sourcing_cost: {
+        manufacturing_cost: toFixed(formik.values.psc_manufacturingCost),
+        shipping_cost: toFixed(formik.values.psc_shippingCost),
+        logo_box_cost: toFixed(formik.values.psc_productLogoCost),
+        order_quantity: formik.values.psc_orderQuantity,
+        miscellaneous_cost: toFixed(formik.values.psc_miscCost),
+        cost_per_unit: toFixed(formik.values.psc_perUnitCost),
+        total_cost_qty: toFixed(formik.values.psc_totalCost), // redundant after pre-launch samples was moved to Other Costs from Product Sourcing Cost
+        total: toFixed(formik.values.psc_totalCost),
+      },
+
+      // Fulfillment model -> fm
+      fulfillment: {
+        fulfillment_type: formik.values.fm_model,
+        referral_fees: toFixed(formik.values.fm_referrfalFees),
+        fba_fulfillment_fees: toFixed(formik.values.fm_fbaFulfillmentFees),
+        monthly_storage_fees: toFixed(formik.values.fm_monthlyStorageFees),
+        long_term_storage_fees:
+          toFixed(formik.values.fm_longTermStorageFees),
+        inbound_shipping_cost: toFixed(formik.values.fm_inboundShippingCost),
+        returns_refunds_rate: formik.values.fm_returnsRate,
+        shipping_fee: toFixed(formik.values.fm_shippingFees),
+        handling_cost: toFixed(formik.values.fm_handlingCost),
+        miscellaneous_cost: toFixed(formik.values.fm_miscCost),
+        cost_per_unit: toFixed(formik.values.fm_perUnitCost),
+        total: toFixed(formik.values.fm_totalCost),
+      },
+
+      // Marketing, Advertisement and Ranking Cost -> marc
+      marketing: {
+        ppc_costs: toFixed(formik.values.marc_marketingCost),
+        attribution_costs: toFixed(formik.values.marc_attributionCost),
+        influencer_promotion_costs:
+          toFixed(formik.values.marc_influencerCost),
+        ppc_vat_costs: toFixed(formik.values.marc_marketingVATCost),
+        miscellaneous_cost: toFixed(formik.values.marc_miscCost),
+        cost_per_unit: toFixed(formik.values.marc_perUnitCost),
+        total: toFixed(formik.values.marc_totalCost),
+      },
+
+      // Taxes
+      taxes: {
+        region: formik.values.tax_region,
+        vat: toFixed(formik.values.tax_VAT),
+        gst: toFixed(formik.values.tax_GST),
+        sales_tax: toFixed(formik.values.tax_salesTax),
+        miscellaneous_cost: toFixed(formik.values.tax_miscCost),
+        total_taxes_unit: formik.values.tax_perUnitCost,
+        total_taxes_qty: formik.values.tax_totalCost,
+      },
+
+      // Graphics Cost -> gc
+      graphics: {
+        imaging_photography:
+          toFixed(formik.values.gc_imagingAndPhotographyCost),
+        videography_cost: toFixed(formik.values.gc_videographyCost),
+        product_packaging_cost: toFixed(formik.values.gc_productPackingCost),
+        animation_cost: toFixed(formik.values.gc_3dAnimationCost),
+        miscellaneous_cost: toFixed(formik.values.gc_miscCost),
+        cost_per_unit: toFixed(formik.values.gc_perUnitCost),
+        total: toFixed(formik.values.gc_totalCost),
+      },
+
+      // Product Feedback Cost -> pfc
+      vine_misc: {
+        vine_program: toFixed(formik.values.pfc_vineProgramCost),
+        miscellaneous_cost: toFixed(formik.values.pfc_miscCost),
+        cost_per_unit: toFixed(formik.values.pfc_perUnitCost),
+        total: toFixed(formik.values.pfc_totalCost),
+      },
+
+      // Other costs -> oc
+      other_costs: {
+        pre_launch_samples: toFixed(formik.values.oc_preLaunchSamples),
+        competitor_samples:
+          toFixed(formik.values.oc_competitorProductSamples),
+        employee_cost: toFixed(formik.values.oc_employeesCost),
+        other_cost: toFixed(formik.values.oc_anyOtherCost),
+        cost_per_unit: toFixed(formik.values.oc_perUnitCost),
+        total: toFixed(formik.values.oc_totalCost),
+      },
+
+      profit_calculation: {
+        data: {
+          revenue_per_unit: toFixed(profitAndRev.revPerUnt),
+          total_revenue: toFixed(profitAndRev.totalRev),
+
+          productSourcing_cost_per_unit:
+            toFixed(formik.values.psc_perUnitCost),
+          productSourcing_cost_for_qty: toFixed(formik.values.psc_totalCost),
+          productSourcing_cost_total: toFixed(formik.values.psc_totalCost),
+
+          fullfilment_cost_per_unit: toFixed(formik.values.fm_perUnitCost),
+          fullfilment_cost_total: toFixed(formik.values.fm_totalCost),
+
+          gross_profit_per_unit: toFixed(profitAndRev.grossProfitPerUnit),
+          gross_profit_for_qty: toFixed(profitAndRev.grossProfitForQty),
+
+          marketing_cost_per_unit: toFixed(formik.values.marc_perUnitCost),
+          marketing_cost_total: toFixed(formik.values.marc_totalCost),
+
+          graphics_cost_per_unit: toFixed(formik.values.gc_perUnitCost),
+          graphics_cost_total: toFixed(formik.values.gc_totalCost),
+
+          product_feedback_cost_per_unit:
+            toFixed(formik.values.pfc_perUnitCost),
+          product_feedback_cost_total: toFixed(formik.values.pfc_totalCost),
+
+          other_costs_per_unit: toFixed(formik.values.oc_perUnitCost),
+          other_costs_total: toFixed(formik.values.oc_totalCost),
+
+          net_profit_before_taxes_per_unit:
+            toFixed(profitAndRev.netProfitBeforeTaxesPerUnit),
+          net_profit_before_taxes_for_qty:
+            toFixed(profitAndRev.netProfitBeforeTaxesForQty),
+
+          tax_amount_for_qty: formik.values.tax_totalCost,
+
+          net_profit_after_taxes_per_unit:
+            toFixed(profitAndRev.netProfitAfterTaxesPerUnit),
+          net_profit_after_taxes_for_qty:
+            toFixed(profitAndRev.netProfitAfterTaxesForQty),
+
+          total_net_profit_after_taxes:
+            toFixed(profitAndRev.totalNetProfitAfterTaxes),
+        },
+      },
+    };
+
+    if (!saveID) {
+      // Include Amazon product data with source tracking
+      const amazonProductData = product || amazonProduct || {};
+
+      // ✅ Add source field to track where the product came from
+      // Check if source already exists, otherwise determine from profitProSource
+      if (!amazonProductData.source) {
+        amazonProductData.source = profitProSource === 'amazon_trends' ? 'amazon_trends' : 'amazon_explorer';
+      }
+
+      console.log('🔍 SAVING AMAZON PRODUCT WITH SOURCE:', {
+        profitProSource: profitProSource,
+        finalSource: amazonProductData.source,
+        hasExistingSource: !!(product?.source || amazonProduct?.source),
+        existingSource: product?.source || amazonProduct?.source,
+        productData: amazonProductData
+      });
+
+      data.amazon_product = amazonProductData;
+
+      // Include Alibaba/Supplier product data
+      data.alibaba_product = alibabaProduct || {};
+
+      // Include supplier info (for Product Vault display)
+      if (supplier) {
+        data.supplier_info = {
+          // Supplier basic info
+          id: supplier.id || supplier.item?.id || '',
+          name: supplier.name || supplier.supplier_name || supplier.item?.company?.companyName || '',
+          supplier_name: supplier.supplier_name || supplier.name || '',
+          location: supplier.location || supplier.item?.company_details?.companyAddress?.country || '',
+
+          // Verification and badges
+          verification_status: supplier.verification_status || supplier.verification_badge || '',
+          verification_badge: supplier.verification_badge || supplier.verification_status || '',
+          is_gold: supplier.is_gold || supplier.item?.company_details?.status?.gold || false,
+          verified_supplier: supplier.verified_supplier || supplier.item?.company_details?.status?.verified || false,
+          trade_assurance: supplier.trade_assurance || supplier.item?.company_details?.status?.tradeAssurance || false,
+          is_assessed: supplier.is_assessed || supplier.item?.company_details?.status?.assessed || false,
+          verified_pro: supplier.verified_pro || false,
+          alibaba_guaranteed: supplier.alibaba_guaranteed || false,
+
+          // Business info
+          years_in_business: supplier.years_in_business || 0,
+          main_products: supplier.main_products || '',
+          certifications: supplier.certifications || [],
+
+          // Pricing and ordering
+          moq: supplier.moq || supplier.minimum_order || 0,
+          min_order_quantity: supplier.min_order_quantity || `${supplier.moq || supplier.minimum_order || 0} pieces`,
+          minimum_order: supplier.minimum_order || supplier.moq || 0,
+          lead_time: supplier.lead_time || 'Contact supplier',
+          estimated_price: supplier.estimated_price || supplier.price_per_unit || '',
+          price_per_unit: supplier.price_per_unit || supplier.estimated_price || '',
+
+          // Contact and ratings
+          contact_method: supplier.contact_method || supplier.contact_url || '',
+          contact_url: supplier.contact_url || supplier.contact_method || '',
+          response_rate: supplier.response_rate || 'N/A',
+          rating: supplier.rating || 0,
+          total_transactions: supplier.total_transactions || 0,
+
+          // AI matching
+          ai_match_score: supplier.ai_match_score || 0,
+          match_explanation: supplier.match_explanation || '',
+
+          // Images
+          supplier_product_image: supplier.supplier_product_image || supplier.item?.images?.[0] || '',
+
+          // Raw item data (for future reference)
+          _raw_item: supplier._raw_item || supplier.item || {},
+
+          // Source tracking
+          source: 'amazon_explorer',
+          saved_at: new Date().toISOString(),
+        };
+      }
     }
-  }, [isOpen]);
 
-  // Create category mutation
-  const createCategoryMutation = useMutation({
-    mutationFn: createCategory,
-    onSuccess: (data) => {
-      toast.success('Category created successfully');
-      setCategories(prev => [...prev, data.data]);
-      setSelectedCategory(data.data.id);
-      setNewCategoryName('');
-      setShowNewCategoryForm(false);
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to create category');
-    },
-  });
+    return data;
+  };
 
-  // Save product mutation
-  const saveProductMutation = useMutation({
-    mutationFn: saveProducts,
-    onSuccess: () => {
-      toast.success('Product saved to vault successfully');
-      setShowSaveSection(false);
-      setIsSaving(false);
-      onClose();
-    },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to save product');
-      setIsSaving(false);
-    },
-  });
+  const resetFulfillmentModelFields = () => {
+    formik.setFieldValue("fm_referrfalFees", 0);
 
-  // Handle create category
-  const handleCreateCategory = () => {
-    if (!newCategoryName.trim()) {
-      toast.error('Please enter a category name');
-      return;
+    formik.setFieldValue("fm_shippingFees", 0);
+    formik.setFieldValue("fm_handlingCost", 0);
+    formik.setFieldValue("fm_storageCost", 0);
+    formik.setFieldValue("fm_miscCost", 0);
+
+    formik.setFieldValue("fm_fbaFulfillmentFees", 0);
+    formik.setFieldValue("fm_monthlyStorageFees", 0);
+    formik.setFieldValue("fm_longTermStorageFees", 0);
+    formik.setFieldValue("fm_inboundShippingCost", 0);
+
+    formik.setFieldValue("fm_totalCost", 0);
+    formik.setFieldValue("fm_PerUnitCost", 0);
+
+    formik.setFieldValue("fm_returnsRate", 0);
+  };
+
+  const calculateTotalRevenue = (
+    pi_sellingPrice: number,
+    pi_quantity: number
+  ) => {
+    const ans =
+      Number(pi_sellingPrice) * (pi_quantity ? Number(pi_quantity) : 0);
+
+    formik.setFieldValue(
+      "pi_totalRevenue",
+      ans ? roundOffToTwoDecimals(ans) : 0
+    );
+  };
+
+  const calculateProductSourcingTotals = (
+    psc_manufacturingCost: any,
+    psc_shippingCost: any,
+    psc_productLogoCost: any,
+    psc_orderQuantity: any,
+    psc_miscCost: any
+  ) => {
+    const manufacturingCost = parseFloat(psc_manufacturingCost) || 0;
+    const shippingCost = parseFloat(psc_shippingCost) || 0;
+    const productLogoCost = parseFloat(psc_productLogoCost) || 0;
+    const orderQuantity = parseFloat(psc_orderQuantity) || 0;
+    const miscCost = parseFloat(psc_miscCost) || 0;
+
+    const costPerUnit =
+      manufacturingCost + shippingCost + productLogoCost + miscCost;
+    const totalCost = costPerUnit * orderQuantity;
+
+    formik.setFieldValue("psc_perUnitCost", roundOffToTwoDecimals(costPerUnit));
+
+    formik.setFieldValue("psc_totalCost", roundOffToTwoDecimals(totalCost));
+  };
+
+  const calculateFulfillmentTotals = (
+    fm_fulfillmentType: string,
+    fm_referrfalFees: any,
+    fm_fbaFulfillmentFees: any,
+    fm_monthlyStorageFees: any,
+    fm_longTermStorageFees: any,
+    fm_inboundShippingCost: any,
+    fm_shippingFees: any,
+    fm_handlingCost: any,
+    fm_storageCost: any,
+    fm_miscCost: any,
+    fm_returnsRate: any,
+    pi_quantity: any = 0
+  ) => {
+    const referrfalFees = parseFloat(fm_referrfalFees) || 0;
+    const fbaFulfillmentFees = parseFloat(fm_fbaFulfillmentFees) || 0;
+    const monthlyStorageFees = parseFloat(fm_monthlyStorageFees) || 0;
+    const longTermStorageFees = parseFloat(fm_longTermStorageFees) || 0;
+    const inboundShippingCost = parseFloat(fm_inboundShippingCost) || 0;
+    const shippingFees = parseFloat(fm_shippingFees) || 0;
+    const handlingCost = parseFloat(fm_handlingCost) || 0;
+    const storageCost = parseFloat(fm_storageCost) || 0;
+    const miscCost = parseFloat(fm_miscCost) || 0;
+    const returnsRate = parseFloat(fm_returnsRate) || 0;
+    const quantity = parseFloat(pi_quantity) || formik.values.pi_quantity || 0;
+
+    let sum = 0;
+    if (fm_fulfillmentType === "FBA") {
+      sum =
+        referrfalFees +
+        fbaFulfillmentFees +
+        monthlyStorageFees +
+        longTermStorageFees +
+        inboundShippingCost +
+        miscCost;
+    } else {
+      sum =
+        referrfalFees + shippingFees + handlingCost + storageCost + miscCost;
     }
+    // const perUnitCost = sum + (returnsRate / 100) * sum;
+    // const totalCost = perUnitCost * (quantity || 0);
+    const refundLoss =
+      ((quantity || 0) * (returnsRate / 100) * (sum - referrfalFees)) /
+      (quantity || 1);
+    console.log(refundLoss);
+    const perUnitCost = sum + refundLoss;
+    console.log(sum);
+    const totalCost = perUnitCost * quantity;
 
-    createCategoryMutation.mutate({
-      name: newCategoryName.trim(),
-      description: `Category for ${newCategoryName.trim()} products`
+    formik.setFieldValue("fm_totalCost", roundOffToTwoDecimals(totalCost));
+    formik.setFieldValue("fm_PerUnitCost", roundOffToTwoDecimals(perUnitCost));
+    formik.setFieldValue("fm_refundLoss", roundOffToTwoDecimals(refundLoss)); // Per unit refund loss
+  };
+  const calculateMarketingTotals = (
+    marc_marketingCost: any,
+    marc_attributionCost: any,
+    marc_influencerCost: any,
+    marc_miscCost: any,
+    marc_marketingVATCost: any,
+    pi_quantity: any = 0
+  ) => {
+    const marketingCost = parseFloat(marc_marketingCost) || 0;
+    const attributionCost = parseFloat(marc_attributionCost) || 0;
+    const influencerCost = parseFloat(marc_influencerCost) || 0;
+    const miscCost = parseFloat(marc_miscCost) || 0;
+    const marketingVATCost = parseFloat(marc_marketingVATCost) || 0;
+    const quantity = parseFloat(pi_quantity) || formik.values.pi_quantity || 0;
+
+    const totalCost =
+      marketingCost +
+      attributionCost +
+      influencerCost +
+      miscCost +
+      marketingVATCost;
+    const perUnitCost = totalCost / (quantity || 1); // Avoid division by zero
+
+    formik.setFieldValue("marc_totalCost", roundOffToTwoDecimals(totalCost));
+    formik.setFieldValue(
+      "marc_perUnitCost",
+      roundOffToTwoDecimals(perUnitCost)
+    );
+  };
+
+  const calculateTaxes = (
+    tax_VAT: any,
+    tax_GST: any,
+    tax_salesTax: any,
+    tax_miscCost: any,
+    pi_sellingPrice: any = 0,
+    pi_quantity: any = 0
+  ) => {
+    const vat = parseFloat(tax_VAT) || 0;
+    const gst = parseFloat(tax_GST) || 0;
+    const salesTax = parseFloat(tax_salesTax) || 0;
+    const miscCost = parseFloat(tax_miscCost) || 0;
+    const sellingPrice =
+      parseFloat(pi_sellingPrice) || formik.values.pi_sellingPrice || 0;
+    const quantity = parseFloat(pi_quantity) || formik.values.pi_quantity || 0;
+
+    const perUnitTotal =
+      (vat / 100) * sellingPrice +
+      (gst / 100) * sellingPrice +
+      (salesTax / 100) * sellingPrice;
+
+    const taxForQty = perUnitTotal * quantity + miscCost;
+
+    formik.setFieldValue(
+      "tax_perUnitCost",
+      roundOffToTwoDecimals(perUnitTotal)
+    );
+    formik.setFieldValue("tax_totalCost", roundOffToTwoDecimals(taxForQty));
+  };
+
+  const calculateGraphicsCost = (
+    gc_imagingAndPhotographyCost: any,
+    gc_videographyCost: any,
+    gc_productPackingCost: any,
+    gc_3dAnimationCost: any,
+    gc_miscCost: any,
+    pi_quantity: any = 0
+  ) => {
+    const imagingAndPhotographyCost =
+      parseFloat(gc_imagingAndPhotographyCost) || 0;
+    const videographyCost = parseFloat(gc_videographyCost) || 0;
+    const productPackingCost = parseFloat(gc_productPackingCost) || 0;
+    const animationCost = parseFloat(gc_3dAnimationCost) || 0;
+    const miscCost = parseFloat(gc_miscCost) || 0;
+    const quantity = parseFloat(pi_quantity) || formik.values.pi_quantity || 0;
+
+    const totalGraphicsCost =
+      imagingAndPhotographyCost +
+      videographyCost +
+      productPackingCost +
+      animationCost +
+      miscCost;
+
+    const gc_perUnitCost = totalGraphicsCost / (quantity || 1); // Avoid division by zero
+
+    formik.setFieldValue(
+      "gc_totalCost",
+      roundOffToTwoDecimals(totalGraphicsCost)
+    );
+    formik.setFieldValue(
+      "gc_perUnitCost",
+      roundOffToTwoDecimals(gc_perUnitCost)
+    );
+  };
+
+  const calculateProductFeedbackTotals = (
+    pfc_vineProgramCost: any,
+    pfc_miscCost: any,
+    pi_quantity: any = 0
+  ) => {
+    const vineProgramCost = parseFloat(pfc_vineProgramCost) || 0;
+    const miscCost = parseFloat(pfc_miscCost) || 0;
+    const quantity = parseFloat(pi_quantity) || formik.values.pi_quantity || 0;
+
+    const totalCost = vineProgramCost + miscCost;
+    const perUnitCost = totalCost / (quantity || 1); // Avoid division by zero
+
+    formik.setFieldValue("pfc_totalCost", roundOffToTwoDecimals(totalCost));
+    formik.setFieldValue("pfc_perUnitCost", roundOffToTwoDecimals(perUnitCost));
+  };
+
+  const calculateOtherCostsTotals = (
+    oc_competitorProductSamples: any,
+    oc_employeesCost: any,
+    oc_anyOtherCost: any,
+    oc_preLaunchSamples: any,
+    pi_quantity: any = 0
+  ) => {
+    const preLaunchSamples = parseFloat(oc_preLaunchSamples) || 0;
+    const competitorProductSamples =
+      parseFloat(oc_competitorProductSamples) || 0;
+    const employeesCost = parseFloat(oc_employeesCost) || 0;
+    const anyOtherCost = parseFloat(oc_anyOtherCost) || 0;
+    const quantity = parseFloat(pi_quantity) || formik.values.pi_quantity || 0;
+
+    const totalCost =
+      competitorProductSamples +
+      employeesCost +
+      anyOtherCost +
+      preLaunchSamples;
+
+    const perUnitCost = totalCost / (quantity || 1); // Avoid division by zero
+
+    formik.setFieldValue("oc_totalCost", roundOffToTwoDecimals(totalCost));
+    formik.setFieldValue("oc_perUnitCost", roundOffToTwoDecimals(perUnitCost));
+  };
+
+  const calculateFinalProfitAndRevenue = (values: any) => {
+    setProfitAndRev((prevState: any) => {
+      let revPerUnit = prevState.revPerUnt; //Revenue (Excl. Taxes) per Unit
+      let totalRev = prevState.totalRev; // Total Revenue (Excl. Taxes)
+      let totalCostPerUnit = prevState.totalCostPerUnit; //Total Cost (FBA/FBM) per Unit
+      let totalCostForQty = prevState.totalCostForQty; //Total cost (FBA/FBM) for Qty
+      let perUnitTotal = prevState.perUnitTotal; // Per Unit Total (Excl. Taxes)
+      let grossProfitPerUnit = prevState.grossProfitPerUnit; // Gross Profit Per Unit
+      let grossProfitForQty = prevState.grossProfitForQty; // Gross Profit per Qty
+
+      let netProfitBeforeTaxesPerUnit = prevState.netProfitBeforeTaxesPerUnit;
+      let netProfitBeforeTaxesForQty = prevState.netProfitBeforeTaxesForQty;
+
+      let netProfitAfterTaxesPerUnit = prevState.netProfitAfterTaxesPerUnit;
+      let netProfitAfterTaxesForQty = prevState.netProfitAfterTaxesForQty;
+      const refundLoss = parseFloat(values.fm_refundLoss) || 0; // get refundLoss here
+
+      if (values.pi_totalRevenue && values.pi_quantity) {
+        revPerUnit = values.pi_totalRevenue / values.pi_quantity;
+        totalRev = values.pi_totalRevenue;
+      }
+
+      if (values.fm_totalCost && values.psc_orderQuantity) {
+        totalCostPerUnit = values.fm_totalCost / values.psc_orderQuantity;
+        totalCostForQty = values.fm_totalCost;
+      }
+
+      if (
+        values.psc_totalCost &&
+        values.psc_orderQuantity &&
+        values.pi_quantity
+      ) {
+        grossProfitForQty =
+          totalRev - values.psc_totalCost - values.fm_totalCost;
+        grossProfitForQty = grossProfitForQty;
+        grossProfitPerUnit = grossProfitForQty / values.pi_quantity;
+
+        netProfitBeforeTaxesPerUnit =
+          grossProfitPerUnit -
+          values.marc_totalCost / values.psc_orderQuantity -
+          values.gc_totalCost / values.psc_orderQuantity -
+          values.pfc_totalCost / values.psc_orderQuantity -
+          values.oc_totalCost / values.psc_orderQuantity;
+
+        netProfitBeforeTaxesForQty =
+          grossProfitForQty -
+          values.marc_totalCost -
+          values.gc_totalCost -
+          values.pfc_totalCost -
+          values.oc_totalCost;
+      } else if (
+        values.psc_totalCost === 0 &&
+        values.psc_orderQuantity === 0 &&
+        values.pi_quantity === 0
+      ) {
+        grossProfitForQty = 0;
+      } else {
+        grossProfitForQty =
+          totalRev - values.psc_totalCost - values.fm_totalCost;
+      }
+
+      //
+      if (values.tax_totalCost >= 0) {
+        // Calculate total net profit after taxes
+        netProfitAfterTaxesForQty =
+          netProfitBeforeTaxesForQty - values.tax_totalCost;
+        // Avoid division by zero
+        if (values.psc_orderQuantity > 0) {
+          netProfitAfterTaxesPerUnit =
+            netProfitAfterTaxesForQty / values.psc_orderQuantity;
+        } else {
+          netProfitAfterTaxesPerUnit = 0;
+          netProfitAfterTaxesForQty = 0;
+
+        }
+      } else {
+        // Handle invalid tax cost
+        netProfitAfterTaxesForQty = 0;
+        netProfitAfterTaxesPerUnit = 0;
+      }
+
+      return {
+        revPerUnt: roundOffToTwoDecimals(revPerUnit),
+        totalRev: roundOffToTwoDecimals(totalRev),
+
+        totalCostPerUnit: roundOffToTwoDecimals(totalCostPerUnit),
+        totalCostForQty: roundOffToTwoDecimals(totalCostForQty),
+
+        grossProfitPerUnit: roundOffToTwoDecimals(grossProfitPerUnit),
+        grossProfitForQty: roundOffToTwoDecimals(grossProfitForQty),
+
+        netProfitBeforeTaxesPerUnit: roundOffToTwoDecimals(
+          netProfitBeforeTaxesPerUnit
+        ),
+        netProfitBeforeTaxesForQty: roundOffToTwoDecimals(
+          netProfitBeforeTaxesForQty
+        ),
+
+        netProfitAfterTaxesPerUnit: roundOffToTwoDecimals(
+          netProfitAfterTaxesPerUnit
+        ),
+        netProfitAfterTaxesForQty: roundOffToTwoDecimals(
+          netProfitAfterTaxesForQty
+        ), // REDUNDANT AFTER Pre-Launch Prices is moved to others from PSC
+
+        totalNetProfitAfterTaxes: roundOffToTwoDecimals(
+          netProfitAfterTaxesForQty
+        ),
+      };
     });
   };
 
-  // Handle product save
-  const handleSaveProduct = () => {
-    if (!saveTitle.trim()) {
-      toast.error('Please enter a product name');
-      return;
+  const formik = useFormik({
+    initialValues: getInitialValues(),
+    validationSchema: validationSchema,
+    validateOnChange: true,
+    validateOnBlur: false,
+    onSubmit: () => {
+      setIsPopupOpen(true);
+    },
+  });
+  useEffect(() => {
+    if (Object.keys(scannerSelectedSupplier).length > 0) {
+      setAmazonProduct(scannerSelectedSupplier?.amazonProduct);
+      setAlibabaProduct(scannerSelectedSupplier?.alibabaProduct);
+      setVisualSearchImageURL(scannerSelectedSupplier?.visualSearchImageURL);
+      setIsComingFromMatcher(true);
+    } else {
+      setAmazonProduct(null);
+      setAlibabaProduct(null);
+      setVisualSearchImageURL(null);
+      setIsComingFromMatcher(false);
     }
+  }, [scannerSelectedSupplier]);
 
-    if (!selectedCategory) {
-      toast.error('Please select a category');
-      return;
-    }
+  // On change of any of the formik values, calculate the final profit and revenue
+  useEffect(() => {
+    calculateFinalProfitAndRevenue(formik.values);
+  }, [formik.values]);
 
-    if (!supplier) {
-      toast.error('No supplier selected');
-      return;
-    }
+  useEffect(() => {
+    if (!isLoadingProfitProCalculations && profitProCalculationsFromAPI) {
+      calculateFinalProfitAndRevenue(getInitialValues());
 
-    setIsSaving(true);
+      setSaveTitle(profitProCalculationsFromAPI.data.name);
+      setSaveDescription(profitProCalculationsFromAPI.data.description);
+      formik.setValues(getInitialValues()); // When we set the values of fields, the final profit and revenue is calculated automatically due to the useEffect hook above
 
-    // Prepare product data with MarginMax Basic field structure
-    const productData = {
-      name: saveTitle.trim(),
-      description: saveDescription.trim(),
-      category: selectedCategory,
-      simple_profit_pro: true,
-
-      // Add profit summary fields for Product Vault display
-      // Note: ListingDetail expects gross_profit/net_profit to be percentages, not dollar amounts
-      selling_price: parseFloat(calculation.pi_sellingPrice.toFixed(2)),
-      quantity: parseInt(calculation.pi_quantity.toString(), 10),
-      total_revenue: parseFloat(calculation.pi_totalRevenue.toFixed(2)),
-      gross_profit: parseFloat(calculation.grossProfitMargin.toFixed(2)), // Percentage
-      net_profit: parseFloat(calculation.netProfitAfterTaxesMargin.toFixed(2)), // Percentage
-      product_gross_profit: parseFloat(calculation.grossProfit.toFixed(2)), // Dollar amount
-      product_net_profit: parseFloat(calculation.netProfitAfterTaxes.toFixed(2)), // Dollar amount
-
-      // Amazon product data
-      amazon_product: {
-        data: product,
-        parameters: {
-          searchCountry: 'US',
-        },
-        source: 'amazon_explorer',
-        saved_at: new Date().toISOString(),
-        // Add offer object with seller information for Product Vault display
-        offer: {
-          product_price: product.product_price || '0',
-          product_original_price: product.product_original_price || '',
-          product_condition: 'New',
-          seller: (product as any).seller || 'Amazon',
-          seller_id: product.asin || '',
-          seller_link: '',
-          seller_star_rating: product.product_star_rating || '0',
-          seller_star_rating_info: product.product_num_ratings?.toString() || '0',
-          currency: product.currency || 'USD',
-          delivery_price: product.delivery || 'Standard Shipping',
-          delivery_time: '2-3 days',
-          ships_from: 'USA',
-        },
-      },
-
-      // Supplier Information
-      supplier_info: {
-        name: supplier.name,
-        location: supplier.location,
-        moq: supplier.moq,
-        lead_time: supplier.lead_time,
-        estimated_price: supplier.estimated_price,
-        verification_status: supplier.verification_status,
-        ai_match_score: supplier.ai_match_score,
-      },
-
-      // Product Information (MarginMax Basic format)
-      pi_sellingPrice: parseFloat(calculation.pi_sellingPrice.toFixed(2)),
-      pi_totalRevenue: parseFloat(calculation.pi_totalRevenue.toFixed(2)),
-      pi_quantity: parseInt(calculation.pi_quantity.toString(), 10),
-
-      // Product Sourcing Cost (MarginMax Basic format)
-      psc_manufacturingCost: parseFloat(calculation.psc_manufacturingCost.toFixed(2)),
-      psc_shippingCost: parseFloat(calculation.psc_shippingCost.toFixed(2)),
-      psc_miscCost: parseFloat(calculation.psc_miscCost.toFixed(2)),
-      psc_orderQuantity: parseInt(calculation.psc_orderQuantity.toString(), 10),
-      psc_perUnitCost: parseFloat(calculation.psc_perUnitCost.toFixed(2)),
-      psc_totalCost: parseFloat(calculation.psc_totalCost.toFixed(2)),
-
-      // Fulfillment Model (MarginMax Basic format)
-      fm_model: calculation.fm_model,
-      fm_referrfalFees: parseFloat(calculation.fm_referrfalFees.toFixed(2)),
-      fm_fbaFulfillmentFees: parseFloat(calculation.fm_fbaFulfillmentFees.toFixed(2)),
-      fm_monthlyStorageFees: parseFloat(calculation.fm_monthlyStorageFees.toFixed(2)),
-      fm_longTermStorageFees: parseFloat(calculation.fm_longTermStorageFees.toFixed(2)),
-      fm_inboundShippingCost: parseFloat(calculation.fm_inboundShippingCost.toFixed(2)),
-      fm_returnsRate: parseFloat(calculation.fm_returnsRate.toFixed(2)),
-      fm_shippingFees: parseFloat(calculation.fm_shippingFees.toFixed(2)),
-      fm_handlingCost: parseFloat(calculation.fm_handlingCost.toFixed(2)),
-      fm_storageCost: parseFloat(calculation.fm_storageCost.toFixed(2)),
-      fm_miscCost: parseFloat(calculation.fm_miscCost.toFixed(2)),
-      fm_perUnitCost: parseFloat(calculation.fm_perUnitCost.toFixed(2)),
-      fm_totalCost: parseFloat(calculation.fm_totalCost.toFixed(2)),
-
-      // Marketing, Advertisement and Ranking Cost
-      marc_marketingCost: parseFloat(calculation.marc_marketingCost.toFixed(2)),
-      marc_attributionCost: parseFloat(calculation.marc_attributionCost.toFixed(2)),
-      marc_influencerCost: parseFloat(calculation.marc_influencerCost.toFixed(2)),
-      marc_miscCost: parseFloat(calculation.marc_miscCost.toFixed(2)),
-      marc_marketingVATCost: parseFloat(calculation.marc_marketingVATCost.toFixed(2)),
-      marc_totalCost: parseFloat(calculation.marc_totalCost.toFixed(2)),
-      marc_perUnitCost: parseFloat(calculation.marc_perUnitCost.toFixed(2)),
-
-      // Taxes
-      tax_region: calculation.tax_region,
-      tax_VAT: parseFloat(calculation.tax_VAT.toFixed(2)),
-      tax_GST: parseFloat(calculation.tax_GST.toFixed(2)),
-      tax_salesTax: parseFloat(calculation.tax_salesTax.toFixed(2)),
-      tax_miscCost: parseFloat(calculation.tax_miscCost.toFixed(2)),
-      tax_perUnitCost: parseFloat(calculation.tax_perUnitCost.toFixed(2)),
-      tax_totalCost: parseFloat(calculation.tax_totalCost.toFixed(2)),
-
-      // Graphics Cost
-      gc_imagingAndPhotographyCost: parseFloat(calculation.gc_imagingAndPhotographyCost.toFixed(2)),
-      gc_videographyCost: parseFloat(calculation.gc_videographyCost.toFixed(2)),
-      gc_productPackingCost: parseFloat(calculation.gc_productPackingCost.toFixed(2)),
-      gc_3dAnimationCost: parseFloat(calculation.gc_3dAnimationCost.toFixed(2)),
-      gc_miscCost: parseFloat(calculation.gc_miscCost.toFixed(2)),
-      gc_totalCost: parseFloat(calculation.gc_totalCost.toFixed(2)),
-      gc_perUnitCost: parseFloat(calculation.gc_perUnitCost.toFixed(2)),
-
-      // Product Feedback Cost
-      pfc_vineProgramCost: parseFloat(calculation.pfc_vineProgramCost.toFixed(2)),
-      pfc_miscCost: parseFloat(calculation.pfc_miscCost.toFixed(2)),
-      pfc_totalCost: parseFloat(calculation.pfc_totalCost.toFixed(2)),
-      pfc_perUnitCost: parseFloat(calculation.pfc_perUnitCost.toFixed(2)),
-
-      // Other Costs
-      oc_competitorProductSamples: parseFloat(calculation.oc_competitorProductSamples.toFixed(2)),
-      oc_preLaunchSamples: parseFloat(calculation.oc_preLaunchSamples.toFixed(2)),
-      oc_employeesCost: parseFloat(calculation.oc_employeesCost.toFixed(2)),
-      oc_anyOtherCost: parseFloat(calculation.oc_anyOtherCost.toFixed(2)),
-      oc_totalCost: parseFloat(calculation.oc_totalCost.toFixed(2)),
-      oc_perUnitCost: parseFloat(calculation.oc_perUnitCost.toFixed(2)),
-
-      // Profit Results
-      grossProfit: parseFloat(calculation.grossProfit.toFixed(2)),
-      grossProfitMargin: parseFloat(calculation.grossProfitMargin.toFixed(2)),
-      netProfitBeforeTaxes: parseFloat(calculation.netProfitBeforeTaxes.toFixed(2)),
-      netProfitBeforeTaxesMargin: parseFloat(calculation.netProfitBeforeTaxesMargin.toFixed(2)),
-      netProfitAfterTaxes: parseFloat(calculation.netProfitAfterTaxes.toFixed(2)),
-      netProfitAfterTaxesMargin: parseFloat(calculation.netProfitAfterTaxesMargin.toFixed(2)),
-    };
-
-    console.log('🔥 CATEGORY:', selectedCategory);
-    console.log('🔥 PRODUCT DATA:', productData);
-    saveProductMutation.mutate(productData);
-  };
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    // ✅ Check if section is locked for Basic/Trial users
-    const netProfitSections = ['marketing', 'taxes', 'graphics', 'feedback', 'other'];
-    const isLockedSection = netProfitSections.includes(section) && isBasicOrTrial;
-
-    if (isLockedSection) {
-      // Show upgrade message
-      toast.info(
-        <div>
-          <p className="font-semibold">🔒 Net Profit Features Locked</p>
-          <p className="text-sm mt-1">Upgrade to Advance or Premium plan to access Net Profit calculations including Marketing, Taxes, Graphics, Feedback, and Other Costs.</p>
-          <button
-            onClick={() => navigate('/settings/subscription-plans')}
-            className="mt-2 px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-          >
-            Upgrade Plan
-          </button>
-        </div>,
-        {
-          autoClose: 5000,
-          closeButton: true,
-        }
+      setAmazonProduct(
+        profitProCalculationsFromAPI.data.product.amazon_product
       );
-      return;
+      setAlibabaProduct(
+        profitProCalculationsFromAPI.data.product.alibaba_product
+      );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoadingProfitProCalculations]);
 
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const roundOffToTwoDecimals = (num: number) => {
-    return Math.round(num * 100) / 100;
-  };
-
-  const getTaxNotes = () => {
-    const taxRegion = TAX_OPTIONS.find(
-      (opt) => opt.code === calculation.tax_region
-    );
-
-    if (!taxRegion) return null;
-
-    return (
-      <div className="mt-2 space-y-1">
-        {taxRegion?.vatNote && (
-          <p className="text-sm text-gray-600 dark:text-gray-400">{taxRegion?.vatNote}</p>
-        )}
-        {taxRegion?.gstNote && (
-          <p className="text-sm text-gray-600 dark:text-gray-400">{taxRegion?.gstNote}</p>
-        )}
-        {taxRegion?.salesTaxNote && (
-          <p className="text-sm text-gray-600 dark:text-gray-400">{taxRegion?.salesTaxNote}</p>
-        )}
-      </div>
-    );
-  };
-
-  const updateCalculation = (field: keyof EnhancedProfitCalculation, value: number | string) => {
-    // Handle string fields (fm_model, tax_region) separately
-    const stringFields = ['fm_model', 'tax_region'];
-    const newCalc = {
-      ...calculation,
-      [field]: stringFields.includes(field as string)
-        ? value
-        : (typeof value === 'string' ? parseFloat(value) || 0 : value)
-    };
-
-    // Validate quantity vs order quantity
-    if (field === 'pi_quantity' || field === 'psc_orderQuantity') {
-      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
-      const orderQuantity = parseFloat(String(newCalc.psc_orderQuantity)) || 0;
-
-      if (quantity > 0 && orderQuantity > 0 && quantity > orderQuantity) {
-        setQuantityError('Quantity cannot be greater than Order Quantity');
-      } else {
-        setQuantityError('');
+  useEffect(() => {
+    const error = amazonProductError as AxiosError;
+    if (error) {
+      if (error.status === 402) {
+        let remainingQuota = (error.response?.data as any).remaining_searches;
+        remainingQuota = remainingQuota ? +remainingQuota : null;
+        toast.error(
+          "You have already exceeded your search quota. Please upgrade your plan or purchase more searches."
+        );
+        updateQuota(remainingQuota);
       }
+      // else {
+      //   toast.error("No Product Found with this ASIN");
+      // }
     }
+  }, [amazonProductError]);
 
-    // Product Information calculations - EXACT MATCH TO MARGINMAX
-    if (field === 'pi_sellingPrice' || field === 'pi_quantity') {
-      const ans = Number(newCalc.pi_sellingPrice) * (newCalc.pi_quantity ? Number(newCalc.pi_quantity) : 0);
-      newCalc.pi_totalRevenue = ans ? roundOffToTwoDecimals(ans) : 0;
+  useEffect(() => {
+    // If the search button is clicked, the API is called.
+    // If the API is called, the product retrieved from the API is set to the state.
+    if (amazonProductFromAPI) {
+      updateQuota(amazonProductFromAPI.remaining_quota);
+      setAmazonProduct(amazonProductFromAPI);
+      setAlibabaProduct(null);
     }
+  }, [amazonProductFromAPI]);
 
-    // Product Sourcing Cost calculations - EXACT MATCH TO MARGINMAX
-    if (['psc_manufacturingCost', 'psc_shippingCost', 'psc_productLogoCost', 'psc_miscCost', 'psc_orderQuantity'].includes(field as string)) {
-      const manufacturingCost = parseFloat(String(newCalc.psc_manufacturingCost)) || 0;
-      const shippingCost = parseFloat(String(newCalc.psc_shippingCost)) || 0;
-      const productLogoCost = parseFloat(String(newCalc.psc_productLogoCost)) || 0;
-      const miscCost = parseFloat(String(newCalc.psc_miscCost)) || 0;
-      const orderQuantity = parseFloat(String(newCalc.psc_orderQuantity)) || 0;
-
-      const costPerUnit = manufacturingCost + shippingCost + productLogoCost + miscCost;
-      const totalCost = costPerUnit * orderQuantity;
-
-      newCalc.psc_perUnitCost = roundOffToTwoDecimals(costPerUnit);
-      newCalc.psc_totalCost = roundOffToTwoDecimals(totalCost);
+  useEffect(() => {
+    if (saveID) {
+      setIsComingFromMatcher(true);
     }
+  }, [saveID]);
+  // useEffect(() => {
+  //   if (
+  //     !isComingFromMatcher &&
+  //     !checkAccess(EAccessTypes.access_to_net_profit)
+  //   ) {
+  //     navigate("/settings/subscription");
+  //   }
+  // }, [checkAccess]);
 
-    // Fulfillment Model calculations - EXACT MATCH TO MARGINMAX
-    if (['fm_model', 'fm_referrfalFees', 'fm_fbaFulfillmentFees', 'fm_monthlyStorageFees', 'fm_longTermStorageFees', 'fm_inboundShippingCost', 'fm_shippingFees', 'fm_handlingCost', 'fm_storageCost', 'fm_miscCost', 'fm_returnsRate', 'pi_quantity'].includes(field as string)) {
-      const referrfalFees = parseFloat(String(newCalc.fm_referrfalFees)) || 0;
-      const fbaFulfillmentFees = parseFloat(String(newCalc.fm_fbaFulfillmentFees)) || 0;
-      const monthlyStorageFees = parseFloat(String(newCalc.fm_monthlyStorageFees)) || 0;
-      const longTermStorageFees = parseFloat(String(newCalc.fm_longTermStorageFees)) || 0;
-      const inboundShippingCost = parseFloat(String(newCalc.fm_inboundShippingCost)) || 0;
-      const shippingFees = parseFloat(String(newCalc.fm_shippingFees)) || 0;
-      const handlingCost = parseFloat(String(newCalc.fm_handlingCost)) || 0;
-      const storageCost = parseFloat(String(newCalc.fm_storageCost)) || 0;
-      const miscCost = parseFloat(String(newCalc.fm_miscCost)) || 0;
-      const returnsRate = parseFloat(String(newCalc.fm_returnsRate)) || 0;
-      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
-
-      let sum = 0;
-      if (newCalc.fm_model === "FBA") {
-        sum = referrfalFees + fbaFulfillmentFees + monthlyStorageFees + longTermStorageFees + inboundShippingCost + miscCost;
-      } else {
-        sum = referrfalFees + shippingFees + handlingCost + storageCost + miscCost;
-      }
-
-      const refundLoss = ((quantity || 0) * (returnsRate / 100) * (sum - referrfalFees)) / (quantity || 1);
-      const perUnitCost = sum + refundLoss;
-      const totalCost = perUnitCost * quantity;
-
-      newCalc.fm_perUnitCost = roundOffToTwoDecimals(perUnitCost);
-      newCalc.fm_totalCost = roundOffToTwoDecimals(totalCost);
-    }
-
-    // Marketing calculations - EXACT MATCH TO MARGINMAX
-    if (['marc_marketingCost', 'marc_attributionCost', 'marc_influencerCost', 'marc_miscCost', 'marc_marketingVATCost', 'pi_quantity'].includes(field as string)) {
-      const marketingCost = parseFloat(String(newCalc.marc_marketingCost)) || 0;
-      const attributionCost = parseFloat(String(newCalc.marc_attributionCost)) || 0;
-      const influencerCost = parseFloat(String(newCalc.marc_influencerCost)) || 0;
-      const miscCost = parseFloat(String(newCalc.marc_miscCost)) || 0;
-      const marketingVATCost = parseFloat(String(newCalc.marc_marketingVATCost)) || 0;
-      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
-
-      const totalCost = marketingCost + attributionCost + influencerCost + miscCost + marketingVATCost;
-      const perUnitCost = totalCost / (quantity || 1);
-
-      newCalc.marc_totalCost = roundOffToTwoDecimals(totalCost);
-      newCalc.marc_perUnitCost = roundOffToTwoDecimals(perUnitCost);
-    }
-
-    // Tax calculations - EXACT MATCH TO MARGINMAX
-    if (['tax_region', 'tax_VAT', 'tax_GST', 'tax_salesTax', 'tax_miscCost', 'pi_sellingPrice', 'pi_quantity'].includes(field as string)) {
-      if (field === 'tax_region') {
-        const selectedTax = TAX_OPTIONS.find(t => t.code === value);
-        if (selectedTax) {
-          newCalc.tax_VAT = selectedTax.vat;
-          newCalc.tax_GST = selectedTax.gst;
-          newCalc.tax_salesTax = selectedTax.salesTax;
-          newCalc.tax_miscCost = selectedTax.misc || 0;
-        }
-      }
-
-      const vat = parseFloat(String(newCalc.tax_VAT)) || 0;
-      const gst = parseFloat(String(newCalc.tax_GST)) || 0;
-      const salesTax = parseFloat(String(newCalc.tax_salesTax)) || 0;
-      const miscCost = parseFloat(String(newCalc.tax_miscCost)) || 0;
-      const sellingPrice = parseFloat(String(newCalc.pi_sellingPrice)) || 0;
-      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
-
-      const perUnitTotal = (vat / 100) * sellingPrice + (gst / 100) * sellingPrice + (salesTax / 100) * sellingPrice;
-      const taxForQty = perUnitTotal * quantity + miscCost;
-
-      newCalc.tax_perUnitCost = roundOffToTwoDecimals(perUnitTotal);
-      newCalc.tax_totalCost = roundOffToTwoDecimals(taxForQty);
-    }
-
-    // Graphics calculations - EXACT MATCH TO MARGINMAX
-    if (['gc_imagingAndPhotographyCost', 'gc_videographyCost', 'gc_productPackingCost', 'gc_3dAnimationCost', 'gc_miscCost', 'pi_quantity'].includes(field as string)) {
-      const imagingAndPhotographyCost = parseFloat(String(newCalc.gc_imagingAndPhotographyCost)) || 0;
-      const videographyCost = parseFloat(String(newCalc.gc_videographyCost)) || 0;
-      const productPackingCost = parseFloat(String(newCalc.gc_productPackingCost)) || 0;
-      const animationCost = parseFloat(String(newCalc.gc_3dAnimationCost)) || 0;
-      const miscCost = parseFloat(String(newCalc.gc_miscCost)) || 0;
-      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
-
-      const totalGraphicsCost = imagingAndPhotographyCost + videographyCost + productPackingCost + animationCost + miscCost;
-      const gc_perUnitCost = totalGraphicsCost / (quantity || 1);
-
-      newCalc.gc_totalCost = roundOffToTwoDecimals(totalGraphicsCost);
-      newCalc.gc_perUnitCost = roundOffToTwoDecimals(gc_perUnitCost);
-    }
-
-    // Feedback calculations - EXACT MATCH TO MARGINMAX
-    if (['pfc_vineProgramCost', 'pfc_miscCost', 'pi_quantity'].includes(field as string)) {
-      const vineProgramCost = parseFloat(String(newCalc.pfc_vineProgramCost)) || 0;
-      const miscCost = parseFloat(String(newCalc.pfc_miscCost)) || 0;
-      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
-
-      const totalCost = vineProgramCost + miscCost;
-      const perUnitCost = totalCost / (quantity || 1);
-
-      newCalc.pfc_totalCost = roundOffToTwoDecimals(totalCost);
-      newCalc.pfc_perUnitCost = roundOffToTwoDecimals(perUnitCost);
-    }
-
-    // Other costs calculations - EXACT MATCH TO MARGINMAX
-    if (['oc_competitorProductSamples', 'oc_preLaunchSamples', 'oc_employeesCost', 'oc_anyOtherCost', 'pi_quantity'].includes(field as string)) {
-      const preLaunchSamples = parseFloat(String(newCalc.oc_preLaunchSamples)) || 0;
-      const competitorProductSamples = parseFloat(String(newCalc.oc_competitorProductSamples)) || 0;
-      const employeesCost = parseFloat(String(newCalc.oc_employeesCost)) || 0;
-      const anyOtherCost = parseFloat(String(newCalc.oc_anyOtherCost)) || 0;
-      const quantity = parseFloat(String(newCalc.pi_quantity)) || 0;
-
-      const totalCost = competitorProductSamples + employeesCost + anyOtherCost + preLaunchSamples;
-      const perUnitCost = totalCost / (quantity || 1);
-
-      newCalc.oc_totalCost = roundOffToTwoDecimals(totalCost);
-      newCalc.oc_perUnitCost = roundOffToTwoDecimals(perUnitCost);
-    }
-
-    // Final profit calculations - EXACT MATCH TO MARGINMAX
-    const totalRev = newCalc.pi_totalRevenue;
-    let grossProfitForQty = 0;
-    let grossProfitPerUnit = 0;
-    let netProfitBeforeTaxesPerUnit = 0;
-    let netProfitBeforeTaxesForQty = 0;
-    let netProfitAfterTaxesPerUnit = 0;
-    let netProfitAfterTaxesForQty = 0;
-
-    if (newCalc.psc_totalCost && newCalc.psc_orderQuantity && newCalc.pi_quantity) {
-      grossProfitForQty = totalRev - newCalc.psc_totalCost - newCalc.fm_totalCost;
-      grossProfitPerUnit = grossProfitForQty / newCalc.pi_quantity;
-
-      netProfitBeforeTaxesPerUnit =
-        grossProfitPerUnit -
-        newCalc.marc_totalCost / newCalc.psc_orderQuantity -
-        newCalc.gc_totalCost / newCalc.psc_orderQuantity -
-        newCalc.pfc_totalCost / newCalc.psc_orderQuantity -
-        newCalc.oc_totalCost / newCalc.psc_orderQuantity;
-
-      netProfitBeforeTaxesForQty =
-        grossProfitForQty -
-        newCalc.marc_totalCost -
-        newCalc.gc_totalCost -
-        newCalc.pfc_totalCost -
-        newCalc.oc_totalCost;
-    } else if (newCalc.psc_totalCost === 0 && newCalc.psc_orderQuantity === 0 && newCalc.pi_quantity === 0) {
-      grossProfitForQty = 0;
-    } else {
-      grossProfitForQty = totalRev - newCalc.psc_totalCost - newCalc.fm_totalCost;
-    }
-
-    if (newCalc.tax_totalCost >= 0) {
-      netProfitAfterTaxesForQty = netProfitBeforeTaxesForQty - newCalc.tax_totalCost;
-      if (newCalc.psc_orderQuantity > 0) {
-        netProfitAfterTaxesPerUnit = netProfitAfterTaxesForQty / newCalc.psc_orderQuantity;
-      } else {
-        netProfitAfterTaxesPerUnit = 0;
-        netProfitAfterTaxesForQty = 0;
-      }
-    } else {
-      netProfitAfterTaxesForQty = 0;
-      netProfitAfterTaxesPerUnit = 0;
-    }
-
-    newCalc.grossProfit = roundOffToTwoDecimals(grossProfitForQty);
-    newCalc.grossProfitMargin = totalRev > 0 ? roundOffToTwoDecimals((grossProfitForQty / totalRev) * 100) : 0;
-    newCalc.netProfitBeforeTaxes = roundOffToTwoDecimals(netProfitBeforeTaxesForQty);
-    newCalc.netProfitBeforeTaxesMargin = totalRev > 0 ? roundOffToTwoDecimals((netProfitBeforeTaxesForQty / totalRev) * 100) : 0;
-    newCalc.netProfitAfterTaxes = roundOffToTwoDecimals(netProfitAfterTaxesForQty);
-    newCalc.netProfitAfterTaxesMargin = totalRev > 0 ? roundOffToTwoDecimals((netProfitAfterTaxesForQty / totalRev) * 100) : 0;
-
-    setCalculation(newCalc);
-  };
-
+  // Don't render if modal is not open
   if (!isOpen) return null;
 
+  // Debug: Log product and supplier data
+  console.log('🔍 Product data in modal:', product);
+  console.log('🔍 Supplier data in modal:', supplier);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-[95vw] max-h-[95vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-900">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-500 rounded-lg flex items-center justify-center">
-              <Calculator className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">BlueRitt MarginMax</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Enhanced calculator with 8 cost categories</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Selected Product and Selected Supplier Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Selected Product Card */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
-              <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100 mb-4">Selected Product</h3>
-              <div className="flex gap-4">
-                <img
-                  src={product.product_photo || '/placeholder-product.png'}
-                  alt={product.product_title}
-                  className="w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder-product.png';
-                  }}
-                />
-                <div className="flex-1 space-y-2">
-                  <p className="font-semibold text-gray-900 dark:text-white line-clamp-2">{product.product_title}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">ASIN:</span> {product.asin}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Price:</span> {product.product_price || 'N/A'}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Rating:</span> {product.product_star_rating || 'N/A'} ({product.product_num_ratings?.toLocaleString() || 0} reviews)
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Selected Supplier Card */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700">
-              <h3 className="text-lg font-bold text-green-900 dark:text-green-100 mb-4">Selected Supplier</h3>
-              <div className="flex gap-4">
-                <img
-                  src={supplier.supplier_product_image || '/placeholder-supplier.png'}
-                  alt={supplier.name}
-                  className="w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder-supplier.png';
-                  }}
-                />
-                <div className="flex-1 space-y-2">
-                  <p className="font-semibold text-gray-900 dark:text-white line-clamp-2">{supplier.name || supplier.supplier_name || 'N/A'}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Price:</span> {supplier.estimated_price || supplier.price_per_unit || 'N/A'}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">MOQ:</span> {supplier.moq || supplier.minimum_order || 'N/A'}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Location:</span> {supplier.location || 'N/A'}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">AI Match:</span> {supplier.ai_match_score}%
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Profit Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 rounded-lg border border-orange-200 dark:border-orange-700">
-              <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-1">Total Revenue</p>
-              <p className="text-lg font-bold text-orange-900 dark:text-orange-100">${calculation.pi_totalRevenue.toFixed(2)}</p>
-            </div>
-            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
-              <p className="text-xs font-semibold text-green-600 dark:text-green-400 mb-1">Gross Profit</p>
-              <p className="text-lg font-bold text-green-900 dark:text-green-100">${calculation.grossProfit.toFixed(2)}</p>
-              <p className="text-xs text-green-700 dark:text-green-300 mt-1">{calculation.grossProfitMargin.toFixed(1)}%</p>
-            </div>
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
-              <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">Net Profit (Before Tax)</p>
-              <p className="text-lg font-bold text-blue-900 dark:text-blue-100">${calculation.netProfitBeforeTaxes.toFixed(2)}</p>
-              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">{calculation.netProfitBeforeTaxesMargin.toFixed(1)}%</p>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
-              <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">Net Profit (After Tax)</p>
-              <p className="text-lg font-bold text-purple-900 dark:text-purple-100">${calculation.netProfitAfterTaxes.toFixed(2)}</p>
-              <p className="text-xs text-purple-700 dark:text-purple-300 mt-1">{calculation.netProfitAfterTaxesMargin.toFixed(1)}%</p>
-            </div>
-          </div>
-
-          {/* ✅ GROSS PROFIT SECTION HEADING */}
-          <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-700 dark:to-emerald-700 rounded-lg p-4 shadow-md">
-            <h2 className="text-xl font-bold text-white flex items-center gap-3">
-              <Calculator className="w-6 h-6" />
-              Gross Profit Section
+    <>
+      {/* Full-screen modal backdrop */}
+      <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-80 flex items-center justify-center z-50 p-0">
+        {/* Full-screen modal container */}
+        <div className="bg-white dark:bg-gray-900 w-full h-full overflow-y-auto">
+          {/* Modal Header with Close Button */}
+          <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Profit Calculator
             </h2>
-            <p className="text-green-100 mt-1 text-sm">
-              Available in all subscriptions • Includes: Product Revenue + Product Sourcing Cost + Fulfillment Cost
-            </p>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <svg className="w-6 h-6 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
-          {/* Product Revenue Section */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4">
-            <button
-              onClick={() => toggleSection('product')}
-              className="w-full flex items-center justify-between font-semibold text-green-900 dark:text-green-100 hover:text-green-700 dark:hover:text-green-300"
-            >
-              <span className="flex items-center gap-2">
-                {expandedSections.product ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Product Revenue
-              </span>
-            </button>
-            {expandedSections.product && (
-              <div className="mt-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Selling Price*</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.pi_sellingPrice}
-                      onChange={(e) => updateCalculation('pi_sellingPrice', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
+          {/* Modal Content */}
+          <div className="p-6">
+            {/* Product and Supplier Details Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Left Side - Product Details */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Product Details
+                </h3>
+                {product ? (
+                  <div className="space-y-4">
+                    {/* Product Image and Name */}
+                    <div className="flex gap-4">
+                      <img
+                        src={product.product_photo || product.cover_url || product.data?.product_photo || 'https://via.placeholder.com/96x96?text=Product'}
+                        alt={product.product_title || product.data?.product_title || 'Product'}
+                        className="w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-600 flex-shrink-0"
+                        onError={(e) => {
+                          // Fallback to placeholder if image fails to load
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/96x96?text=Product';
+                        }}
+                      />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2">
+                          {product.product_title || product.data?.product_title || 'Product Name'}
+                        </h4>
+                        {(product.asin || product.id || product.data?.asin) && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {product.asin ? `ASIN: ${product.asin}` : product.data?.asin ? `ASIN: ${product.data.asin}` : `Product ID: ${product.id}`}
+                          </p>
+                        )}
+                        {product.product_byline && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {product.product_byline}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Product Info Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {(product.product_price || product.price !== undefined || product.data?.product_price) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Price</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {product.product_price || (typeof product.price === 'number' ? `${product.data?.currency || '$'}${product.price.toFixed(2)}` : (product.price || product.data?.product_price))}
+                          </p>
+                          {product.product_original_price && product.product_original_price !== product.product_price && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 line-through">
+                              {product.product_original_price}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {(product.product_star_rating || product.data?.product_star_rating) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Rating</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            {product.product_star_rating || product.data.product_star_rating}
+                          </p>
+                        </div>
+                      )}
+
+                      {(product.product_num_ratings || product.data?.product_num_ratings) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Reviews</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {(product.product_num_ratings || product.data.product_num_ratings).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+
+                      {product.data?.category_path && product.data.category_path.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Category</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-1">
+                            {product.data.category_path[product.data.category_path.length - 1]?.name}
+                          </p>
+                        </div>
+                      )}
+
+                      {(product.sales_volume || product.data?.sales_volume) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Sales Volume</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {product.sales_volume || product.data.sales_volume}
+                          </p>
+                        </div>
+                      )}
+
+                      {(product.is_best_seller || product.data?.is_best_seller) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Best Seller</p>
+                          <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                            ✓ Yes
+                          </p>
+                        </div>
+                      )}
+
+                      {(product.unit_count || product.unit_price) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Unit Info</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {product.unit_count && `${product.unit_count} units`}
+                            {product.unit_price && ` @ ${product.unit_price}`}
+                          </p>
+                        </div>
+                      )}
+
+                      {product.product_num_offers && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Offers</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {product.product_num_offers} {product.product_num_offers === 1 ? 'offer' : 'offers'}
+                          </p>
+                        </div>
+                      )}
+
+                      {product.delivery && (
+                        <div className="col-span-2">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Delivery</p>
+                          <p className="text-xs font-medium text-gray-900 dark:text-white">
+                            {product.delivery}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-2">
+                      {(product.is_amazon_choice || product.data?.is_amazon_choice) && (
+                        <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 text-xs font-medium rounded-full flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-orange-600" />
+                          Amazon's Choice
+                        </span>
+                      )}
+                      {(product.is_prime || product.data?.is_prime) && (
+                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full flex items-center gap-1">
+                          <Shield className="w-3 h-3" />
+                          Prime
+                        </span>
+                      )}
+                      {(product.climate_pledge_friendly || product.data?.climate_pledge_friendly) && (
+                        <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-medium rounded-full flex items-center gap-1">
+                          🌱 Climate Pledge Friendly
+                        </span>
+                      )}
+                      {(product.is_best_seller || product.data?.is_best_seller) && (
+                        <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded-full flex items-center gap-1">
+                          🏆 Best Seller
+                        </span>
+                      )}
+                      {product.has_variations && (
+                        <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs font-medium rounded-full">
+                          Has Variations
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Quantity*</label>
-                    <input
-                      type="number"
-                      value={calculation.pi_quantity}
-                      onChange={(e) => updateCalculation('pi_quantity', parseInt(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${quantityError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
-                      placeholder="0"
-                    />
-                    {quantityError && (
-                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">{quantityError}</p>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400">No product selected</p>
+                )}
+              </div>
+
+              {/* Right Side - Supplier Details */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Truck className="w-5 h-5" />
+                  Supplier Details
+                </h3>
+                {supplier ? (
+                  <div className="space-y-4">
+                    {/* Supplier Image and Name */}
+                    <div className="flex gap-4">
+                      {(supplier.supplier_product_image || supplier.item?.images?.[0]) && (
+                        <img
+                          src={supplier.supplier_product_image || supplier.item.images[0]}
+                          alt={supplier.name || supplier.item?.title || 'Supplier Product'}
+                          className="w-24 h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/96x96?text=Supplier';
+                          }}
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 dark:text-white line-clamp-2">
+                          {supplier.name || supplier.supplier_name || supplier.item?.title || 'Supplier Name'}
+                        </h4>
+                        {(supplier.supplier_name || supplier.item?.company?.companyName) && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {supplier.supplier_name || supplier.item.company.companyName}
+                          </p>
+                        )}
+                        {supplier.location && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                            📍 {supplier.location}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Supplier Info Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {(supplier.estimated_price || supplier.price_per_unit || supplier.item?.sku?.def?.priceModule?.priceList?.[0]) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Price</p>
+                          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {supplier.estimated_price || supplier.price_per_unit ||
+                             `${supplier.item.sku.def.priceModule.currencyCode} ${supplier.item.sku.def.priceModule.priceList[0].priceFormatted}`}
+                          </p>
+                        </div>
+                      )}
+
+                      {(supplier.moq || supplier.minimum_order || supplier.min_order_quantity || supplier.item?.sku?.def?.quantityModule?.minOrder) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">MOQ</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {supplier.min_order_quantity ||
+                             `${supplier.moq || supplier.minimum_order} pieces` ||
+                             `${supplier.item.sku.def.quantityModule.minOrder.quantityFormatted || supplier.item.sku.def.quantityModule.minOrder.quantity} ${supplier.item.sku.def.quantityModule.minOrder.unit}`}
+                          </p>
+                        </div>
+                      )}
+
+                      {(supplier.years_in_business || supplier.item?.seller_store?.storeAge) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Years in Business</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {supplier.years_in_business ? `${supplier.years_in_business} years` : supplier.item.seller_store.storeAge}
+                          </p>
+                        </div>
+                      )}
+
+                      {(supplier.rating || supplier.item?.seller_store?.storeEvaluates?.[0]) && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Rating</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            {supplier.rating || supplier.item.seller_store.storeEvaluates[0].score}
+                          </p>
+                        </div>
+                      )}
+
+                      {supplier.response_rate && supplier.response_rate !== 'N/A' && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Response Rate</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {supplier.response_rate}
+                          </p>
+                        </div>
+                      )}
+
+                      {supplier.total_transactions !== undefined && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Transactions</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {supplier.total_transactions.toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+
+                      {supplier.lead_time && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Lead Time</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {supplier.lead_time}
+                          </p>
+                        </div>
+                      )}
+
+                      {supplier.ai_match_score && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">AI Match Score</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {supplier.ai_match_score.toFixed(1)}%
+                          </p>
+                        </div>
+                      )}
+
+                      {supplier.item?.company?.companyEmployeesCount && (
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Employees</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {supplier.item.company.companyEmployeesCount}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Main Products */}
+                    {supplier.main_products && (
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Main Products</p>
+                        <p className="text-sm text-gray-900 dark:text-white line-clamp-2">
+                          {supplier.main_products}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Product Properties as Tags */}
+                    {supplier.item?.properties?.list && supplier.item.properties.list.length > 0 && (
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Product Properties</p>
+                        <div className="flex flex-wrap gap-2">
+                          {supplier.item.properties.list.slice(0, 6).map((prop: any, index: number) => (
+                            <span
+                              key={index}
+                              className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full"
+                              title={`${prop.name}: ${prop.value}`}
+                            >
+                              {prop.name}: {prop.value}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Certifications/Badges */}
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Certifications & Badges</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(supplier.verification_badge || supplier.verification_status) && (
+                          <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded-full flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-yellow-600" />
+                            {supplier.verification_badge || supplier.verification_status}
+                          </span>
+                        )}
+                        {(supplier.is_gold || supplier.item?.company_details?.status?.gold) && (
+                          <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded-full flex items-center gap-1">
+                            <Star className="w-3 h-3 fill-yellow-600" />
+                            Gold Supplier
+                          </span>
+                        )}
+                        {(supplier.verified_supplier || supplier.item?.company_details?.status?.verified) && (
+                          <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-medium rounded-full flex items-center gap-1">
+                            <Shield className="w-3 h-3" />
+                            Verified Supplier
+                          </span>
+                        )}
+                        {(supplier.trade_assurance || supplier.item?.company_details?.status?.tradeAssurance) && (
+                          <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs font-medium rounded-full flex items-center gap-1">
+                            <Shield className="w-3 h-3" />
+                            Trade Assurance
+                          </span>
+                        )}
+                        {(supplier.is_assessed || supplier.item?.company_details?.status?.assessed) && (
+                          <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 text-xs font-medium rounded-full flex items-center gap-1">
+                            <Shield className="w-3 h-3" />
+                            Assessed
+                          </span>
+                        )}
+                        {supplier.verified_pro && (
+                          <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full flex items-center gap-1">
+                            <Shield className="w-3 h-3" />
+                            Verified Pro
+                          </span>
+                        )}
+                        {supplier.alibaba_guaranteed && (
+                          <span className="px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-medium rounded-full flex items-center gap-1">
+                            <Shield className="w-3 h-3" />
+                            Alibaba Guaranteed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Match Explanation */}
+                    {supplier.match_explanation && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                        <p className="text-xs text-blue-800 dark:text-blue-200">
+                          {supplier.match_explanation}
+                        </p>
+                      </div>
                     )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Revenue/Unit</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.pi_sellingPrice.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Product Revenue</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.pi_totalRevenue.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Product Sourcing Cost Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4">
-            <button
-              onClick={() => toggleSection('sourcing')}
-              className="w-full flex items-center justify-between font-semibold text-blue-900 dark:text-blue-100 hover:text-blue-700 dark:hover:text-blue-300"
-            >
-              <span className="flex items-center gap-2">
-                {expandedSections.sourcing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Product Sourcing Cost
-              </span>
-            </button>
-            {expandedSections.sourcing && (
-              <div className="mt-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Manufacturing*</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.psc_manufacturingCost}
-                      onChange={(e) => updateCalculation('psc_manufacturingCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Shipping Cost*</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.psc_shippingCost}
-                      onChange={(e) => updateCalculation('psc_shippingCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other Sourcing Costs</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.psc_miscCost}
-                      onChange={(e) => updateCalculation('psc_miscCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Order Quantity*</label>
-                    <input
-                      type="number"
-                      value={calculation.psc_orderQuantity}
-                      onChange={(e) => updateCalculation('psc_orderQuantity', parseInt(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sourcing Cost/Unit</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.psc_perUnitCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Sourcing Cost</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.psc_totalCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Fulfillment Cost Section */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4">
-            <button
-              onClick={() => toggleSection('fulfillment')}
-              className="w-full flex items-center justify-between font-semibold text-purple-900 dark:text-purple-100 hover:text-purple-700 dark:hover:text-purple-300"
-            >
-              <span className="flex items-center gap-2">
-                {expandedSections.fulfillment ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Fulfillment Cost
-              </span>
-            </button>
-            {expandedSections.fulfillment && (
-              <div className="mt-4 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Fulfillment Model*</label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-3 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all hover:bg-purple-50 dark:hover:bg-purple-900/20 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50 dark:has-[:checked]:bg-purple-900/30 border-gray-300 dark:border-gray-600">
-                      <input
-                        type="radio"
-                        name="fm_model"
-                        value="FBA"
-                        checked={calculation.fm_model === "FBA"}
-                        onChange={(e) => updateCalculation('fm_model', e.target.value)}
-                        className="w-4 h-4 text-purple-600 focus:ring-2 focus:ring-purple-500 cursor-pointer"
-                      />
-                      <span className="text-gray-900 dark:text-white font-semibold">FBA</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer px-4 py-2 rounded-lg border-2 transition-all hover:bg-purple-50 dark:hover:bg-purple-900/20 has-[:checked]:border-purple-600 has-[:checked]:bg-purple-50 dark:has-[:checked]:bg-purple-900/30 border-gray-300 dark:border-gray-600">
-                      <input
-                        type="radio"
-                        name="fm_model"
-                        value="FBM"
-                        checked={calculation.fm_model === "FBM"}
-                        onChange={(e) => updateCalculation('fm_model', e.target.value)}
-                        className="w-4 h-4 text-purple-600 focus:ring-2 focus:ring-purple-500 cursor-pointer"
-                      />
-                      <span className="text-gray-900 dark:text-white font-semibold">FBM</span>
-                    </label>
-                  </div>
-                </div>
-
-                {calculation.fm_model === "FBA" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amazon Fees*</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_referrfalFees}
-                        onChange={(e) => updateCalculation('fm_referrfalFees', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fulfillment Cost*</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_fbaFulfillmentFees}
-                        onChange={(e) => updateCalculation('fm_fbaFulfillmentFees', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Storage Cost*</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_monthlyStorageFees}
-                        onChange={(e) => updateCalculation('fm_monthlyStorageFees', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Inbounding Cost</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_inboundShippingCost}
-                        onChange={(e) => updateCalculation('fm_inboundShippingCost', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other FBA Costs</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_miscCost}
-                        onChange={(e) => updateCalculation('fm_miscCost', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Returns/Refund Rate (Sellable)%</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_returnsRate}
-                        onChange={(e) => updateCalculation('fm_returnsRate', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cost/Unit*</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_perUnitCost.toFixed(2)}
-                        disabled
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Cost*</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_totalCost.toFixed(2)}
-                        disabled
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                      />
-                    </div>
-                  </div>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400">No supplier selected</p>
                 )}
-
-                {calculation.fm_model === "FBM" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amazon Fees*</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_referrfalFees}
-                        onChange={(e) => updateCalculation('fm_referrfalFees', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Shipping Delivery Charges</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_shippingFees}
-                        onChange={(e) => updateCalculation('fm_shippingFees', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fulfillment Cost</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_handlingCost}
-                        onChange={(e) => updateCalculation('fm_handlingCost', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Storage Cost</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_storageCost}
-                        onChange={(e) => updateCalculation('fm_storageCost', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other FBM Costs</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_miscCost}
-                        onChange={(e) => updateCalculation('fm_miscCost', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="$ 0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Returns/Refund Rate (Sellable)%</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_returnsRate}
-                        onChange={(e) => updateCalculation('fm_returnsRate', parseFloat(e.target.value) || 0)}
-                        onFocus={(e) => e.target.select()}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cost/Unit*</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_perUnitCost.toFixed(2)}
-                        disabled
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Cost*</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculation.fm_totalCost.toFixed(2)}
-                        disabled
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other FBA Costs</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.fm_miscCost}
-                      onChange={(e) => updateCalculation('fm_miscCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Returns/Refund fee (Refillable)%</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.fm_returnsRate}
-                      onChange={(e) => updateCalculation('fm_returnsRate', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cost/Unit</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.fm_perUnitCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Cost*</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.fm_totalCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                    />
-                  </div>
-                </div>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* ✅ NET PROFIT SECTION HEADING */}
-          <div className={`rounded-lg p-4 shadow-md ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700' : 'bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-700 dark:to-indigo-700'}`}>
-            <h2 className="text-xl font-bold text-white flex items-center gap-3">
-              {isBasicOrTrial ? <Lock className="w-6 h-6" /> : <Calculator className="w-6 h-6" />}
-              Net Profit Section
-              {isBasicOrTrial && <span className="ml-auto text-sm bg-white/20 px-3 py-1 rounded-full">🔒 Locked</span>}
-            </h2>
-            <p className="text-white/90 mt-1 text-sm">
-              {isBasicOrTrial
-                ? 'Available in Advance & Premium only • Upgrade to access Marketing & Ads, Graphics Design, Reviewer Program, Additional Costs, and Taxes'
-                : 'Available in Advance & Premium • Includes: All Gross Profit + Marketing & Ads + Graphics Design + Reviewer Program + Additional Costs + Taxes'}
-            </p>
-            {isBasicOrTrial && (
-              <button
-                onClick={() => navigate('/settings/subscription-plans')}
-                className="mt-3 px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors"
-              >
-                Upgrade to Advance or Premium
-              </button>
-            )}
-          </div>
-
-          {/* Marketing Cost Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20'}`}>
-            <button
-              onClick={() => toggleSection('marketing')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-yellow-900 dark:text-yellow-100 hover:text-yellow-700 dark:hover:text-yellow-300'}`}
-              disabled={isBasicOrTrial}
-            >
-              <span className="flex items-center gap-2">
-                {isBasicOrTrial && <Lock className="w-4 h-4" />}
-                {expandedSections.marketing ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Marketing Cost
-                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
-              </span>
-            </button>
-            {expandedSections.marketing && (
-              <div className="mt-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pay-per-Click(PPC)*</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.marc_marketingCost}
-                      onChange={(e) => updateCalculation('marc_marketingCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
+            {/* Calculator Content */}
+              {isLoadingProfitProCalculations || isAmazonProductLoading ? (
+                <div className="p-6 space-y-6 mt-10 box min-h-screen">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-1/2 bg-gray-300 rounded animate-pulse"></div>
+                    <div className="h-12 w-1/4 bg-gray-300 rounded animate-pulse"></div>
+                    <div className="h-12 w-32 bg-gray-400 rounded animate-pulse"></div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Attribution Links</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.marc_attributionCost}
-                      onChange={(e) => updateCalculation('marc_attributionCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Promotion/Other Costs</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.marc_influencerCost}
-                      onChange={(e) => updateCalculation('marc_influencerCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PPC VAT(if Applicable)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.marc_marketingVATCost}
-                      onChange={(e) => updateCalculation('marc_marketingVATCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Marketing Cost/Unit</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.marc_perUnitCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Marketing Cost</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.marc_totalCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Graphics Design Cost Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20'}`}>
-            <button
-              onClick={() => toggleSection('graphics')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-cyan-900 dark:text-cyan-100 hover:text-cyan-700 dark:hover:text-cyan-300'}`}
-              disabled={isBasicOrTrial}
-            >
-              <span className="flex items-center gap-2">
-                {isBasicOrTrial && <Lock className="w-4 h-4" />}
-                {expandedSections.graphics ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Graphics Design Cost
-                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
-              </span>
-            </button>
-            {expandedSections.graphics && (
-              <div className="mt-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">A+ Content*</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.gc_imagingAndPhotographyCost}
-                      onChange={(e) => updateCalculation('gc_imagingAndPhotographyCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Videography</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.gc_videographyCost}
-                      onChange={(e) => updateCalculation('gc_videographyCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Packaging</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.gc_productPackingCost}
-                      onChange={(e) => updateCalculation('gc_productPackingCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other Content Costs</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.gc_miscCost}
-                      onChange={(e) => updateCalculation('gc_miscCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Graphics Cost/Unit</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.gc_perUnitCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Graphics Cost</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.gc_totalCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Reviewer Program Cost Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20'}`}>
-            <button
-              onClick={() => toggleSection('feedback')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-teal-900 dark:text-teal-100 hover:text-teal-700 dark:hover:text-teal-300'}`}
-              disabled={isBasicOrTrial}
-            >
-              <span className="flex items-center gap-2">
-                {isBasicOrTrial && <Lock className="w-4 h-4" />}
-                {expandedSections.feedback ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Reviewer Program Cost
-                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
-              </span>
-            </button>
-            {expandedSections.feedback && (
-              <div className="mt-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Related Expenses</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.pfc_vineProgramCost}
-                      onChange={(e) => updateCalculation('pfc_vineProgramCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Other Associated Costs</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.pfc_miscCost}
-                      onChange={(e) => updateCalculation('pfc_miscCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Review Cost/Unit</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.pfc_perUnitCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Review Prog. Cost</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.pfc_totalCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Additional Costs Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20'}`}>
-            <button
-              onClick={() => toggleSection('other')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-indigo-900 dark:text-indigo-100 hover:text-indigo-700 dark:hover:text-indigo-300'}`}
-              disabled={isBasicOrTrial}
-            >
-              <span className="flex items-center gap-2">
-                {isBasicOrTrial && <Lock className="w-4 h-4" />}
-                {expandedSections.other ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Additional Costs
-                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
-              </span>
-            </button>
-            {expandedSections.other && (
-              <div className="mt-4 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pre-launch Samples</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.oc_preLaunchSamples}
-                      onChange={(e) => updateCalculation('oc_preLaunchSamples', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Competitor Samples</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.oc_competitorProductSamples}
-                      onChange={(e) => updateCalculation('oc_competitorProductSamples', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Employees Cost</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.oc_employeesCost}
-                      onChange={(e) => updateCalculation('oc_employeesCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Miscellaneous Cost</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.oc_anyOtherCost}
-                      onChange={(e) => updateCalculation('oc_anyOtherCost', parseFloat(e.target.value) || 0)}
-                      onFocus={(e) => e.target.select()}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Cost/Unit</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.oc_perUnitCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Additional Cost</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.oc_totalCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Taxes (if applicable) Section */}
-          <div className={`rounded-lg p-4 ${isBasicOrTrial ? 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 opacity-60' : 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20'}`}>
-            <button
-              onClick={() => toggleSection('taxes')}
-              className={`w-full flex items-center justify-between font-semibold ${isBasicOrTrial ? 'text-gray-500 cursor-not-allowed' : 'text-red-900 dark:text-red-100 hover:text-red-700 dark:hover:text-red-300'}`}
-              disabled={isBasicOrTrial}
-            >
-              <span className="flex items-center gap-2">
-                {isBasicOrTrial && <Lock className="w-4 h-4" />}
-                {expandedSections.taxes ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                Taxes (if applicable)
-                {isBasicOrTrial && <span className="ml-2 text-xs bg-gray-300 dark:bg-gray-600 px-2 py-0.5 rounded-full">Locked</span>}
-              </span>
-            </button>
-            {expandedSections.taxes && (
-              <div className="mt-4 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Region</label>
-                  <select
-                    value={calculation.tax_region}
-                    onChange={(e) => updateCalculation('tax_region', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [&>option]:text-gray-900 [&>option]:dark:text-white [&>option]:bg-white [&>option]:dark:bg-gray-700"
-                  >
-                    <option value="" className="text-gray-500 dark:text-gray-400">Select Tax Region</option>
-                    {TAX_OPTIONS.map(tax => (
-                      <option key={tax.code} value={tax.code} className="text-gray-900 dark:text-white bg-white dark:bg-gray-700">{tax.country}</option>
-                    ))}
-                  </select>
-                  {calculation.tax_region && getTaxNotes()}
-                </div>
-
-                {/* VAT, GST, Sales Tax Sliders and Miscellaneous Cost */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* VAT Slider */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">VAT</label>
-                      <input
-                        type="number"
-                        value={calculation.tax_VAT}
-                        min={0}
-                        max={100}
-                        onChange={(e) => {
-                          const val = Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
-                          updateCalculation('tax_VAT', val);
-                        }}
-                        className="w-12 h-6 text-xs rounded-md border border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 p-1 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      />
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={calculation.tax_VAT}
-                      onChange={(e) => updateCalculation('tax_VAT', parseFloat(e.target.value))}
-                      className="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-600"
-                    />
-                  </div>
-
-                  {/* GST Slider */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">GST</label>
-                      <input
-                        type="number"
-                        value={calculation.tax_GST}
-                        min={0}
-                        max={100}
-                        onChange={(e) => {
-                          const val = Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
-                          updateCalculation('tax_GST', val);
-                        }}
-                        className="w-12 h-6 text-xs rounded-md border border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 p-1 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      />
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={calculation.tax_GST}
-                      onChange={(e) => updateCalculation('tax_GST', parseFloat(e.target.value))}
-                      className="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-600"
-                    />
-                  </div>
-
-                  {/* Sales Tax Slider */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sales Tax</label>
-                      <input
-                        type="number"
-                        value={calculation.tax_salesTax}
-                        min={0}
-                        max={100}
-                        onChange={(e) => {
-                          const val = Math.min(100, Math.max(0, parseFloat(e.target.value) || 0));
-                          updateCalculation('tax_salesTax', val);
-                        }}
-                        className="w-12 h-6 text-xs rounded-md border border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 p-1 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                      />
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={calculation.tax_salesTax}
-                      onChange={(e) => updateCalculation('tax_salesTax', parseFloat(e.target.value))}
-                      className="w-full h-2 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-red-600"
-                    />
-                  </div>
-
-                  {/* Miscellaneous Cost */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Miscellaneous Cost</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.tax_miscCost}
-                      onChange={(e) => updateCalculation('tax_miscCost', parseFloat(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder="$ 0"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Taxes/Unit</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.tax_perUnitCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total Taxes</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={calculation.tax_totalCost.toFixed(2)}
-                      disabled
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-semibold"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 sticky bottom-0 bg-white">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Close
-          </button>
-          <button
-            onClick={() => setShowSaveSection(!showSaveSection)}
-            className="px-4 py-2 text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            Save to Vault
-          </button>
-        </div>
-
-        {/* Save Section */}
-        {showSaveSection && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mt-4 border border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Save className="w-5 h-5 text-blue-600" />
-              Save to Product Vault
-            </h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Product Name
-                </label>
-                <input
-                  type="text"
-                  value={saveTitle}
-                  onChange={(e) => setSaveTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Enter product name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={saveDescription}
-                  onChange={(e) => setSaveDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Enter product description"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Category
-                </label>
-                <div className="flex gap-2">
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map((category: Category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => setShowNewCategoryForm(!showNewCategoryForm)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    New
-                  </button>
-                </div>
-              </div>
-
-              {showNewCategoryForm && (
-                <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-300 dark:border-gray-600">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newCategoryName}
-                      onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="New category name"
-                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                    <button
-                      onClick={handleCreateCategory}
-                      disabled={createCategoryMutation.isPending}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                  {Array.from({ length: 3 }).map((_, sectionIndex) => (
+                    <div
+                      key={sectionIndex}
+                      className="bg-gray-200 rounded-lg p-4 space-y-4"
                     >
-                      {createCategoryMutation.isPending ? 'Creating...' : 'Create'}
-                    </button>
-                  </div>
+                      <div className="h-6 w-1/4 bg-gray-400 rounded animate-pulse"></div>
+                      <div className="grid grid-cols-3 gap-4">
+                        {Array.from({ length: 6 }).map((_, fieldIndex) => (
+                          <div
+                            key={fieldIndex}
+                            className="h-12 bg-gray-300 rounded animate-pulse"
+                          ></div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
+              ) : (
+                <>
+                  {/* Stepper container */}
+                  <div className="w-full rounded-md p-3 text-black bg-white dark:bg-[#1A1C1E] dark:text-white">
+                    <div className="mt-2 px-3">
+                      {isComingFromMatcher && <Stepper currentStep={3} />}
+                    </div>
+                  </div>
 
-            {/* Save Actions */}
-            <div className="flex justify-end gap-3 mt-4">
-              <button
-                onClick={() => setShowSaveSection(false)}
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveProduct}
-                disabled={isSaving || saveProductMutation.isPending}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                {isSaving || saveProductMutation.isPending ? 'Saving...' : 'Save to Vault'}
-              </button>
-            </div>
+                  <div className="box p-5">
+                    {/* Show search for Amazon Product when the user NOT coming from the matcher flow */}
+                    {!isComingFromMatcher ? (
+                      <div className="flex w-full flex-col gap-y-4 lg:gap-y-0 lg:flex-row gap-x-2 rounded-md text-black">
+                        <div className="w-full lg:w-3/5 flex flex-col">
+                          <Input
+                            containerClassName="w-full"
+                            placeholder={"Search ASIN"}
+                            value={searchString}
+                            onChange={(e) => setSearchString(e.target.value)}
+                          />
+                        </div>
+
+                        <Select
+                          value={country}
+                          onValueChange={(value) => setCountry(value)}
+                        >
+                          <SelectTrigger className="w-full lg:w-1/5 h-[50px] bg-white dark:bg-transparent dark:text-white/80 text-black border border-gray-300 shadow-none">
+                            <SelectValue placeholder="Select Country" />
+                          </SelectTrigger>
+                          <SelectContent
+                            position="popper"
+                            className="bg-white dark:bg-light"
+                          >
+                            <SelectGroup>
+                              <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+                                {COUNTRY_OPTIONS.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    className="cursor-pointer"
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </div>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+
+                        <div>
+                          <Button
+                            className="cursor-pointer  p-2 text-sm duration-150 border border-success bg-success text-white ti-btn ti-btn-success-full !rounded-full ti-btn-wave"
+                            variant="success"
+                            onClick={async () => {
+                              if (!searchString || searchString.trim() === "") {
+                                toast.error("Please enter ASIN.");
+                                return;
+                              }
+                              productDetailRefetch();
+                              // ✅ Quota will be updated from backend response - no hardcoded calculation
+                            }}
+                            disabled={
+                              !quotaDetails.quotaValue ||
+                              quotaDetails.quotaValue === 0
+                            }
+                          >
+                            <i className="bi bi-search text-white" />
+                            Search Now
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+                    <div className="flex justify-end">
+                      <div className="flex mt-1">
+                        <div
+                          onClick={() => {
+                            if (saveID) {
+                              updateProductsMutate({
+                                saveID: saveID,
+                                ...getDataForMutation(),
+                              });
+                            } else {
+                              formik.submitForm();
+                            }
+                          }}
+                          className="text-xs cursor-pointer flex bg-success items-center justify-center text-light py-2 px-4 rounded-full font-medium hover:bg-green-600 transition-colors"
+                        >
+                          <i className="las la-save text-lg pr-2"></i>
+                          {saveID ? 'Update Product' : 'Save to Product Vault'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-x-2 mt-3 lg:flex-row flex-col items-stretch">
+                      {amazonProduct ? (
+                        <div className="box flex-1 border rounded-md flex flex-col">
+                          <div className="font-bold p-4 text-gray-700">
+                            <i className="bi bi-journal-bookmark-fill"></i>
+                            {"  "}
+                            Selected Product
+                          </div>
+                          <AmazonCard amazonProduct={amazonProduct} />
+                        </div>
+                      ) : (
+                        <>
+                          {isComingFromMatcher ? null : (
+                            <>
+                              {visualSearchImageURL ? (
+                                <div className="flex w-full items-center justify-between rounded-md border border-primary bg-white p-2">
+                                  <img
+                                    src={visualSearchImageURL}
+                                    alt="Visual Search Image"
+                                    className="w-full"
+                                  />
+                                </div>
+                              ) : null}
+                            </>
+                          )}
+                        </>
+                      )}
+
+                      {/* Alibaba product card */}
+                      {alibabaProduct ? (
+                        <div className="box flex-1 border rounded-md flex flex-col">
+                          <div className="font-bold p-4 text-gray-700">
+                            <i className="bi bi-journal-bookmark-fill"></i>
+                            {"  "}
+                            Selected Supplier
+                          </div>
+                          <AlibabaCard alibabaProduct={alibabaProduct} />
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* Form container */}
+                    <div className="mt-4 w-full gap-4">
+                      {/* Left vertical container */}
+                      <form onSubmit={formik.handleSubmit} className="w-full">
+                        {/* Error container */}
+                        {Object.keys(formik.errors).length > 0 ? (
+                          <div className="mb-2 rounded-md bg-white p-3 text-red-500">
+                            <ul>
+                              {Object.values(formik.errors).map(
+                                (error, index) => (
+                                  <li key={index}>{error as string}</li>
+                                )
+                              )}
+                            </ul>
+                          </div>
+                        ) : (
+                          <></>
+                        )}
+                        {/* Form container */}
+                        <div className="relative group w-fit">
+                          <p className="text-gray-600 dark:text-white text-[1rem] cursor-pointer font-bold mt-[-5px]  mb-4 px-1">
+                            Calculate your Profit
+                          </p>
+                          <span className="absolute top-1/2 left-full translate-y-[-50%] ml-2 hidden group-hover:block bg-[rgba(250,250,245,0.9)] text-gray-900 text-xs font-medium px-2 py-1 rounded shadow-sm z-10 w-[350px] whitespace-normal border">
+                            <strong className="block mb-1">
+                              Input Costs & Prices — Let MarginMax Do the Rest
+                            </strong>
+                            Please input cost and price details so MarginMax can
+                            automatically calculate your profit at every step.
+                            Simulate pricing easily—know your profit, we will do
+                            the math!
+                          </span>
+                        </div>
+
+                        <div className="flex w-full flex-col">
+                          {/* Product Information Section */}
+                          <div className="box !mb-0">
+                            <div className="box-header border bg-blue-900 !py-3">
+                              <div className="box-title !text-white">
+                                <i className="ti ti-anchor text-[1.2rem] me-2"></i>
+                                Product Revenue
+                              </div>
+                            </div>
+                            <div className="flex flex-col lg:flex-row">
+                              <div className="p-5 w-full lg:w-4/6 grid  grid-cols-1 xl:grid-cols-4 gap-2">
+                                {/* Selling price */}
+                                <FormInput
+                                  label="Selling Price"
+                                  className="flex flex-col justify-end"
+                                  placeholder=""
+                                  prefix="$"
+                                  required
+                                  type="number"
+                                  error={
+                                    formik.errors.pi_sellingPrice &&
+                                      formik.submitCount > 0
+                                      ? (formik.errors.pi_sellingPrice as string)
+                                      : ""
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  {...formik.getFieldProps("pi_sellingPrice")}
+                                  onChange={(e) => {
+                                    formik.handleChange(e);
+
+                                    const sellingPricePerUnit = parseFloat(
+                                      e.target.value
+                                    );
+                                    // ----------------------- Total Revenue -----------------------
+
+                                    const { pi_quantity } = formik.values;
+
+                                    calculateTotalRevenue(
+                                      sellingPricePerUnit,
+                                      pi_quantity
+                                    );
+
+                                    // ----------------------- Taxes -----------------------
+                                    const {
+                                      tax_VAT,
+                                      tax_GST,
+                                      tax_salesTax,
+                                      tax_miscCost,
+                                    } = formik.values;
+
+                                    calculateTaxes(
+                                      tax_VAT,
+                                      tax_GST,
+                                      tax_salesTax,
+                                      tax_miscCost,
+                                      sellingPricePerUnit,
+                                      pi_quantity
+                                    );
+                                  }}
+                                />
+                                {/* Quantity */}
+                                <FormInput
+                                  label="Product Quantity"
+                                  placeholder=""
+                                  className="flex flex-col justify-end"
+                                  required
+                                  type="number"
+                                  error={
+                                    formik.errors.pi_quantity &&
+                                      formik.submitCount > 0
+                                      ? (formik.errors.pi_quantity as string)
+                                      : ""
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  {...formik.getFieldProps("pi_quantity")}
+                                  onChange={(e) => {
+                                    let quantity = parseFloat(e.target.value);
+
+                                    // The selling quantity can not be more than the quantity of products sourced.
+                                    // if (
+                                    //   quantity > formik.values.psc_orderQuantity
+                                    // ) {
+                                    //   quantity = formik.values.psc_orderQuantity;
+                                    //   e.target.value =
+                                    //     formik.values.psc_orderQuantity.toString();
+
+                                    //   toast.warning(
+                                    //     "Selling quantity can not be more than the quantity of products sourced."
+                                    //   );
+                                    // }
+
+                                    formik.handleChange(e);
+
+                                    // ----------------------- Total Revenue -----------------------
+
+                                    const { pi_sellingPrice } = formik.values;
+
+                                    calculateTotalRevenue(
+                                      pi_sellingPrice,
+                                      quantity
+                                    );
+
+                                    // ----------------------- Fulfillment Costs -----------------------
+                                    const {
+                                      fm_model,
+                                      fm_returnsRate,
+                                      fm_fbaFulfillmentFees,
+                                      fm_handlingCost,
+                                      fm_inboundShippingCost,
+                                      fm_longTermStorageFees,
+                                      fm_miscCost,
+                                      fm_monthlyStorageFees,
+                                      fm_referrfalFees,
+                                      fm_shippingFees,
+                                      fm_storageCost,
+                                    } = formik.values;
+
+                                    calculateFulfillmentTotals(
+                                      fm_model,
+                                      fm_referrfalFees,
+                                      fm_fbaFulfillmentFees,
+                                      fm_monthlyStorageFees,
+                                      fm_longTermStorageFees,
+                                      fm_inboundShippingCost,
+                                      fm_shippingFees,
+                                      fm_handlingCost,
+                                      fm_storageCost,
+                                      fm_miscCost,
+                                      fm_returnsRate,
+                                      quantity
+                                    );
+
+                                    // ----------------------- Marketing Costs -----------------------
+
+                                    const {
+                                      marc_marketingCost,
+                                      marc_influencerCost,
+                                      marc_miscCost,
+                                      marc_attributionCost,
+                                      marc_marketingVATCost,
+                                    } = formik.values;
+
+                                    calculateMarketingTotals(
+                                      marc_marketingCost,
+                                      marc_attributionCost,
+                                      marc_influencerCost,
+                                      marc_miscCost,
+                                      marc_marketingVATCost,
+                                      quantity
+                                    );
+
+                                    // ----------------------- Graphics Costs -----------------------
+                                    const {
+                                      gc_imagingAndPhotographyCost,
+                                      gc_videographyCost,
+                                      gc_productPackingCost,
+                                      gc_3dAnimationCost,
+                                      gc_miscCost,
+                                    } = formik.values;
+
+                                    calculateGraphicsCost(
+                                      gc_imagingAndPhotographyCost,
+                                      gc_videographyCost,
+                                      gc_productPackingCost,
+                                      gc_3dAnimationCost,
+                                      gc_miscCost,
+                                      quantity
+                                    );
+
+                                    // ----------------------- Product Feedback Costs -----------------------
+                                    const { pfc_vineProgramCost, pfc_miscCost } =
+                                      formik.values;
+
+                                    calculateProductFeedbackTotals(
+                                      pfc_vineProgramCost,
+                                      pfc_miscCost,
+                                      quantity
+                                    );
+
+                                    // ----------------------- Other Costs -----------------------
+                                    const {
+                                      oc_competitorProductSamples,
+                                      oc_employeesCost,
+                                      oc_anyOtherCost,
+                                      oc_preLaunchSamples,
+                                    } = formik.values;
+
+                                    calculateOtherCostsTotals(
+                                      oc_competitorProductSamples,
+                                      oc_employeesCost,
+                                      oc_anyOtherCost,
+                                      oc_preLaunchSamples,
+                                      quantity
+                                    );
+
+                                    // ----------------------- Taxes -----------------------
+                                    const {
+                                      tax_VAT,
+                                      tax_GST,
+                                      tax_salesTax,
+                                      tax_miscCost,
+                                    } = formik.values;
+
+                                    calculateTaxes(
+                                      tax_VAT,
+                                      tax_GST,
+                                      tax_salesTax,
+                                      tax_miscCost,
+                                      pi_sellingPrice,
+                                      quantity
+                                    );
+                                  }}
+                                />
+                              </div>
+                              <div
+                                className="p-3 grid  w-[190px] lg:w-2/6 grid-cols-1 lg:grid-cols-2 gap-3 bg-gray-200 dark:bg-black "
+                                style={{ borderLeft: "2px solid #f4f4f4" }}
+                              >
+                                {/* Selling price */}
+                                <FormInput
+                                  label="Product Revenue/Unit"
+                                  className="flex flex-col"
+                                  placeholder=""
+                                  prefix="$"
+                                  required
+                                  type="number"
+                                  error={
+                                    formik.errors.pi_sellingPrice &&
+                                      formik.submitCount > 0
+                                      ? (formik.errors.pi_sellingPrice as string)
+                                      : ""
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  {...formik.getFieldProps("pi_sellingPrice")}
+                                  onChange={(e) => {
+                                    formik.handleChange(e);
+
+                                    const sellingPricePerUnit = parseFloat(
+                                      e.target.value
+                                    );
+                                    // ----------------------- Total Revenue -----------------------
+
+                                    const { pi_quantity } = formik.values;
+
+                                    calculateTotalRevenue(
+                                      sellingPricePerUnit,
+                                      pi_quantity
+                                    );
+
+                                    // ----------------------- Taxes -----------------------
+                                    const {
+                                      tax_VAT,
+                                      tax_GST,
+                                      tax_salesTax,
+                                      tax_miscCost,
+                                    } = formik.values;
+
+                                    calculateTaxes(
+                                      tax_VAT,
+                                      tax_GST,
+                                      tax_salesTax,
+                                      tax_miscCost,
+                                      sellingPricePerUnit,
+                                      pi_quantity
+                                    );
+                                  }}
+                                />
+                                {/* Total Revenue */}
+                                <FormInput
+                                  label="Total Product Revenue"
+                                  placeholder=""
+                                  className="flex flex-col"
+                                  prefix="$"
+                                  type="number"
+                                  disabled
+                                  required
+                                  error={
+                                    formik.errors.pi_totalRevenue &&
+                                      formik.submitCount > 0
+                                      ? formik.errors.pi_totalRevenue
+                                      : ""
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  {...formik.getFieldProps("pi_totalRevenue")}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          {/* Product Sourcing Cost */}
+                          <div className="box !mb-0">
+                            <div className="box-header border bg-blue-900 !py-3">
+                              <div className="box-title !text-white">
+                                <i className="ti ti-anchor text-[1.2rem] me-2"></i>
+                                Product Sourcing Cost
+                              </div>
+                            </div>
+                            <div className="flex flex-col lg:flex-row">
+                              <div className="p-5 w-full lg:w-4/6 grid grid-cols-1 xl:grid-cols-4 gap-2">
+                                {/* Manufacturing Cost */}
+                                <FormInput
+                                  className="flex flex-col justify-end"
+                                  label="Product Manufacturing"
+                                  placeholder=""
+                                  prefix="$"
+                                  required
+                                  onFocus={(e) => e.target.select()}
+                                  type="number"
+                                  error={
+                                    formik.errors.psc_manufacturingCost &&
+                                      formik.submitCount > 0
+                                      ? (formik.errors
+                                        .psc_manufacturingCost as string)
+                                      : ""
+                                  }
+                                  {...formik.getFieldProps(
+                                    "psc_manufacturingCost"
+                                  )}
+                                  onChange={(e) => {
+                                    formik.handleChange(e);
+
+                                    const manufacturingCost = parseFloat(
+                                      e.target.value
+                                    );
+
+                                    const {
+                                      psc_shippingCost,
+                                      psc_productLogoCost,
+                                      psc_miscCost,
+                                      psc_orderQuantity,
+                                    } = formik.values;
+
+                                    calculateProductSourcingTotals(
+                                      manufacturingCost,
+                                      psc_shippingCost,
+                                      psc_productLogoCost,
+                                      psc_orderQuantity,
+                                      psc_miscCost
+                                    );
+                                  }}
+                                />
+
+                                {/* Shipping Cost */}
+                                <FormInput
+                                  className="flex flex-col justify-end"
+                                  label="Shipping Cost"
+                                  placeholder=""
+                                  prefix="$"
+                                  type="number"
+                                  required
+                                  error={
+                                    formik.errors.psc_shippingCost &&
+                                      formik.submitCount > 0
+                                      ? (formik.errors.psc_shippingCost as string)
+                                      : ""
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  {...formik.getFieldProps("psc_shippingCost")}
+                                  onChange={(e) => {
+                                    formik.handleChange(e);
+
+                                    const shippingCost = parseFloat(
+                                      e.target.value
+                                    );
+
+                                    const {
+                                      psc_manufacturingCost,
+                                      psc_productLogoCost,
+                                      psc_miscCost,
+                                      psc_orderQuantity,
+                                    } = formik.values;
+
+                                    calculateProductSourcingTotals(
+                                      psc_manufacturingCost,
+                                      shippingCost,
+                                      psc_productLogoCost,
+                                      psc_orderQuantity,
+                                      psc_miscCost
+                                    );
+                                  }}
+                                />
+                                {/* Miscellaneous Cost */}
+                                <FormInput
+                                  label="Other Sourcing Costs"
+                                  className="flex flex-col justify-end"
+                                  placeholder=""
+                                  prefix="$"
+                                  type="number"
+                                  error={
+                                    formik.errors.psc_miscCost &&
+                                      formik.submitCount > 0
+                                      ? (formik.errors.psc_miscCost as string)
+                                      : ""
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                  {...formik.getFieldProps("psc_miscCost")}
+                                  onChange={(e) => {
+                                    formik.handleChange(e);
+
+                                    const miscCost = parseFloat(e.target.value);
+
+                                    const {
+                                      psc_manufacturingCost,
+                                      psc_shippingCost,
+                                      psc_productLogoCost,
+                                      psc_orderQuantity,
+                                    } = formik.values;
+
+                                    calculateProductSourcingTotals(
+                                      psc_manufacturingCost,
+                                      psc_shippingCost,
+                                      psc_productLogoCost,
+                                      psc_orderQuantity,
+                                      miscCost
+                                    );
+                                  }}
+                                />
+
+                                {/* Order Quantity */}
+                                <FormInput
+                                  label="Order Quantity"
+                                  className="flex flex-col justify-end"
+                                  placeholder=""
+                                  type="number"
+                                  min={0}
+                                  required
+                                  onFocus={(e) => e.target.select()}
+                                  error={
+                                    formik.errors.psc_orderQuantity &&
+                                      formik.submitCount > 0
+                                      ? (formik.errors
+                                        .psc_orderQuantity as string)
+                                      : ""
+                                  }
+                                  {...formik.getFieldProps("psc_orderQuantity")}
+                                  onChange={(e) => {
+                                    formik.handleChange(e);
+
+                                    const orderQuantity = parseFloat(
+                                      e.target.value
+                                    );
+
+                                    const {
+                                      psc_manufacturingCost,
+                                      psc_productLogoCost,
+                                      psc_miscCost,
+                                      psc_shippingCost,
+                                    } = formik.values;
+
+                                    calculateProductSourcingTotals(
+                                      psc_manufacturingCost,
+                                      psc_shippingCost,
+                                      psc_productLogoCost,
+                                      orderQuantity,
+                                      psc_miscCost
+                                    );
+                                  }}
+                                  onBlur={(e) => {
+                                    formik.handleBlur(e);
+
+                                    const orderQuantity = parseFloat(
+                                      e.target.value
+                                    );
+                                    if (
+                                      orderQuantity < formik.values.pi_quantity
+                                    ) {
+                                      toast.warning(
+                                        "Product sourced quantity should be greater than selling quantity."
+                                      );
+                                      formik.setFieldValue(
+                                        "psc_orderQuantity",
+                                        ""
+                                      );
+                                      // Re-focus on the input field
+                                      setTimeout(() => {
+                                        e.target.focus();
+                                      }, 0);
+                                    }
+                                  }}
+                                />
+
+                                {/* Product Logo / Box Customization / Printing Cost */}
+                                {/* <FormInput
+                                className="flex flex-col justify-end"
+                                label="Product Logo / Box Customization / Printing Cost"
+                                placeholder=""
+                                prefix="$"
+                                type="number"
+                                error={
+                                  formik.errors.psc_productLogoCost &&
+                                  formik.submitCount > 0
+                                    ? (formik.errors
+                                        .psc_productLogoCost as string)
+                                    : ""
+                                }
+                                {...formik.getFieldProps("psc_productLogoCost")}
+                                onFocus={(e) => e.target.select()}
+                                onChange={(e) => {
+                                  formik.handleChange(e);
+
+                                  const productLogoCost = parseFloat(
+                                    e.target.value
+                                  );
+
+                                  const {
+                                    psc_manufacturingCost,
+                                    psc_shippingCost,
+                                    psc_miscCost,
+                                    psc_orderQuantity,
+                                  } = formik.values;
+
+                                  calculateProductSourcingTotals(
+                                    psc_manufacturingCost,
+                                    psc_shippingCost,
+                                    productLogoCost,
+                                    psc_orderQuantity,
+                                    psc_miscCost
+                                  );
+                                }}
+                              /> */}
+                              </div>
+                              <div
+                                className="p-4 grid w-full lg:w-2/6 grid-cols-1 lg:grid-cols-2 gap-2 bg-gray-200 dark:bg-black"
+                                style={{ borderLeft: "2px solid #f4f4f4" }}
+                              >
+                                {/* Cost Per Unit (Without Pre-Launch Samples) */}
+                                <FormInput
+                                  label="Sourcing Cost/Unit"
+                                  className="flex flex-col"
+                                  placeholder=""
+                                  prefix="$"
+                                  disabled
+                                  type="number"
+                                  {...formik.getFieldProps("psc_perUnitCost")}
+                                />
+                                {/* Total Cost */}
+                                <FormInput
+                                  label="Total Sourcing Cost"
+                                  className="flex flex-col"
+                                  placeholder=""
+                                  prefix="$"
+                                  disabled
+                                  type="number"
+                                  onFocus={(e) => e.target.select()}
+                                  error={
+                                    formik.errors.psc_totalCost &&
+                                      formik.submitCount > 0
+                                      ? (formik.errors.psc_totalCost as string)
+                                      : ""
+                                  }
+                                  {...formik.getFieldProps("psc_totalCost")}
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Fulfillment Cost */}
+                          <div className="box !mb-0">
+                            <div className="box-header border bg-blue-900 !py-3">
+                              <div className="box-title !text-white">
+                                <i className="ti ti-anchor text-[1.2rem] me-2"></i>
+                                Fulfillment Cost
+                              </div>
+                            </div>
+                            <div className="flex flex-col lg:flex-row">
+                              <div className="p-5 w-full lg:w-4/6 flex flex-col">
+                                {/* Fulfillment Model */}
+                                <div className="col-span-4 mb-5 flex flex-col">
+                                  <p className="mb-1 text-base font-normal text-dark">
+                                    Fulfillment Model
+                                    <span className="text-red-500">*</span>
+                                  </p>
+                                  <div className="flex items-center justify-evenly">
+                                    <div className="flex items-center gap-x-2">
+                                      <label>FBA</label>
+                                      <input
+                                        type="radio"
+                                        {...formik.getFieldProps("fm_model")}
+                                        value={"FBA"}
+                                        checked={formik.values.fm_model === "FBA"}
+                                        onFocus={(e) => e.target.select()}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+                                          resetFulfillmentModelFields();
+                                        }}
+                                      />
+                                    </div>
+                                    <div className="flex items-center gap-x-2">
+                                      <label>FBM</label>
+                                      <input
+                                        type="radio"
+                                        {...formik.getFieldProps("fm_model")}
+                                        value={"FBM"}
+                                        onFocus={(e) => e.target.select()}
+                                        checked={formik.values.fm_model === "FBM"}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+                                          resetFulfillmentModelFields();
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="w-full grid  grid-cols-1 xl:grid-cols-4 gap-2">
+                                  {/* Referral fees */}
+                                  <FormInput
+                                    label="Amazon Fees"
+                                    type="number"
+                                    className="flex flex-col justify-end"
+                                    placeholder=""
+                                    prefix="$"
+                                    required
+                                    onFocus={(e) => e.target.select()}
+                                    error={
+                                      formik.errors.fm_referrfalFees &&
+                                        formik.submitCount > 0
+                                        ? (formik.errors
+                                          .fm_referrfalFees as string)
+                                        : ""
+                                    }
+                                    {...formik.getFieldProps("fm_referrfalFees")}
+                                    onChange={(e) => {
+                                      formik.handleChange(e);
+
+                                      const referralFees = parseFloat(
+                                        e.target.value
+                                      );
+
+                                      const {
+                                        fm_model,
+                                        fm_fbaFulfillmentFees,
+                                        fm_monthlyStorageFees,
+                                        fm_longTermStorageFees,
+                                        fm_inboundShippingCost,
+                                        fm_shippingFees,
+                                        fm_handlingCost,
+                                        fm_storageCost,
+                                        fm_miscCost,
+                                        fm_returnsRate,
+                                      } = formik.values;
+
+                                      calculateFulfillmentTotals(
+                                        fm_model,
+                                        referralFees,
+                                        fm_fbaFulfillmentFees,
+                                        fm_monthlyStorageFees,
+                                        fm_longTermStorageFees,
+                                        fm_inboundShippingCost,
+                                        fm_shippingFees,
+                                        fm_handlingCost,
+                                        fm_storageCost,
+                                        fm_miscCost,
+                                        fm_returnsRate
+                                      );
+                                    }}
+                                  />
+
+                                  {/* FBA and FBM dependant fields */}
+                                  {formik.values.fm_model === "FBA" ? (
+                                    <>
+                                      <FormInput
+                                        label="Fulfillment Cost"
+                                        placeholder=""
+                                        className="flex flex-col justify-end"
+                                        prefix="$"
+                                        type="number"
+                                        required
+                                        onFocus={(e) => e.target.select()}
+                                        error={
+                                          formik.errors.fm_fbaFulfillmentFees &&
+                                            formik.submitCount > 0
+                                            ? (formik.errors
+                                              .fm_fbaFulfillmentFees as string)
+                                            : ""
+                                        }
+                                        {...formik.getFieldProps(
+                                          "fm_fbaFulfillmentFees"
+                                        )}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+
+                                          const fbaFulfillmentFees = parseFloat(
+                                            e.target.value
+                                          );
+
+                                          const {
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_monthlyStorageFees,
+                                            fm_longTermStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate,
+                                          } = formik.values;
+
+                                          calculateFulfillmentTotals(
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fbaFulfillmentFees,
+                                            fm_monthlyStorageFees,
+                                            fm_longTermStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate
+                                          );
+                                        }}
+                                      />
+
+                                      <FormInput
+                                        label="Storage Cost"
+                                        placeholder=""
+                                        className="flex flex-col justify-end"
+                                        prefix="$"
+                                        type="number"
+                                        required
+                                        onFocus={(e) => e.target.select()}
+                                        error={
+                                          formik.errors.fm_monthlyStorageFees &&
+                                            formik.submitCount > 0
+                                            ? (formik.errors
+                                              .fm_monthlyStorageFees as string)
+                                            : ""
+                                        }
+                                        {...formik.getFieldProps(
+                                          "fm_monthlyStorageFees"
+                                        )}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+
+                                          const monthlyStorageFees = parseFloat(
+                                            e.target.value
+                                          );
+
+                                          const {
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_longTermStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate,
+                                            fm_fbaFulfillmentFees,
+                                          } = formik.values;
+
+                                          calculateFulfillmentTotals(
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_fbaFulfillmentFees,
+                                            monthlyStorageFees,
+                                            fm_longTermStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate
+                                          );
+                                        }}
+                                      />
+
+                                      <FormInput
+                                        label="Inbounding Cost"
+                                        placeholder=""
+                                        className="flex flex-col justify-end"
+                                        prefix="$"
+                                        type="number"
+                                        onFocus={(e) => e.target.select()}
+                                        error={
+                                          formik.errors.fm_longTermStorageFees &&
+                                            formik.submitCount > 0
+                                            ? (formik.errors
+                                              .fm_longTermStorageFees as string)
+                                            : ""
+                                        }
+                                        {...formik.getFieldProps(
+                                          "fm_longTermStorageFees"
+                                        )}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+
+                                          const longTermStorageFees = parseFloat(
+                                            e.target.value
+                                          );
+
+                                          const {
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_monthlyStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate,
+                                            fm_fbaFulfillmentFees,
+                                          } = formik.values;
+
+                                          calculateFulfillmentTotals(
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_fbaFulfillmentFees,
+                                            fm_monthlyStorageFees,
+                                            longTermStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate
+                                          );
+                                        }}
+                                      />
+
+                                      <FormInput
+                                        label="Other FBA Costs"
+                                        placeholder=""
+                                        className="flex flex-col justify-end"
+                                        prefix="$"
+                                        type="number"
+                                        onFocus={(e) => e.target.select()}
+                                        error={
+                                          formik.errors.fm_inboundShippingCost &&
+                                            formik.submitCount > 0
+                                            ? (formik.errors
+                                              .fm_inboundShippingCost as string)
+                                            : ""
+                                        }
+                                        {...formik.getFieldProps(
+                                          "fm_inboundShippingCost"
+                                        )}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+
+                                          const inboundShippingCost = parseFloat(
+                                            e.target.value
+                                          );
+
+                                          const {
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_monthlyStorageFees,
+                                            fm_longTermStorageFees,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate,
+                                            fm_fbaFulfillmentFees,
+                                          } = formik.values;
+
+                                          calculateFulfillmentTotals(
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_fbaFulfillmentFees,
+                                            fm_monthlyStorageFees,
+                                            fm_longTermStorageFees,
+                                            inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate
+                                          );
+                                        }}
+                                      />
+                                    </>
+                                  ) : (
+                                    <>
+                                      <FormInput
+                                        label="Shipping Delivery Charges"
+                                        placeholder=""
+                                        className="flex flex-col justify-end"
+                                        prefix="$"
+                                        type="number"
+                                        onFocus={(e) => e.target.select()}
+                                        error={
+                                          formik.errors.fm_shippingFees &&
+                                            formik.submitCount > 0
+                                            ? (formik.errors
+                                              .fm_shippingFees as string)
+                                            : ""
+                                        }
+                                        {...formik.getFieldProps(
+                                          "fm_shippingFees"
+                                        )}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+
+                                          const shippingFees = parseFloat(
+                                            e.target.value
+                                          );
+
+                                          const {
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_monthlyStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_longTermStorageFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate,
+                                            fm_fbaFulfillmentFees,
+                                          } = formik.values;
+
+                                          calculateFulfillmentTotals(
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_fbaFulfillmentFees,
+                                            fm_monthlyStorageFees,
+                                            fm_longTermStorageFees,
+                                            fm_inboundShippingCost,
+                                            shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate
+                                          );
+                                        }}
+                                      />
+
+                                      <FormInput
+                                        label="Fulfillment Cost"
+                                        placeholder=""
+                                        className="flex flex-col justify-end"
+                                        prefix="$"
+                                        type="number"
+                                        onFocus={(e) => e.target.select()}
+                                        error={
+                                          formik.errors.fm_handlingCost &&
+                                            formik.submitCount > 0
+                                            ? (formik.errors
+                                              .fm_handlingCost as string)
+                                            : ""
+                                        }
+                                        {...formik.getFieldProps(
+                                          "fm_handlingCost"
+                                        )}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+
+                                          const handlingCost = parseFloat(
+                                            e.target.value
+                                          );
+
+                                          const {
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_monthlyStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_longTermStorageFees,
+                                            fm_shippingFees,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate,
+                                            fm_fbaFulfillmentFees,
+                                          } = formik.values;
+
+                                          calculateFulfillmentTotals(
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_fbaFulfillmentFees,
+                                            fm_monthlyStorageFees,
+                                            fm_longTermStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            handlingCost,
+                                            fm_storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate
+                                          );
+                                        }}
+                                      />
+
+                                      <FormInput
+                                        label="Storage Cost"
+                                        placeholder=""
+                                        className="flex flex-col justify-end"
+                                        prefix="$"
+                                        type="number"
+                                        onFocus={(e) => e.target.select()}
+                                        error={
+                                          formik.errors.fm_storageCost &&
+                                            formik.submitCount > 0
+                                            ? (formik.errors
+                                              .fm_storageCost as string)
+                                            : ""
+                                        }
+                                        {...formik.getFieldProps(
+                                          "fm_storageCost"
+                                        )}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+
+                                          const storageCost = parseFloat(
+                                            e.target.value
+                                          );
+
+                                          const {
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_monthlyStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_longTermStorageFees,
+                                            fm_miscCost,
+                                            fm_returnsRate,
+                                            fm_fbaFulfillmentFees,
+                                          } = formik.values;
+
+                                          calculateFulfillmentTotals(
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_fbaFulfillmentFees,
+                                            fm_monthlyStorageFees,
+                                            fm_longTermStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            storageCost,
+                                            fm_miscCost,
+                                            fm_returnsRate
+                                          );
+                                        }}
+                                      />
+
+                                      <FormInput
+                                        label="Other FBM Costs"
+                                        placeholder=""
+                                        className="flex flex-col justify-end"
+                                        prefix="$"
+                                        onFocus={(e) => e.target.select()}
+                                        type="number"
+                                        error={
+                                          formik.errors.fm_miscCost &&
+                                            formik.submitCount > 0
+                                            ? (formik.errors
+                                              .fm_miscCost as string)
+                                            : ""
+                                        }
+                                        {...formik.getFieldProps("fm_miscCost")}
+                                        onChange={(e) => {
+                                          formik.handleChange(e);
+
+                                          const miscCost = parseFloat(
+                                            e.target.value
+                                          );
+
+                                          const {
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_monthlyStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            fm_longTermStorageFees,
+                                            fm_returnsRate,
+                                            fm_fbaFulfillmentFees,
+                                          } = formik.values;
+
+                                          calculateFulfillmentTotals(
+                                            fm_model,
+                                            fm_referrfalFees,
+                                            fm_fbaFulfillmentFees,
+                                            fm_monthlyStorageFees,
+                                            fm_longTermStorageFees,
+                                            fm_inboundShippingCost,
+                                            fm_shippingFees,
+                                            fm_handlingCost,
+                                            fm_storageCost,
+                                            miscCost,
+                                            fm_returnsRate
+                                          );
+                                        }}
+                                      />
+                                    </>
+                                  )}
+
+                                  <SliderInput
+                                    value={Number(formik.values.fm_returnsRate)}
+                                    name="Returns/Refund Rate (Sellable)%"
+                                    error={
+                                      formik.errors.fm_returnsRate &&
+                                        formik.submitCount > 0
+                                        ? (formik.errors.fm_returnsRate as string)
+                                        : ""
+                                    }
+                                    onChange={(e) => {
+                                      const returnsRate = parseFloat(
+                                        e.target.value
+                                      );
+
+                                      formik.setFieldValue(
+                                        "fm_returnsRate",
+                                        returnsRate
+                                      );
+                                      formik.handleChange(e);
+
+                                      const {
+                                        fm_model,
+                                        fm_referrfalFees,
+                                        fm_monthlyStorageFees,
+                                        fm_inboundShippingCost,
+                                        fm_shippingFees,
+                                        fm_handlingCost,
+                                        fm_storageCost,
+                                        fm_miscCost,
+                                        fm_longTermStorageFees,
+                                        fm_fbaFulfillmentFees,
+                                      } = formik.values;
+
+                                      calculateFulfillmentTotals(
+                                        fm_model,
+                                        fm_referrfalFees,
+                                        fm_fbaFulfillmentFees,
+                                        fm_monthlyStorageFees,
+                                        fm_longTermStorageFees,
+                                        fm_inboundShippingCost,
+                                        fm_shippingFees,
+                                        fm_handlingCost,
+                                        fm_storageCost,
+                                        fm_miscCost,
+                                        returnsRate
+                                      );
+                                    }}
+                                  />
+
+                                  {formik.errors.fm_returnsRate &&
+                                    formik.submitCount > 0 ? (
+                                    <p className="text-red-500">
+                                      {formik.errors.fm_returnsRate as string}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <div
+                                className="lg:w-2/6 w-full bg-gray-200 dark:bg-black"
+                                style={{ borderLeft: "2px solid #f4f4f4" }}
+                              >
+                                {/* <div className=""> */}
+                                <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-2">
+                                  <FormInput
+                                    label="Cost/Unit"
+                                    className="flex flex-col"
+                                    placeholder=""
+                                    prefix="$"
+                                    required
+                                    disabled
+                                    type="number"
+                                    onFocus={(e) => e.target.select()}
+                                    error={
+                                      formik.errors.fm_totalCost &&
+                                        formik.submitCount > 0
+                                        ? (formik.errors.fm_perUnitCost as string)
+                                        : ""
+                                    }
+                                    {...formik.getFieldProps("fm_PerUnitCost")}
+                                  />
+                                  <FormInput
+                                    label="Total Cost"
+                                    placeholder=""
+                                    className="flex flex-col"
+                                    prefix="$"
+                                    required
+                                    disabled
+                                    type="number"
+                                    onFocus={(e) => e.target.select()}
+                                    error={
+                                      formik.errors.fm_totalCost &&
+                                        formik.submitCount > 0
+                                        ? (formik.errors.fm_totalCost as string)
+                                        : ""
+                                    }
+                                    {...formik.getFieldProps("fm_totalCost")}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-12">
+                              <div
+                                className="lg:col-start-9 mt-8 lg:mt-0 lg:col-span-4 "
+                                style={{ backgroundColor: "#f4f4f4" }}
+                              >
+                                <RevenueCalculationCard
+                                  bgColor=""
+                                  data={[
+                                    {
+                                      section: "Gross Profit",
+                                      items: [
+                                        {
+                                          label: "Gross Profit/Unit",
+                                          value:
+                                            profitAndRev.grossProfitPerUnit ||
+                                            0.0,
+                                        },
+                                        {
+                                          label: "Total Gross Profit",
+                                          value:
+                                            profitAndRev.grossProfitForQty || 0.0,
+                                        },
+                                      ],
+                                    },
+                                  ]}
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {(checkAccess(EAccessTypes.access_to_net_profit) ||
+                            !isComingFromMatcher) && (
+                              <div className="relative">
+                                {!checkAccess(
+                                  EAccessTypes.access_to_net_profit
+                                ) && (
+                                    <div className="absolute inset-0 bg-gray-700 bg-opacity-75 flex items-center justify-center z-10">
+                                      <div className="text-center p-6 bg-white rounded-lg shadow-lg max-w-md">
+                                        <i className="ti ti-lock text-3xl mb-3 text-gray-700"></i>
+                                        <p className="text-gray-800 font-semibold text-lg mb-2">
+                                          Upgrade your package to access Net Profit
+                                        </p>
+                                        <p className="text-gray-600 mb-4">
+                                          Get access to detailed profit calculations
+                                          and analytics
+                                        </p>
+                                        <Link
+                                          to="/settings/subscription"
+                                          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                        >
+                                          <i className="ti ti-arrow-right mr-2"></i>
+                                          Update Subscription
+                                        </Link>
+                                      </div>
+                                    </div>
+                                  )}
+                                <>
+                                  {/* Marketing, Advertisement and Ranking Cost */}
+                                  <div className="box !mb-0">
+                                    <div className="box-header border bg-blue-900 !py-3">
+                                      <div className="box-title !text-white">
+                                        <i className="ti ti-anchor text-[1.2rem] me-2"></i>
+                                        Marketing and Ads Cost
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col lg:flex-row">
+                                      <div className="p-5 w-full lg:w-4/6 grid  grid-cols-1 xl:grid-cols-4 gap-2">
+                                        <FormInput
+                                          label="Pay-per-Click(PPC)"
+                                          type="number"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          required
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.marc_marketingCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .marc_marketingCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "marc_marketingCost"
+                                          )}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const marketingCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              marc_attributionCost,
+                                              marc_influencerCost,
+                                              marc_miscCost,
+                                              marc_marketingVATCost,
+                                            } = formik.values;
+
+                                            calculateMarketingTotals(
+                                              marketingCost,
+                                              marc_attributionCost,
+                                              marc_influencerCost,
+                                              marc_miscCost,
+                                              marc_marketingVATCost
+                                            );
+                                          }}
+                                        />
+
+                                        <FormInput
+                                          label="Attribution Links"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.marc_attributionCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .marc_attributionCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "marc_attributionCost"
+                                          )}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const attributionCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              marc_marketingCost,
+                                              marc_influencerCost,
+                                              marc_miscCost,
+                                              marc_marketingVATCost,
+                                            } = formik.values;
+
+                                            calculateMarketingTotals(
+                                              marc_marketingCost,
+                                              attributionCost,
+                                              marc_influencerCost,
+                                              marc_miscCost,
+                                              marc_marketingVATCost
+                                            );
+                                          }}
+                                        />
+
+                                        <FormInput
+                                          label="Promotion/Other Costs"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          error={
+                                            formik.errors.marc_influencerCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .marc_influencerCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "marc_influencerCost"
+                                          )}
+                                          onFocus={(e) => e.target.select()}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const influencerCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              marc_marketingCost,
+                                              marc_attributionCost,
+                                              marc_miscCost,
+                                              marc_marketingVATCost,
+                                            } = formik.values;
+
+                                            calculateMarketingTotals(
+                                              marc_marketingCost,
+                                              marc_attributionCost,
+                                              influencerCost,
+                                              marc_miscCost,
+                                              marc_marketingVATCost
+                                            );
+                                          }}
+                                        />
+
+                                        <FormInput
+                                          label="PPC VAT(if Applicable)"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.marc_miscCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .marc_miscCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps("marc_miscCost")}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const miscCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              marc_marketingCost,
+                                              marc_attributionCost,
+                                              marc_influencerCost,
+                                              marc_marketingVATCost,
+                                            } = formik.values;
+
+                                            calculateMarketingTotals(
+                                              marc_marketingCost,
+                                              marc_attributionCost,
+                                              marc_influencerCost,
+                                              miscCost,
+                                              marc_marketingVATCost
+                                            );
+                                          }}
+                                        />
+
+                                        {/* <FormInput
+                                    className="flex flex-col justify-end"
+                                    label="Marketing & Advertising (PPC) VAT Costs (if applicable)"
+                                    placeholder=""
+                                    prefix="$"
+                                    type="number"
+                                    onFocus={(e) => e.target.select()}
+                                    error={
+                                      formik.errors.marc_marketingVATCost &&
+                                      formik.submitCount > 0
+                                        ? (formik.errors
+                                            .marc_marketingVATCost as string)
+                                        : ""
+                                  }
+                                  {...formik.getFieldProps(
+                                    "marc_marketingVATCost"
+                                  )}
+                                  onChange={(e) => {
+                                    formik.handleChange(e);
+
+                                    const marketingVATCost = parseFloat(
+                                      e.target.value
+                                    );
+
+                                    const {
+                                      marc_marketingCost,
+                                      marc_influencerCost,
+                                      marc_miscCost,
+                                      marc_attributionCost,
+                                    } = formik.values;
+
+                                    calculateMarketingTotals(
+                                      marc_marketingCost,
+                                      marc_attributionCost,
+                                      marc_influencerCost,
+                                      marc_miscCost,
+                                      marketingVATCost
+                                    );
+                                  }}
+                                /> */}
+                                      </div>
+                                      <div
+                                        className="p-3.5 grid w-full lg:w-2/6 grid-cols-1 lg:grid-cols-2 gap-2 bg-gray-200 dark:bg-black"
+                                        style={{ borderLeft: "2px solid #f4f4f4" }}
+                                      >
+                                        <FormInput
+                                          label="Marketing Cost/Unit"
+                                          placeholder=""
+                                          className="flex flex-col"
+                                          prefix="$"
+                                          type="number"
+                                          disabled
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.marc_perUnitCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .marc_perUnitCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "marc_perUnitCost"
+                                          )}
+                                        />
+                                        <FormInput
+                                          label="Total Marketing Cost"
+                                          className="flex flex-col"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          disabled
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.marc_totalCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .marc_totalCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "marc_totalCost"
+                                          )}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Graphics Cost */}
+                                  <div className="box !mb-0">
+                                    <div className="box-header border bg-blue-900 !py-3">
+                                      <div className="box-title !text-white">
+                                        <i className="ti ti-anchor text-[1.2rem] me-2"></i>
+                                        Graphics Design Cost
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col lg:flex-row">
+                                      <div className="p-5 w-full lg:w-4/6 grid  grid-cols-1 xl:grid-cols-4 gap-2">
+                                        <FormInput
+                                          className="flex flex-col justify-end"
+                                          label="A+ Content"
+                                          type="number"
+                                          placeholder=""
+                                          prefix="$"
+                                          onFocus={(e) => e.target.select()}
+                                          required
+                                          error={
+                                            formik.errors
+                                              .gc_imagingAndPhotographyCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .gc_imagingAndPhotographyCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "gc_imagingAndPhotographyCost"
+                                          )}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const imagingAndPhotographyCost =
+                                              parseFloat(e.target.value);
+
+                                            const {
+                                              gc_videographyCost,
+                                              gc_productPackingCost,
+                                              gc_3dAnimationCost,
+                                              gc_miscCost,
+                                            } = formik.values;
+
+                                            calculateGraphicsCost(
+                                              imagingAndPhotographyCost,
+                                              gc_videographyCost,
+                                              gc_productPackingCost,
+                                              gc_3dAnimationCost,
+                                              gc_miscCost
+                                            );
+                                          }}
+                                        />
+                                        <FormInput
+                                          label="Videography"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          className="flex flex-col justify-end"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.gc_videographyCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .gc_videographyCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "gc_videographyCost"
+                                          )}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const videographyCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              gc_imagingAndPhotographyCost,
+                                              gc_productPackingCost,
+                                              gc_3dAnimationCost,
+                                              gc_miscCost,
+                                            } = formik.values;
+
+                                            calculateGraphicsCost(
+                                              gc_imagingAndPhotographyCost,
+                                              videographyCost,
+                                              gc_productPackingCost,
+                                              gc_3dAnimationCost,
+                                              gc_miscCost
+                                            );
+                                          }}
+                                        />
+                                        <FormInput
+                                          label="Product Packaging"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.gc_productPackingCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .gc_productPackingCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "gc_productPackingCost"
+                                          )}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const productPackingCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              gc_imagingAndPhotographyCost,
+                                              gc_videographyCost,
+                                              gc_3dAnimationCost,
+                                              gc_miscCost,
+                                            } = formik.values;
+
+                                            calculateGraphicsCost(
+                                              gc_imagingAndPhotographyCost,
+                                              gc_videographyCost,
+                                              productPackingCost,
+                                              gc_3dAnimationCost,
+                                              gc_miscCost
+                                            );
+                                          }}
+                                        />
+                                        {/* <FormInput
+                                    label="3D Animation Cost"
+                                    className="flex flex-col justify-end"
+                                    placeholder=""
+                                    prefix="$"
+                                    type="number"
+                                    onFocus={(e) => e.target.select()}
+                                    error={
+                                      formik.errors.gc_3dAnimationCost &&
+                                      formik.submitCount > 0
+                                        ? (formik.errors
+                                            .gc_3dAnimationCost as string)
+                                        : ""
+                                  }
+                                  {...formik.getFieldProps("gc_3dAnimationCost")}
+                                  onChange={(e) => {
+                                    formik.handleChange(e);
+
+                                    const threeDAnimationCost = parseFloat(
+                                      e.target.value
+                                    );
+
+                                    const {
+                                      gc_imagingAndPhotographyCost,
+                                      gc_videographyCost,
+                                      gc_productPackingCost,
+                                      gc_miscCost,
+                                    } = formik.values;
+
+                                    calculateGraphicsCost(
+                                      gc_imagingAndPhotographyCost,
+                                      gc_videographyCost,
+                                      gc_productPackingCost,
+                                      threeDAnimationCost,
+                                      gc_miscCost
+                                    );
+                                  }}
+                                /> */}
+                                        <FormInput
+                                          label="Other Content Costs"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.gc_miscCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .gc_miscCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps("gc_miscCost")}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const miscCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              gc_imagingAndPhotographyCost,
+                                              gc_videographyCost,
+                                              gc_productPackingCost,
+                                              gc_3dAnimationCost,
+                                            } = formik.values;
+
+                                            calculateGraphicsCost(
+                                              gc_imagingAndPhotographyCost,
+                                              gc_videographyCost,
+                                              gc_productPackingCost,
+                                              gc_3dAnimationCost,
+                                              miscCost
+                                            );
+                                          }}
+                                        />
+                                      </div>
+                                      <div
+                                        className="p-5 grid w-full lg:w-2/6 grid-cols-1 bg-gray-200 dark:bg-black lg:grid-cols-2 gap-2"
+                                        style={{ borderLeft: "2px solid #f4f4f4" }}
+                                      >
+                                        <FormInput
+                                          label="Graphics Cost/Unit"
+                                          className="flex flex-col"
+                                          placeholder=""
+                                          prefix="$"
+                                          disabled
+                                          type="number"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.gc_perUnitCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .gc_perUnitCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "gc_perUnitCost"
+                                          )}
+                                        />
+                                        <FormInput
+                                          label="Total Graphics Cost"
+                                          className="flex flex-col"
+                                          placeholder=""
+                                          prefix="$"
+                                          disabled
+                                          type="number"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.gc_totalCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .gc_totalCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps("gc_totalCost")}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Reviewer Program Cost */}
+                                  <div className="box !mb-0">
+                                    <div className="box-header border bg-blue-900 !py-3">
+                                      <div className="box-title !text-white">
+                                        <i className="ti ti-anchor text-[1.2rem] me-2"></i>
+                                        Reviewer Program Cost
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col lg:flex-row">
+                                      <div className="p-5 w-full lg:w-4/6 grid  grid-cols-1 xl:grid-cols-4 gap-2">
+                                        <FormInput
+                                          label="Review Related Expenses"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.pfc_vineProgramCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .pfc_vineProgramCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "pfc_vineProgramCost"
+                                          )}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const vineProgramCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const { pfc_miscCost } = formik.values;
+
+                                            calculateProductFeedbackTotals(
+                                              vineProgramCost,
+                                              pfc_miscCost
+                                            );
+                                          }}
+                                        />
+
+                                        <FormInput
+                                          label="Other Associated Costs"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.pfc_miscCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .pfc_miscCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps("pfc_miscCost")}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const miscCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const { pfc_vineProgramCost } =
+                                              formik.values;
+
+                                            calculateProductFeedbackTotals(
+                                              pfc_vineProgramCost,
+                                              miscCost
+                                            );
+                                          }}
+                                        />
+                                      </div>
+                                      <div
+                                        className="p-5 grid w-full lg:w-2/6 grid-cols-1 lg:grid-cols-2 gap-2 bg-gray-200 dark:bg-black"
+                                        style={{ borderLeft: "2px solid #f4f4f4" }}
+                                      >
+                                        <FormInput
+                                          label="Review Cost/Unit "
+                                          className="flex flex-col"
+                                          placeholder=""
+                                          prefix="$"
+                                          onFocus={(e) => e.target.select()}
+                                          disabled
+                                          error={
+                                            formik.errors.pfc_perUnitCost &&
+                                              formik.submitCount > 0
+                                              ? formik.errors.pfc_perUnitCost
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "pfc_perUnitCost"
+                                          )}
+                                        />
+                                        <FormInput
+                                          label="Total Review Prog. Cost"
+                                          className="flex flex-col"
+                                          placeholder=""
+                                          prefix="$"
+                                          disabled
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.pfc_totalCost &&
+                                              formik.submitCount > 0
+                                              ? formik.errors.pfc_totalCost
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps("pfc_totalCost")}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Other Costs */}
+                                  <div className="box !mb-0">
+                                    <div className="box-header border bg-blue-900 !py-3">
+                                      <div className="box-title !text-white">
+                                        <i className="ti ti-anchor text-[1.2rem] me-2"></i>
+                                        Additional Costs
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col lg:flex-row">
+                                      <div className="p-5 w-full lg:w-4/6 grid  grid-cols-1 xl:grid-cols-4 gap-2">
+                                        {/* Pre-launch QA samples (if requested) */}
+                                        <FormInput
+                                          label="Pre-launch Samples"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          error={
+                                            formik.errors.oc_preLaunchSamples &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .oc_preLaunchSamples as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "oc_preLaunchSamples"
+                                          )}
+                                          onFocus={(e) => e.target.select()}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const preLaunchSamples = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              oc_competitorProductSamples,
+                                              oc_employeesCost,
+                                              oc_anyOtherCost,
+                                            } = formik.values;
+
+                                            calculateOtherCostsTotals(
+                                              oc_competitorProductSamples,
+                                              oc_employeesCost,
+                                              oc_anyOtherCost,
+                                              preLaunchSamples
+                                            );
+                                          }}
+                                        />
+                                        <FormInput
+                                          className="flex flex-col justify-end"
+                                          label="Competitor Samples"
+                                          type="number"
+                                          prefix="$"
+                                          placeholder=""
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors
+                                              .oc_competitorProductSamples &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .oc_competitorProductSamples as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "oc_competitorProductSamples"
+                                          )}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const competitorProductSamples =
+                                              parseFloat(e.target.value);
+
+                                            const {
+                                              oc_employeesCost,
+                                              oc_anyOtherCost,
+                                              oc_preLaunchSamples,
+                                            } = formik.values;
+
+                                            calculateOtherCostsTotals(
+                                              competitorProductSamples,
+                                              oc_employeesCost,
+                                              oc_anyOtherCost,
+                                              oc_preLaunchSamples
+                                            );
+                                          }}
+                                        />
+
+                                        <FormInput
+                                          label="Employees Cost"
+                                          className="flex flex-col justify-end"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          error={
+                                            formik.errors.oc_employeesCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .oc_employeesCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "oc_employeesCost"
+                                          )}
+                                          onFocus={(e) => e.target.select()}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const employeesCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              oc_competitorProductSamples,
+                                              oc_anyOtherCost,
+                                              oc_preLaunchSamples,
+                                            } = formik.values;
+
+                                            calculateOtherCostsTotals(
+                                              oc_competitorProductSamples,
+                                              employeesCost,
+                                              oc_anyOtherCost,
+                                              oc_preLaunchSamples
+                                            );
+                                          }}
+                                        />
+
+                                        <FormInput
+                                          label="Miscellaneous Cost"
+                                          placeholder=""
+                                          className="flex flex-col justify-end"
+                                          prefix="$"
+                                          type="number"
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.oc_anyOtherCost &&
+                                              formik.submitCount > 0
+                                              ? formik.errors.oc_anyOtherCost
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "oc_anyOtherCost"
+                                          )}
+                                          onChange={(e) => {
+                                            formik.handleChange(e);
+
+                                            const anyOtherCost = parseFloat(
+                                              e.target.value
+                                            );
+
+                                            const {
+                                              oc_competitorProductSamples,
+                                              oc_employeesCost,
+                                              oc_preLaunchSamples,
+                                            } = formik.values;
+
+                                            calculateOtherCostsTotals(
+                                              oc_competitorProductSamples,
+                                              oc_employeesCost,
+                                              anyOtherCost,
+                                              oc_preLaunchSamples
+                                            );
+                                          }}
+                                        />
+                                      </div>
+                                      <div
+                                        className="p-4 grid w-full lg:w-2/6 grid-cols-1 lg:grid-cols-2 gap-2 bg-gray-200 dark:bg-black"
+                                        style={{ borderLeft: "2px solid #f4f4f4" }}
+                                      >
+                                        <FormInput
+                                          label="Additional Cost/Unit"
+                                          className="flex flex-col"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          disabled
+                                          error={
+                                            formik.errors.oc_perUnitCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .oc_perUnitCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "oc_perUnitCost"
+                                          )}
+                                        />
+
+                                        <FormInput
+                                          label="Total Additional Cost"
+                                          className="flex flex-col"
+                                          placeholder=""
+                                          prefix="$"
+                                          disabled
+                                          type="number"
+                                          error={
+                                            formik.errors.oc_totalCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .oc_totalCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps("oc_totalCost")}
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 lg:grid-cols-12">
+                                      <div
+                                        className="lg:col-start-9 mt-8 lg:mt-0 lg:col-span-4"
+                                        style={{ backgroundColor: "#f4f4f4" }}
+                                      >
+                                        <div className="relative">
+                                          <RevenueCalculationCard
+                                            // bgColor="primary"
+                                            bgColor=""
+                                            data={[
+                                              {
+                                                section: "Gross Profit",
+                                                items: [
+                                                  {
+                                                    label: "Net Profit/Unit",
+                                                    value:
+                                                      profitAndRev.netProfitBeforeTaxesPerUnit ||
+                                                      0.0,
+                                                  },
+                                                  {
+                                                    label: "Total Net Profit",
+                                                    value:
+                                                      profitAndRev.netProfitBeforeTaxesForQty ||
+                                                      0.0,
+                                                  },
+                                                ],
+                                              },
+                                            ]}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Taxes */}
+                                  <div className="box !mb-0">
+                                    <div className="box-header border bg-blue-900 !py-3">
+                                      <div className="box-title !text-white">
+                                        <i className="ti ti-anchor text-[1.2rem] me-2"></i>
+                                        Taxes{" "}
+                                        <span className="text-sm">
+                                          (if applicable)
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col lg:flex-row">
+                                      <div className="p-5 w-full lg:w-4/6 flex  flex-col gap-2">
+                                        <div className="flex w-full flex-col gap-y-2">
+                                          <div className="text-sm font-semibold text-dark mb-1 flex items-center space-x-2">
+                                            <span>Select Region</span>
+                                            <div className="relative inline-block group">
+                                              <button className="p-1">
+                                                <img
+                                                  src={Icon}
+                                                  alt=""
+                                                  className="w-5 dark:bg-white rounded-xl"
+                                                />
+                                              </button>
+
+                                              <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-[rgba(250,250,245,0.9)] text-gray-900 text-xs font-medium px-2 py-1 rounded shadow-sm z-10 w-[320px] whitespace-normal border">
+                                                Check and adjust VAT, GST, Sales
+                                                Tax, or Other taxes manually per
+                                                your selling marketplace. Tax
+                                                regulations vary by region.
+                                              </span>
+                                            </div>
+                                          </div>
+
+                                          <select
+                                            className="w-full bg-white border border-gray-300 text-gray-500 rounded-md p-2"
+                                            value={formik.values.tax_region}
+                                            onChange={(e) => {
+                                              const newOpt = {
+                                                label: e.target.value,
+                                                value: e.target.value,
+                                              };
+                                              formik.setFieldValue(
+                                                "tax_region",
+                                                newOpt.value
+                                              );
+
+                                              const taxRate = TAX_OPTIONS.find(
+                                                (tax) => tax.code === newOpt.value
+                                              );
+
+                                              formik.setFieldValue(
+                                                "tax_VAT",
+                                                taxRate?.vat || 0
+                                              );
+
+                                              formik.setFieldValue(
+                                                "tax_GST",
+                                                taxRate?.gst || 0
+                                              );
+
+                                              formik.setFieldValue(
+                                                "tax_salesTax",
+                                                taxRate?.salesTax || 0
+                                              );
+
+                                              formik.setFieldValue(
+                                                "tax_miscCost",
+                                                taxRate?.misc || 0
+                                              );
+
+                                              calculateTaxes(
+                                                taxRate?.vat || 0,
+                                                taxRate?.gst || 0,
+                                                taxRate?.salesTax || 0,
+                                                taxRate?.misc || 0
+                                              );
+                                            }}
+                                          >
+                                            <option value="">Select Region</option>
+                                            {COUNTRY_OPTIONS.map((option) => (
+                                              <option
+                                                key={option.value}
+                                                value={option.value}
+                                              >
+                                                {option.label}
+                                              </option>
+                                            ))}
+                                          </select>
+
+                                          {formik.values.tax_region ? (
+                                            getTaxNotes()
+                                          ) : (
+                                            <></>
+                                          )}
+
+                                          {formik.errors.tax_region &&
+                                            formik.submitCount > 0 ? (
+                                            <p className="text-red-500">
+                                              {formik.errors.tax_region as string}
+                                            </p>
+                                          ) : (
+                                            <></>
+                                          )}
+                                        </div>
+                                        <div className="grid grid-cols-1 xl:grid-cols-4 gap-2">
+                                          <SliderInput
+                                            value={Number(formik.values.tax_VAT)}
+                                            name="VAT"
+                                            error={
+                                              formik.errors.tax_VAT &&
+                                                formik.submitCount > 0
+                                                ? (formik.errors.tax_VAT as string)
+                                                : ""
+                                            }
+                                            onChange={(e) => {
+                                              const vatTax = Number(e.target.value);
+
+                                              formik.setFieldValue(
+                                                "tax_VAT",
+                                                vatTax
+                                              );
+
+                                              const {
+                                                tax_GST,
+                                                tax_salesTax,
+                                                tax_miscCost,
+                                              } = formik.values;
+
+                                              calculateTaxes(
+                                                vatTax,
+                                                tax_GST,
+                                                tax_salesTax,
+                                                tax_miscCost
+                                              );
+                                            }}
+                                          />
+
+                                          <SliderInput
+                                            value={Number(formik.values.tax_GST)}
+                                            name="GST"
+                                            error={
+                                              formik.errors.tax_GST &&
+                                                formik.submitCount > 0
+                                                ? (formik.errors.tax_GST as string)
+                                                : ""
+                                            }
+                                            onChange={(e) => {
+                                              // formik.handleChange(e);
+                                              const gstTax = Number(e.target.value);
+
+                                              formik.setFieldValue(
+                                                "tax_GST",
+                                                gstTax
+                                              );
+
+                                              const {
+                                                tax_VAT,
+                                                tax_salesTax,
+                                                tax_miscCost,
+                                              } = formik.values;
+
+                                              calculateTaxes(
+                                                tax_VAT,
+                                                gstTax,
+                                                tax_salesTax,
+                                                tax_miscCost
+                                              );
+                                            }}
+                                          />
+
+                                          <SliderInput
+                                            value={Number(
+                                              formik.values.tax_salesTax
+                                            )}
+                                            name="Sales Tax"
+                                            error={
+                                              formik.errors.tax_salesTax &&
+                                                formik.submitCount > 0
+                                                ? (formik.errors
+                                                  .tax_salesTax as string)
+                                                : ""
+                                            }
+                                            onChange={(e) => {
+                                              const salesTax = Number(
+                                                e.target.value
+                                              );
+
+                                              formik.setFieldValue(
+                                                "tax_salesTax",
+                                                salesTax
+                                              );
+
+                                              const {
+                                                tax_VAT,
+                                                tax_GST,
+                                                tax_miscCost,
+                                              } = formik.values;
+
+                                              calculateTaxes(
+                                                tax_VAT,
+                                                tax_GST,
+                                                salesTax,
+                                                tax_miscCost
+                                              );
+                                            }}
+                                          />
+
+                                          <FormInput
+                                            label="Miscellaneous Cost"
+                                            className="flex flex-col justify-end"
+                                            placeholder=""
+                                            prefix="$"
+                                            type="number"
+                                            error={
+                                              formik.errors.tax_miscCost &&
+                                                formik.submitCount > 0
+                                                ? (formik.errors
+                                                  .tax_miscCost as string)
+                                                : ""
+                                            }
+                                            {...formik.getFieldProps(
+                                              "tax_miscCost"
+                                            )}
+                                            onChange={(e) => {
+                                              const miscCost = Number(
+                                                e.target.value
+                                              );
+
+                                              formik.setFieldValue(
+                                                "tax_miscCost",
+                                                miscCost
+                                              );
+
+                                              const {
+                                                tax_VAT,
+                                                tax_GST,
+                                                tax_salesTax,
+                                              } = formik.values;
+
+                                              calculateTaxes(
+                                                tax_VAT,
+                                                tax_GST,
+                                                tax_salesTax,
+                                                miscCost
+                                              );
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                      <div
+                                        className="p-5 grid w-full lg:w-2/6 grid-cols-1 lg:grid-cols-2 gap-2 bg-gray-200 dark:bg-black"
+                                        style={{ borderLeft: "2px solid #f4f4f4" }}
+                                      >
+                                        <FormInput
+                                          label="Taxes/Unit"
+                                          className="flex flex-col"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          disabled
+                                          error={
+                                            formik.errors.tax_perUnitCost &&
+                                              formik.submitCount > 0
+                                              ? (formik.errors
+                                                .tax_perUnitCost as string)
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps(
+                                            "tax_perUnitCost"
+                                          )}
+                                        />
+
+                                        <FormInput
+                                          label="Total Taxes"
+                                          className="flex flex-col"
+                                          placeholder=""
+                                          prefix="$"
+                                          type="number"
+                                          disabled
+                                          onFocus={(e) => e.target.select()}
+                                          error={
+                                            formik.errors.tax_totalCost &&
+                                              formik.submitCount > 0
+                                              ? formik.errors.tax_totalCost
+                                              : ""
+                                          }
+                                          {...formik.getFieldProps("tax_totalCost")}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-1 lg:grid-cols-12">
+                                    <div
+                                      className="lg:col-start-9 mt-8 lg:mt-0 lg:col-span-4"
+                                      style={{ backgroundColor: "#f4f4f4" }}
+                                    >
+                                      <div className="relative">
+                                        <RevenueCalculationCard
+                                          bgColor=""
+                                          data={[
+                                            {
+                                              section: "Gross Profit",
+                                              items: [
+                                                {
+                                                  label: "Net Profit/Unit",
+                                                  value:
+                                                    profitAndRev.netProfitAfterTaxesPerUnit ||
+                                                    0.0,
+                                                },
+                                                {
+                                                  label: "Total Net Profit",
+                                                  value:
+                                                    profitAndRev.netProfitAfterTaxesForQty ||
+                                                    0.0,
+                                                },
+                                              ],
+                                            },
+                                          ]}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </>
+                              </div>
+                            )}
+                        </div>
+                      </form>
+                    </div>
+
+                    <div
+                      id="hs-stacked-overlays"
+                      className={`hs-overlay ${isPopupOpen ? "block" : "hidden"
+                        } hs-overlay-backdrop-open:bg-gray-900/50 size-full fixed top-0 start-0 z-[60] overflow-x-hidden overflow-y-auto backdrop-blur-sm bg-gray-900/50`}
+                    >
+                      <div className="mt-7 hs-overlay-open:opacity-100  hs-overlay-open:duration-500 opacity-100 ease-out transition-all sm:max-w-2xl sm:w-full m-3 sm:mx-auto">
+                        <div className="flex flex-col bg-white border shadow-sm rounded-sm dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
+                          <div className="flex justify-between items-center py-3 px-4 border-b dark:border-neutral-700">
+                            <h6 className="font-bold text-gray-800 dark:text-white">
+                              Save Search
+                            </h6>
+                            <button
+                              type="button"
+                              className="flex justify-center items-center size-7 text-sm font-semibold rounded-full border border-transparent text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-neutral-700"
+                              onClick={closePopup}
+                            >
+                              <span className="sr-only">Close</span>
+                              <svg
+                                className="flex-shrink-0 size-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M18 6 6 18"></path>
+                                <path d="m6 6 12 12"></path>
+                              </svg>
+                            </button>
+                          </div>
+
+                          <div className="p-4 overflow-y-auto">
+                            {isPopupLoading ? (
+                              <div className="space-y-4">
+                                <div className="h-6 w-3/4 bg-gray-300 rounded animate-pulse"></div>
+                                <div className="h-4 w-full bg-gray-300 rounded animate-pulse"></div>
+                                <div className="h-4 w-5/6 bg-gray-300 rounded animate-pulse"></div>
+                                <div className="h-4 w-4/6 bg-gray-300 rounded animate-pulse"></div>
+                                <div className="flex justify-end space-x-2">
+                                  <div className="h-8 w-14 bg-gray-400 rounded-full animate-pulse"></div>
+                                  <div className="h-8 w-14 bg-gray-400 rounded-full animate-pulse"></div>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex flex-col gap-y-5">
+                                  {/* <input
+                                  placeholder="Enter title"
+                                  onChange={(e) => setSaveTitle(e.target.value)}
+                                  className="w-full border border-gray-500"
+                                  value={saveTitle}
+                                  required
+                                /> */}
+                                  <div>
+                                    <div className="text-xs font-semibold text-dark mb-1">
+                                      Select Category
+                                    </div>
+                                    <select
+                                      className="w-full bg-white border border-gray-300 text-gray-500 rounded-md p-2"
+                                      value={selectedCategory}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value) {
+                                          setSelectedCategory(value);
+                                        }
+                                      }}
+                                    >
+                                      <option value="">Select Category</option>
+                                      {categories.map((cat: any) => (
+                                        <option key={cat.id} value={cat.id}>
+                                          {cat.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    {/* Button to open second level modal */}
+                                    <button
+                                      className="inline-flex text-xs mt-2 text-primary disabled:opacity-50 disabled:pointer-events-none"
+                                      onClick={openSecondPopup}
+                                    >
+                                      Add Category
+                                    </button>
+                                  </div>
+
+                                  <div className="flex justify-end items-center gap-x-2 py-3 border-t dark:border-neutral-700">
+                                    <div
+                                      onClick={() => {
+                                        setSaveTitle("");
+                                        setSaveDescription("");
+                                        setSelectedCategory("");
+                                        setIsPopupOpen(false);
+                                      }}
+                                      className="rounded-full py-2 px-4 bg-danger text-white hover:bg-red-600"
+                                    >
+                                      Cancel
+                                    </div>
+                                    <div
+                                      onClick={() => {
+                                        if (selectedCategory.trim()) {
+                                          saveProductSubmit();
+                                        } else {
+                                          formik.submitForm();
+                                          toast.error(
+                                            "Title and Category is required"
+                                          );
+                                        }
+                                      }}
+                                      className="bg-success py-2 px-4 rounded-full text-white hover:bg-green-500 cursor-pointer"
+                                    >
+                                      Save
+                                    </div>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Second Modal Level */}
+                    <div
+                      id="advanced-options-overlay"
+                      className={`hs-overlay ${isSecondPopupOpen ? "block" : "hidden"
+                        } hs-overlay-backdrop-open:bg-gray-900/70 size-full fixed top-0 start-0 z-[70] overflow-x-hidden overflow-y-auto backdrop-blur-sm bg-gray-900/70`}
+                    >
+                      <div className="mt-32 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 opacity-100 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto">
+                        <div className="flex flex-col bg-white border shadow-sm rounded-sm dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
+                          <div className="flex justify-between items-center py-3 px-4 border-b dark:border-neutral-700">
+                            <h6 className="font-bold text-gray-800 dark:text-white">
+                              Add Category
+                            </h6>
+                            <button
+                              type="button"
+                              className="flex justify-center items-center size-7 text-sm font-semibold rounded-full border border-transparent text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-neutral-700"
+                              onClick={closeSecondPopup}
+                            >
+                              <span className="sr-only">Close</span>
+                              <svg
+                                className="flex-shrink-0 size-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M18 6 6 18"></path>
+                                <path d="m6 6 12 12"></path>
+                              </svg>
+                            </button>
+                          </div>
+
+                          <div className="p-4 overflow-y-auto">
+                            <div className="flex flex-col">
+                              <FormInput
+                                label="Enter New Category"
+                                className="flex flex-col"
+                                placeholder="Enter New Category"
+                                prefix=""
+                                required
+                                value={newCategory}
+                                type="string"
+                                onChange={(e) => setNewCategory(e.target.value)}
+                                onFocus={(e) => e.target.select()}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t dark:border-neutral-700">
+                            <button
+                              className="rounded-full py-2 px-4 bg-danger text-white hover:bg-red-600"
+                              onClick={closeSecondPopup}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="bg-success py-2 px-4 rounded-full text-white hover:bg-green-500 cursor-pointer"
+                              onClick={() => {
+                                if (newCategory.trim()) {
+                                  updateCategoryMutate({ name: newCategory });
+                                } else {
+                                  formik.submitForm();
+                                  toast.error("Category is required");
+                                }
+                              }}
+                              disabled={isPending}
+                            >
+                              {isPending ? "Saving..." : "Add Category"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* <Popup modal open={isPopupOpen} closeOnDocumentClick={false}>
+                    <div className="flex flex-col gap-y-5 p-3">
+                      {isPopupLoading ? (
+                        <h1>Loading...</h1>
+                      ) : (
+                        <>
+                          <p className="text-lg text-gray-600">Save Search</p>
+                          <input
+                            placeholder="Enter title"
+                            onChange={(e) => setSaveTitle(e.target.value)}
+                            className="w-full border border-gray-500"
+                            value={saveTitle}
+                          />
+                          <textarea
+                            value={saveDescription}
+                            placeholder="Enter description"
+                            onChange={(e) => setSaveDescription(e.target.value)}
+                            rows={4}
+                            className="w-full border border-gray-500"
+                          />
+                          <div className="flex gap-x-2 items-center justify-end">
+                            <div
+                              onClick={() => {
+                                setSaveTitle("");
+                                setSaveDescription("");
+                                setIsPopupOpen(false);
+                              }}
+                              className="rounded-full py-2 px-4 bg-danger text-white hover:bg-red-600"
+                            >
+                              Cancel
+                            </div>
+                            <div
+                              onClick={saveProductSubmit}
+                              className="bg-success py-2 px-4 rounded-full text-white hover:bg-green-500 cursor-pointer"
+                            >
+                              Save
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </Popup> */}
+                  </div>
+                </>
+              )}
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
-
 export default AmazonProfitCalculatorModal;
 

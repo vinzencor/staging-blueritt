@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { X, ExternalLink, Star, Package, MessageSquare, DollarSign, Truck, Shield, Zap, Calculator, Save } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useDispatch } from 'react-redux';
 
 import {
   getAmazonExplorerProductDetails,
@@ -79,6 +80,9 @@ interface ProfitCalculation {
 type TabType = 'overview' | 'reviews' | 'offers' | 'suppliers';
 
 const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOpen, onClose, autoStartSupplierDiscovery = false, country = 'US' }) => {
+  // Redux dispatch for setting profit pro source
+  const dispatch = useDispatch();
+
   // Quota management for supplier discovery (shared with BlueRitt Explorer and TikTok Trends)
   const { quotaDetails: supplierQuotaDetails, updateQuota: updateSupplierQuota } = useUserSubscriptionAndSearchQuota(QuotaNames.SupplierDiscovery);
 
@@ -356,6 +360,12 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
     setShowAddCategory(false);
     setNewCategoryName('');
 
+    // ✅ Set profit pro source to 'amazon_trends' for Amazon Trends products
+    dispatch({
+      type: 'SET_PROFIT_PRO_SOURCE',
+      payload: 'amazon_trends',
+    });
+
     setShowProfitCalculator(true);
   };
 
@@ -623,15 +633,15 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
           ))}
         </div>
         <div className="p-6 overflow-y-auto">
-          <div className=" flex justify-between">
+
+          <div className=" flex justify-between  ">
             <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm md:text-lg lg:text-xl xl:text-2xl" >Your Selected Product</h4>
-            {activeTab === 'suppliers' && (
+            {activeTab === 'suppliers' && suppliers && suppliers.length > 0 && (
               <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm sm:flex-wrap sm:ml-[70px] md:ml-[156px] md:text-lg lg:text-xl xl:text-2xl">
                 Recommended Alibaba Suppliers for Your Product & AI Match Scores
               </h4>
             )}
           </div>
-
           {/* Content */}
           <div className="flex gap-6 h-[calc(90vh-300px)] ">
             {/* Left Panel - Product Info */}
@@ -1262,10 +1272,10 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
 
   if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <div className="max-w-md mx-auto">
+      <div className="flex items-center justify-center min-h-[400px] w-full">
+        <div className="ml-14 max-w-md mx-auto px-6 w-full">
           {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-6">
             <div
               className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
@@ -1273,17 +1283,17 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
           </div>
 
           {/* Progress Percentage */}
-          <div className="text-2xl font-bold text-purple-600 mb-3">
+          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-3 text-center">
             {Math.round(progress)}%
           </div>
 
           {/* Dynamic Status Text */}
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 text-center">
             {getStatusText()}
           </h3>
 
           {/* Constant Message */}
-          <p className="text-gray-400 text-sm mb-6">
+          <p className="text-gray-400 dark:text-gray-500 text-sm mb-6 text-center">
             This process may take 30–45 seconds. Please wait while our AI engine generates the results
           </p>
 
@@ -1292,21 +1302,21 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             {[1, 2, 3].map((dot) => (
               <div
                 key={dot}
-                className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"
+                className="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full animate-pulse"
                 style={{ animationDelay: `${dot * 0.2}s` }}
               ></div>
             ))}
           </div>
 
           {/* AI Powered Section */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-            <div className="flex items-center gap-2 text-blue-700 mb-2">
+          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-100 dark:border-blue-700">
+            <div className="flex items-center justify-center gap-2 text-blue-700 dark:text-blue-400 mb-2">
               <Zap className="w-5 h-5 animate-pulse" />
               <span className="font-medium">AI-Powered Matching</span>
             </div>
 
             {/* Dynamic Sub-status */}
-            <p className="text-blue-600 text-sm">
+            <p className="text-blue-600 dark:text-blue-400 text-sm text-center">
               {getSubStatusText()}
             </p>
           </div>

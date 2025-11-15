@@ -81,6 +81,7 @@ type TAmazonProduct = {
     country: string;
   };
   remaining_quota?: number;
+  source?: string;
 };
 
 type TAlibabaProduct = {

@@ -679,8 +679,12 @@ const ProProfitPro = () => {
   };
 
   const getInitialValues = () => {
+    // ✅ Handle case where parameters is undefined (for saved products)
     const selectedProductRegion = amazonProduct
-      ? amazonProduct.parameters.country
+      ? (amazonProduct.parameters?.country ||
+         (amazonProduct.parameters as any)?.searchCountry ||
+         (amazonProduct.data as any)?.country ||
+         COUNTRY_OPTIONS[0].value)
       : COUNTRY_OPTIONS[0].value;
     const taxRegion = TAX_OPTIONS.find(
       (opt) => opt.code === selectedProductRegion

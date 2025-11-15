@@ -460,6 +460,8 @@ export const discoverSuppliers = async (productData: {
     query: productData.title,  // Backend expects 'query' not 'title'
     asin: productData.id || 'TIKTOK',  // ASIN is required by backend, use TikTok product ID
     country: 'US',  // Default country
+    limit: '25',  // ✅ Request exactly 25 suppliers
+    min_rating: '4.3',  // ✅ Lower rating threshold from 4.9 to 4.3 to get more results
   });
 
   console.log('🔍 TikTok Supplier Discovery Request:', `/products/suppliers/discover/?${params.toString()}`);
@@ -707,39 +709,78 @@ export interface TikTokShopAnalysisResponse {
 }
 
 /**
- * Get TikTok Shop Analysis data using category ID from Creative Center
+ * Get TikTok Shop Analysis data using RapidAPI directly
+ * @param keyword - Product name to search for
+ * @param region - Country code (e.g., 'US', 'GB')
+ * @param categoryId - Category ID from first_ecom_category
  */
-export const getTikTokShopAnalysis = async (categoryId: string, keyword?: string): Promise<TikTokShopAnalysisResponse> => {
-  console.log('🛍️ Fetching TikTok Shop Analysis for category:', categoryId);
-  console.log('🔑 Keyword:', keyword);
+export const getTikTokShopAnalysis = async (
+  keyword: string,
+  region: string,
+  categoryId?: string
+): Promise<TikTokShopAnalysisResponse> => {
+  console.log('🛍️ Fetching TikTok Shop Analysis with params:', { keyword, region, categoryId });
 
   try {
-    // Use backend API endpoint instead of calling external API directly
-    const params = new URLSearchParams({
-      keyword: keyword || 'trending product',
-      country_code: 'US',
-      limit: '20',
-      page: '1'
+    // Build query parameters
+    const params: any = {
+      per_page: '10',
+      page: '1',
+      keyword: keyword,
+      region: region
+    };
+
+    // Add category_id if provided
+    if (categoryId) {
+      params.category_id = categoryId;
+    }
+
+    // Call RapidAPI directly
+    const rapidApiUrl = 'https://tiktok-shop-analysis.p.rapidapi.com/product';
+    const queryString = new URLSearchParams(params).toString();
+    const fullUrl = `${rapidApiUrl}?${queryString}`;
+
+    console.log('🌐 Calling RapidAPI:', fullUrl);
+    console.log('🔑 Request params:', params);
+
+    const response = await fetch(fullUrl, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-host': 'tiktok-shop-analysis.p.rapidapi.com',
+        'x-rapidapi-key': '60cb7bd196mshfa4299228d59ae3p16cdb0jsn5bf954e1e4a5'
+      }
     });
 
-    const backendUrl = `/products/tiktok-trends/search/?${params.toString()}`;
-    console.log('📋 Backend API URL:', backendUrl);
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response ok:', response.ok);
 
-    const response = await api.get(backendUrl);
-    console.log('✅ Backend API Success! Data:', response.data);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ RapidAPI error response:', errorText);
+      throw new Error(`RapidAPI request failed with status ${response.status}: ${errorText}`);
+    }
 
-    // Extract products from backend response structure: response.data.data.products
-    const products = response.data?.data?.products || response.data?.data || response.data?.products || [];
-    console.log('📦 Extracted products:', products.length);
+    const data = await response.json();
+    console.log('✅ RapidAPI Response:', data);
+    console.log('📦 Full response structure:', JSON.stringify(data, null, 2));
+
+    // Check for different possible response structures
+    const products = data?.data?.products || data?.data || data?.products || data?.list || [];
+    console.log('📦 Extracted products:', products);
+    console.log('📦 Products count:', products.length);
 
     if (products.length > 0) {
-      return await processApiResponse(response.data, products, categoryId);
+      console.log('📦 First product sample:', products[0]);
+      return await processApiResponse(data, products, categoryId || '');
     } else {
-      console.log('⚠️ No products found in backend response');
+      console.log('⚠️ No products found in RapidAPI response');
+      console.log('⚠️ Full data object:', data);
       throw new Error('No products found for this keyword');
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ TikTok Shop API failed:', error);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
     throw error;
   }
 };
