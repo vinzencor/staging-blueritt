@@ -26,18 +26,52 @@ const AliBabaCard: React.FC<TAliBabaCardProps> = ({
   const dispatch = useDispatch();
   const mapAlibabaToSpkbgProps = (product: TAlibabaProduct) => {
     const { item } = product;
+
+    // Add null check for item
+    if (!item) {
+      return {
+        mode: "alibaba" as const,
+        Title: "N/A",
+        Price: 0,
+        Currency: "USD",
+        Imgsrc: "/api/placeholder/400/320",
+        Asin: "",
+        Score: "N/A",
+        StarRating: "N/A",
+        itemId: "",
+        companyName: "N/A",
+        Country: "N/A",
+        contactName: "N/A",
+        minOrderQuantity: 0,
+        storeAge: "N/A",
+        storeServiceScore: "N/A",
+        productScore: "N/A",
+        isGoldMember: false,
+        isVerified: false,
+        TradeAssurance: false,
+        isAssessed: false,
+        storeUrl: "",
+        BestSeller: false,
+        AmazonChoice: false,
+        SalesVolume: "0",
+        IsPrime: false,
+        IsClimateFriendly: false,
+        buttonCheck: false,
+      };
+    }
+
     const mainImage = item.images[0]?.startsWith("//")
       ? `${item.images[0]}`
       : "/api/placeholder/400/320";
 
     const productAsDescribedScore =
       item.seller_store.storeEvaluates.find(
-        (evaluate) => evaluate.title === "Product as Described"
+        (evaluate: { title: string; score: string }) => evaluate.title === "Product as Described"
       )?.score || "N/A";
 
     const storeServiceScore =
       item.seller_store.storeEvaluates.find(
-        (evaluate) => evaluate.title === "Store Service"
+        (evaluate: { title: string; score: string }) => evaluate.title === "Store Service"
       )?.score || "N/A";
 
     return {
@@ -98,77 +132,77 @@ const AliBabaCard: React.FC<TAliBabaCardProps> = ({
       case "minRegisteredYears":
         return sorted.sort(
           (a: any, b: any) =>
-            a.item.seller_store.storeAge - b.item.seller_store.storeAge
+            (a.item?.seller_store?.storeAge || 0) - (b.item?.seller_store?.storeAge || 0)
         );
       case "maxRegisteredYears":
         return sorted.sort(
           (a: any, b: any) =>
-            b.item.seller_store.storeAge - a.item.seller_store.storeAge
+            (b.item?.seller_store?.storeAge || 0) - (a.item?.seller_store?.storeAge || 0)
         );
       case "minRating":
         return sorted.sort((a, b) => {
           const ratingA = parseFloat(
-            a.item.seller_store.storeEvaluates.find(
-              (evaluate) => evaluate.title === "All Product Review"
-            )?.score || "N/A"
+            a.item?.seller_store?.storeEvaluates?.find(
+              (evaluate: { title: string; score: string }) => evaluate.title === "All Product Review"
+            )?.score || "0"
           );
           const ratingB = parseFloat(
-            b.item.seller_store.storeEvaluates.find(
-              (evaluate) => evaluate.title === "All Product Review"
-            )?.score || "N/A"
+            b.item?.seller_store?.storeEvaluates?.find(
+              (evaluate: { title: string; score: string }) => evaluate.title === "All Product Review"
+            )?.score || "0"
           );
           return ratingA - ratingB;
         });
       case "maxRating":
         return sorted.sort((a, b) => {
           const ratingA = parseFloat(
-            a.item.seller_store.storeEvaluates.find(
-              (evaluate) => evaluate.title === "Product as Described"
-            )?.score || "N/A"
+            a.item?.seller_store?.storeEvaluates?.find(
+              (evaluate: { title: string; score: string }) => evaluate.title === "Product as Described"
+            )?.score || "0"
           );
           const ratingB = parseFloat(
-            b.item.seller_store.storeEvaluates.find(
-              (evaluate) => evaluate.title === "Product as Described"
-            )?.score || "N/A"
+            b.item?.seller_store?.storeEvaluates?.find(
+              (evaluate: { title: string; score: string }) => evaluate.title === "Product as Described"
+            )?.score || "0"
           );
           return ratingB - ratingA;
         });
       case "minOrderQuantity":
        return sorted.sort(
           (a, b) =>
-            a.item.sku.def.quantityModule.minOrder.quantity -
-            b.item.sku.def.quantityModule.minOrder.quantity
+            (a.item?.sku?.def?.quantityModule?.minOrder?.quantity || 0) -
+            (b.item?.sku?.def?.quantityModule?.minOrder?.quantity || 0)
         );
 
       case "maxOrderQuantity":
        return sorted.sort(
           (a, b) =>
-            b.item.sku.def.quantityModule.minOrder.quantity -
-            a.item.sku.def.quantityModule.minOrder.quantity
+            (b.item?.sku?.def?.quantityModule?.minOrder?.quantity || 0) -
+            (a.item?.sku?.def?.quantityModule?.minOrder?.quantity || 0)
         );
 
       case "minManufacturingCost":
         return sorted.sort((a, b) => {
-          const priceListA = a.item.sku.def.priceModule.priceList;
+          const priceListA = a.item?.sku?.def?.priceModule?.priceList || [];
           const costA =
             priceListA[priceListA.length - 1]?.price ||
-            priceListA[priceListA.length - 1]?.minPrice;
-          const priceListB = b.item.sku.def.priceModule.priceList;
+            priceListA[priceListA.length - 1]?.minPrice || 0;
+          const priceListB = b.item?.sku?.def?.priceModule?.priceList || [];
           const costB =
             priceListB[priceListB.length - 1]?.price ||
-            priceListB[priceListB.length - 1]?.minPrice;
+            priceListB[priceListB.length - 1]?.minPrice || 0;
           return costA - costB;
         });
       case "maxManufacturingCost":
         return sorted.sort((a, b) => {
-          const priceListA = a.item.sku.def.priceModule.priceList;
+          const priceListA = a.item?.sku?.def?.priceModule?.priceList || [];
           const costA =
             priceListA[priceListA.length - 1]?.price ||
-            priceListA[priceListA.length - 1]?.minPrice;
-          const priceListB = b.item.sku.def.priceModule.priceList;
+            priceListA[priceListA.length - 1]?.minPrice || 0;
+          const priceListB = b.item?.sku?.def?.priceModule?.priceList || [];
           const costB =
             priceListB[priceListB.length - 1]?.price ||
-            priceListB[priceListB.length - 1]?.minPrice;
+            priceListB[priceListB.length - 1]?.minPrice || 0;
           return costB - costA;
         });
       default:
@@ -227,8 +261,8 @@ const AliBabaCard: React.FC<TAliBabaCardProps> = ({
         </div>
       </div>
       <div className="grid grid-cols-1 pt-2">
-        {sortedProducts.map((product) => (
-          <div key={product.item.itemId} className="border rounded-md mb-4">
+        {sortedProducts.map((product, index) => (
+          <div key={product.item?.itemId || `product-${index}`} className="border rounded-md mb-4">
             <SpkbgCards {...mapAlibabaToSpkbgProps(product)} />
           </div>
         ))}

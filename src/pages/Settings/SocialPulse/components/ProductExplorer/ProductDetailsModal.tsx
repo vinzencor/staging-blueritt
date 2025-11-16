@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { X, ExternalLink, Star, Package, MessageSquare, DollarSign, Truck, Shield, Zap, Calculator, Save } from 'lucide-react';
+import { X, ExternalLink, Star, Package, MessageSquare, DollarSign, Truck, Shield, Zap, Calculator, Save, Info } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useDispatch } from 'react-redux';
 
@@ -592,7 +592,7 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {activeTab === 'overview' ? 'Amazon Trend Product Details' : activeTab === 'suppliers' ? 'BlueRitt SourceLink' : 'BlueRitt Product Details'}
+            {activeTab === 'overview' ? 'Amazon Trending Product Details' : activeTab === 'suppliers' ? 'BlueRitt SourceLink' : 'BlueRitt Product Details'}
           </h2>
           <button
             onClick={onClose}
@@ -635,11 +635,37 @@ const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({ product, isOp
         <div className="p-6 overflow-y-auto">
 
           <div className=" flex justify-between  ">
-            <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm md:text-lg lg:text-xl xl:text-2xl" >Your Selected Product</h4>
+            <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base md:text-sm lg:text-base xl:text-lg" >Your Selected Product</h4>
             {activeTab === 'suppliers' && suppliers && suppliers.length > 0 && (
-              <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm sm:flex-wrap sm:ml-[70px] md:ml-[156px] md:text-lg lg:text-xl xl:text-2xl">
-                Recommended Alibaba Suppliers for Your Product & AI Match Scores
-              </h4>
+              <div className="flex items-start gap-2 mb-4">
+                <div className="relative inline-block group">
+                  <Info className="w-5 h-5 text-gray-900 dark:text-gray-500 cursor-help" />
+
+                  <span
+                    className="
+        absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2
+        rounded-md px-3 py-2 text-xs text-white
+        bg-gray-900 dark:bg-gray-700
+        whitespace-normal w-80
+        opacity-0 invisible
+        group-hover:opacity-100 group-hover:visible
+        transition-opacity duration-150
+      "
+                    role="tooltip"
+                  >
+                    Discover Smart - Save Your Credit Search: With suppliers for the same product again within 7 days no credits deducted.
+                    After 7 days, one Discover Supplier credit applies per new search. Matches are refreshed regularly to keep results
+                    timely and relevant.
+                  </span>
+                </div>
+                <h4 className="font-bold text-gray-900 dark:text-white text-base sm:text-sm md:text-sm lg:text-base xl:text-lg">
+                  Recommended Alibaba Suppliers for Your Product & AI Match Scores
+                </h4>
+
+                {/* Tooltip wrapper */}
+
+              </div>
+
             )}
           </div>
           {/* Content */}
@@ -1403,16 +1429,6 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
                       <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
                         <Shield className="w-3 h-3 fill-current" />
                         Verified Pro
-                      </span>
-                    )}
-
-                  {!supplier.verified_pro &&
-                    (supplier.verification_badge === 'Verified Supplier' ||
-                      supplier.verification_status === 'Verified' ||
-                      supplier.verified_supplier) && (
-                      <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
-                        <Shield className="w-3 h-3 fill-current" />
-                        Verified
                       </span>
                     )}
 

@@ -231,11 +231,6 @@ const UserAuthContextProvider: React.FC<TUserAuthContextProviderProps> = ({
             // Store the new token in localStorage and update state
             setAccessToken(response.data.access);
 
-            // Force refresh user quota cache when token is refreshed (non-blocking)
-            forceRefreshUserQuotaData(queryClient).catch(error => {
-              console.error('Failed to refresh user quota data after token refresh:', error);
-            });
-
             originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
 
             // The _retry property will avoid the interceptor to add the old access token to the request,

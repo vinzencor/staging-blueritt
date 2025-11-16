@@ -1,0 +1,156 @@
+[
+  {
+    "id": "arts-crafts-sewing",
+    "name": "Arts, Crafts & Sewing",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/arts-crafts-sewing/b?node=2617941011"
+  },
+  {
+    "id": "automotive",
+    "name": "Automotive",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/automotive/b?node=15684181"
+  },
+  {
+    "id": "baby",
+    "name": "Baby",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/baby-products/b?node=165796011"
+  },
+  {
+    "id": "beauty-personal-care",
+    "name": "Beauty & Personal Care",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/beauty/b?node=3760911"
+  },
+  {
+    "id": "books",
+    "name": "Books",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/books/b?node=283155"
+  },
+  {
+    "id": "clothing-shoes-jewelry",
+    "name": "Clothing, Shoes & Jewelry",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/clothing-shoes-jewelry/b?node=7141123011"
+  },
+  {
+    "id": "electronics",
+    "name": "Electronics",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/electronics/b?node=172282"
+  },
+  {
+    "id": "grocery-gourmet-food",
+    "name": "Grocery & Gourmet Food",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/grocery/b?node=16310101"
+  },
+  {
+    "id": "health-household",
+    "name": "Health & Household",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/health-household/b?node=3760901"
+  },
+  {
+    "id": "home-kitchen",
+    "name": "Home & Kitchen",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/home-garden/b?node=1055398"
+  },
+  {
+    "id": "industrial-scientific",
+    "name": "Industrial & Scientific",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/industrial/b?node=16310091"
+  },
+  {
+    "id": "office-products",
+    "name": "Office Products",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/office-products/b?node=1064954"
+  },
+  {
+    "id": "patio-lawn-garden",
+    "name": "Patio, Lawn & Garden",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/patio-lawn-garden/b?node=2972638011"
+  },
+  {
+    "id": "pet-supplies",
+    "name": "Pet Supplies",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/pet-supplies/b?node=2619533011"
+  },
+  {
+    "id": "sports-outdoors",
+    "name": "Sports & Outdoors",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/sports-and-fitness/b?node=3375251"
+  },
+  {
+    "id": "tools-home-improvement",
+    "name": "Tools & Home Improvement",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/tools-home-improvement/b?node=228013"
+  },
+  {
+    "id": "toys-games",
+    "name": "Toys & Games",
+    "is_root": true,
+    "has_children": true,
+    "parent_id": null,
+    "parent_name": null,
+    "url": "https://www.amazon.com/toys-and-games/b?node=165793011"
+  }
+]
+

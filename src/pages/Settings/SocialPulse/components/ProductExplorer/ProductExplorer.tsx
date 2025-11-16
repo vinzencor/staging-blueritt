@@ -770,7 +770,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         <div className="flex items-center gap-1">
                           <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Amazon Trend Searches</div>
                           <div className="hs-tooltip ti-main-tooltip inline-block">
-                            <Info className="w-3 h-3 text-gray-400 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
+                            <Info className="w-5 h-5 text-gray-900 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
                             <span className="hs-tooltip-content ti-main-tooltip-content !py-2 !px-3 !bg-gray-900 dark:!bg-gray-700 !text-xs !text-white !max-w-xs !whitespace-normal" role="tooltip">
                               Smart Search Credit Saver: Repeat the same search within 7 days - no credit used. In other cases, a search credit will apply. 7-day window ensures fresh results from BlueRitt
                             </span>
@@ -786,7 +786,7 @@ const ProductExplorer: React.FC<ProductExplorerProps> = () => {
                         <div className="flex items-center gap-1">
                           <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Supplier Discoveries</div>
                           <div className="hs-tooltip ti-main-tooltip inline-block">
-                            <Info className="w-3 h-3 text-gray-400 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
+                            <Info className="w-5 h-5 text-gray-900 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
                             <span className="hs-tooltip-content ti-main-tooltip-content !py-2 !px-3 !bg-gray-900 dark:!bg-gray-700 !text-xs !text-white !max-w-xs !whitespace-normal" role="tooltip">
                               Discover Smart - Save Your Credit Search: With Suppliers for the same product again within 7 days no credits deducted. After 7 days, one Discover Supplier credit applies per new search. Matches are refreshed regularly to keep results timely and relevant
                             </span>

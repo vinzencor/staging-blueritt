@@ -238,9 +238,9 @@ const ProductList: React.FC<ProductListProps> = ({
     // ✅ Detect TikTok products by source OR by TikTok-specific fields
     const isTikTokBySource = amazonProduct.source === 'tiktok_trends';
     const isTikTokByFields = amazonProduct.cpa !== undefined ||
-                             amazonProduct.ctr !== undefined ||
-                             amazonProduct.cvr !== undefined ||
-                             amazonProduct.impression !== undefined;
+      amazonProduct.ctr !== undefined ||
+      amazonProduct.cvr !== undefined ||
+      amazonProduct.impression !== undefined;
 
     if (!isTikTokBySource && !isTikTokByFields) {
       console.log('❌ getTikTokData - Not a TikTok product:', {
@@ -307,7 +307,41 @@ const ProductList: React.FC<ProductListProps> = ({
     };
   };
 
-  const mapToAlibabaProps = (alibabaProduct: TAlibabaProduct) => {
+  const mapToAlibabaProps = (alibabaProduct: TAlibabaProduct | any) => {
+    // ✅ Handle supplier format (from Amazon Explorer / TikTok Trends)
+    if (alibabaProduct?.supplier) {
+      const supplier = alibabaProduct.supplier;
+      return {
+        mode: "alibaba" as const,
+        Title: supplier._raw_item?.title || supplier.name || "Supplier Product",
+        Price: parseFloat(supplier.estimated_price?.replace(/[^0-9.]/g, '') || '0'),
+        Imgsrc: supplier.supplier_product_image || supplier._raw_item?.images?.[0] || "",
+        Currency: "USD",
+        Asin: supplier._raw_item?.itemId || "",
+        itemId: supplier._raw_item?.itemId || "",
+        companyName: supplier.name || supplier.supplier_name || "",
+        Country: supplier.location || "",
+        TradeAssurance: supplier.trade_assurance || false,
+        contactName: "",
+        storeAge: supplier.years_in_business ? `${supplier.years_in_business} years` : "",
+        storeServiceScore: supplier.rating?.toString() || "N/A",
+        StarRating: supplier.rating?.toString() || "0",
+        BestSeller: false,
+        AmazonChoice: false,
+        SalesVolume: supplier.total_transactions?.toString() || "0",
+        IsPrime: false,
+        IsClimateFriendly: false,
+        minOrderQuantity: parseInt(supplier.moq || supplier.minimum_order || '0'),
+        isGoldMember: supplier.is_gold || supplier.verification_status === "Gold Supplier" || false,
+        isVerified: supplier.verified_supplier || supplier.verification_status === "Verified" || false,
+        isAssessed: supplier.is_assessed || false,
+        buttonCheck: false,
+        Loading: false,
+        showAIScore: false,
+      };
+    }
+
+    // ✅ Handle full Alibaba item format (from traditional Alibaba search)
     if (!alibabaProduct || !alibabaProduct.item) {
       return {
         mode: "alibaba" as const,
@@ -339,7 +373,7 @@ const ProductList: React.FC<ProductListProps> = ({
     const mainImage = alibabaProduct.item.images?.[0] || "";
     const storeServiceScore =
       alibabaProduct.item.seller_store?.storeEvaluates?.find(
-        (evaluate) => evaluate.title === "Store Service"
+        (evaluate: { title: string; score: string }) => evaluate.title === "Store Service"
       )?.score || "N/A";
 
     const priceList =
@@ -410,10 +444,10 @@ const ProductList: React.FC<ProductListProps> = ({
     // Handle TikTok data format (fields directly in amazonProduct, not nested in data)
     // ✅ Detect by source OR by TikTok-specific fields
     const isTikTokFormat = (amazonProduct?.source === 'tiktok_trends') ||
-                           (amazonProduct?.cpa !== undefined ||
-                            amazonProduct?.ctr !== undefined ||
-                            amazonProduct?.cvr !== undefined ||
-                            amazonProduct?.impression !== undefined);
+      (amazonProduct?.cpa !== undefined ||
+        amazonProduct?.ctr !== undefined ||
+        amazonProduct?.cvr !== undefined ||
+        amazonProduct?.impression !== undefined);
 
     if (isTikTokFormat) {
       console.log('✅ ProductList - Using TikTok Creative Center format (direct fields):', {
@@ -666,11 +700,11 @@ const ProductList: React.FC<ProductListProps> = ({
 
       // ✅ Try to get image from multiple sources (TikTok/Amazon saved data)
       const savedImage = tiktokData?.cover_url ||
-                        amazonData?.image ||
-                        product.amazon_product?.cover_url ||
-                        product.amazon_product?.data?.product_photo ||
-                        product.amazon_product?.data?.product_photos?.[0] ||
-                        '';
+        amazonData?.image ||
+        product.amazon_product?.cover_url ||
+        product.amazon_product?.data?.product_photo ||
+        product.amazon_product?.data?.product_photos?.[0] ||
+        '';
 
       console.log('🖼️ ProductImageWithFallback - Image sources:', {
         productId: product.id,
@@ -763,12 +797,12 @@ const ProductList: React.FC<ProductListProps> = ({
       // For TikTok products, get TikTok-specific data
       // ✅ Detect by source OR by TikTok-specific fields
       const isTikTok = product.amazon_product?.source === 'tiktok_trends' ||
-                       (product.amazon_product && (
-                         product.amazon_product.cpa !== undefined ||
-                         product.amazon_product.ctr !== undefined ||
-                         product.amazon_product.cvr !== undefined ||
-                         product.amazon_product.impression !== undefined
-                       ));
+        (product.amazon_product && (
+          product.amazon_product.cpa !== undefined ||
+          product.amazon_product.ctr !== undefined ||
+          product.amazon_product.cvr !== undefined ||
+          product.amazon_product.impression !== undefined
+        ));
 
       // 🔍 COMPREHENSIVE DEBUG - Log the entire amazon_product structure
       if (isTikTok) {
@@ -813,8 +847,8 @@ const ProductList: React.FC<ProductListProps> = ({
           displayLabel: shopAnalysisPrice !== null ? 'TikTok Shop Price' : 'Cost',
           displayValue: shopAnalysisPrice !== null
             ? (typeof shopAnalysisPrice === 'number'
-                ? shopAnalysisPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                : shopAnalysisPrice)
+              ? shopAnalysisPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+              : shopAnalysisPrice)
             : (tiktokData?.cost || 0).toLocaleString(),
         });
       }
@@ -892,7 +926,7 @@ const ProductList: React.FC<ProductListProps> = ({
 
             {/* Product Information with Image in Small Box */}
             <div className="p-4">
-              <div className="flex items-start gap-4">
+              <div className="flex items-stretch gap-4">
                 {/* Product Image - Small Box with Freepik Fallback */}
                 <div className="flex-shrink-0">
                   <div className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
@@ -903,9 +937,10 @@ const ProductList: React.FC<ProductListProps> = ({
                 </div>
 
                 {/* Product Details - Content */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 flex flex-col">
                   {/* Product Title */}
-                  <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Selected Product Details:</p>
+                  <div className="text-sm  font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2">
                     {isTikTok && tiktokData
                       ? (tiktokData.url_title || tiktokData.third_ecom_category?.value || product.name || "TikTok Product")
                       : (hasAmazonData ? amazonData.name : "No name available")}
@@ -919,8 +954,8 @@ const ProductList: React.FC<ProductListProps> = ({
                         <span className="text-gray-500 dark:text-gray-400">Category</span>
                         <div className="font-medium text-gray-900 dark:text-white">
                           {tiktokData.url_title ||
-                           tiktokData.third_ecom_category?.value ||
-                           "N/A"}
+                            tiktokData.third_ecom_category?.value ||
+                            "N/A"}
                         </div>
                       </div>
                       <div>
@@ -930,8 +965,8 @@ const ProductList: React.FC<ProductListProps> = ({
                         <div className="font-medium text-green-600 dark:text-green-400">
                           ${shopAnalysisPrice !== null
                             ? (typeof shopAnalysisPrice === 'number'
-                                ? shopAnalysisPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                                : shopAnalysisPrice)
+                              ? shopAnalysisPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                              : shopAnalysisPrice)
                             : (tiktokData.cost || 0).toLocaleString()}
                         </div>
                       </div>
@@ -953,42 +988,42 @@ const ProductList: React.FC<ProductListProps> = ({
                           {(tiktokData.like || 0).toLocaleString()}
                         </div>
                       </div>
-                      <div>
+                      {/* <div>
                         <span className="text-gray-500 dark:text-gray-400">Comments</span>
                         <div className="font-medium text-gray-900 dark:text-white">
                           {(tiktokData.comment || 0).toLocaleString()}
                         </div>
-                      </div>
-                      <div>
+                      </div> */}
+                      {/* <div>
                         <span className="text-gray-500 dark:text-gray-400">Shares</span>
                         <div className="font-medium text-gray-900 dark:text-white">
                           {(tiktokData.share || 0).toLocaleString()}
                         </div>
-                      </div>
-                      <div>
+                      </div> */}
+                      {/* <div>
                         <span className="text-gray-500 dark:text-gray-400">CTR</span>
                         <div className="font-medium text-gray-900 dark:text-white">
                           {(tiktokData.ctr || 0).toFixed(2)}%
                         </div>
-                      </div>
-                      <div>
+                      </div> */}
+                      {/* <div>
                         <span className="text-gray-500 dark:text-gray-400">CVR</span>
                         <div className="font-medium text-gray-900 dark:text-white">
                           {(tiktokData.cvr || 0).toFixed(2)}%
                         </div>
-                      </div>
-                      <div>
+                      </div> */}
+                      {/* <div>
                         <span className="text-gray-500 dark:text-gray-400">CPA</span>
                         <div className="font-medium text-gray-900 dark:text-white">
                           ${(tiktokData.cpa || 0).toFixed(2)}
                         </div>
-                      </div>
-                      <div>
+                      </div> */}
+                      {/* <div>
                         <span className="text-gray-500 dark:text-gray-400">Play 6s Rate</span>
                         <div className="font-medium text-gray-900 dark:text-white">
                           {(tiktokData.play_six_rate || 0).toFixed(2)}%
                         </div>
-                      </div>
+                      </div> */}
                       <div>
                         <span className="text-gray-500 dark:text-gray-400">Post Change</span>
                         <div className="font-medium text-gray-900 dark:text-white">
@@ -1086,13 +1121,13 @@ const ProductList: React.FC<ProductListProps> = ({
               />
             ) : (
               <div>
-                <div className="px-4 pt-[18px] pb-[18px] bg-yellow-50 dark:bg-yellow-900/20 border-b border-gray-200 dark:border-gray-700">
+                {/* <div className="px-4 pt-[18px] pb-[18px] bg-yellow-50 dark:bg-yellow-900/20 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-sm text-gray-600 dark:text-gray-400">{product.supplier_info ? 'Supplier Information' : 'Seller Details'}</p>
-                </div>
+                </div> */}
 
                 {/* ✅ Supplier Product Title - Display at the top */}
                 {product.supplier_info?._raw_item?.title && (
-                  <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
+                  <div className="px-4 py-2.5 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Supplier Product Title:</p>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
                       {product.supplier_info._raw_item.title}
@@ -1101,6 +1136,8 @@ const ProductList: React.FC<ProductListProps> = ({
                 )}
                 <div className="p-4 space-y-4">
                   <div className="flex items-start gap-4">
+
+                    {/* Supplier Image */}
                     {product.supplier_info?.supplier_product_image && (
                       <div className="flex-shrink-0">
                         <div className="p-2 rounded-md border border-gray-200 dark:border-gray-700">
@@ -1119,132 +1156,134 @@ const ProductList: React.FC<ProductListProps> = ({
                       </div>
                     )}
 
+                    {/* RIGHT SIDE: Supplier Name + All Details in Column */}
                     {product.supplier_info && (
-                      <div className="flex-1">
-                        <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white mb-2">
-                          {product.supplier_info.name || product.supplier_info.supplier_name || "N/A"}
+                      <div className="flex-1 flex flex-col space-y-4">
+
+                        {/* Supplier Name */}
+                        <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white">
+                          {product.supplier_info.name ||
+                            product.supplier_info.supplier_name ||
+                            "N/A"}
+                        </div>
+
+                        {/* Supplier Details (Location, MOQ, etc.) */}
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">Location:</span>
+                            <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                              {product.supplier_info.location || "N/A"}
+                            </span>
+                          </div>
+
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">Minimum Order QTY:</span>
+                            <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                              {product.supplier_info.moq ||
+                                product.supplier_info.minimum_order ||
+                                "N/A"}
+                            </span>
+                          </div>
+
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">Lead Time:</span>
+                            <span className="ml-2 font-medium text-gray-900 dark:text-white">
+                              {product.supplier_info.lead_time || "N/A"}
+                            </span>
+                          </div>
+
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">Est. Price:</span>
+                            <span className="ml-2 font-bold text-green-600 dark:text-green-400">
+                              {product.supplier_info.estimated_price || "N/A"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Verification Badges */}
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400 mb-2 block">Verification Badges:</span>
+                          <div className="flex flex-wrap gap-2">
+
+                            {/* Gold Supplier */}
+                            {(product.supplier_info.verification_badge === "Gold Supplier" ||
+                              product.supplier_info.verification_status === "Gold Supplier" ||
+                              product.supplier_info.is_gold) && (
+                                <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md">
+                                  <Shield className="w-3 h-3" />
+                                  Gold Supplier
+                                </span>
+                              )}
+
+                            {/* Verified Pro */}
+                            {(product.supplier_info.verification_badge === "Verified Pro" ||
+                              product.supplier_info.verified_pro) && (
+                                <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md">
+                                  <Shield className="w-3 h-3" />
+                                  Verified Pro
+                                </span>
+                              )}
+
+                            {/* Verified Supplier */}
+                            {!product.supplier_info.verified_pro &&
+                              (product.supplier_info.verification_badge === "Verified Supplier" ||
+                                product.supplier_info.verification_status === "Verified" ||
+                                product.supplier_info.verified_supplier) && (
+                                <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md">
+                                  <Shield className="w-3 h-3" />
+                                  Verified
+                                </span>
+                              )}
+
+                            {/* Alibaba Guaranteed */}
+                            {product.supplier_info.alibaba_guaranteed && (
+                              <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md">
+                                <Shield className="w-3 h-3" />
+                                Alibaba Guaranteed
+                              </span>
+                            )}
+
+                            {/* Trade Assurance */}
+                            {product.supplier_info.trade_assurance && (
+                              <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md">
+                                <Shield className="w-3 h-3" />
+                                Trade Assurance
+                              </span>
+                            )}
+
+                            {/* Assessed */}
+                            {!product.supplier_info.verified_pro &&
+                              !product.supplier_info.verified_supplier &&
+                              product.supplier_info.is_assessed && (
+                                <span className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md">
+                                  <Shield className="w-3 h-3" />
+                                  Assessed
+                                </span>
+                              )}
+
+                            {/* Years in Business */}
+                            {product.supplier_info.years_in_business > 0 && (
+                              <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md">
+                                <Shield className="w-3 h-3" />
+                                {product.supplier_info.years_in_business}{" "}
+                                {product.supplier_info.years_in_business === 1 ? "Year" : "Years"}
+                              </span>
+                            )}
+
+                            {/* Rating */}
+                            {product.supplier_info.rating > 0 && (
+                              <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-md">
+                                <Shield className="w-3 h-3" />
+                                {product.supplier_info.rating}/5 ⭐
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
                   </div>
-
-                  {product.supplier_info && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
-                        {/* Location */}
-                        <div>
-                          <span className="text-gray-600 dark:text-gray-400">Location:</span>
-                          <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                            {product.supplier_info.location || 'N/A'}
-                          </span>
-                        </div>
-
-                        {/* MOQ */}
-                        <div>
-                          <span className="text-gray-600 dark:text-gray-400">Minimum Order QTY:</span>
-                          <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                            {product.supplier_info.moq || product.supplier_info.minimum_order || 'N/A'}
-                          </span>
-                        </div>
-
-                        {/* Lead Time */}
-                        <div>
-                          <span className="text-gray-600 dark:text-gray-400">Lead Time:</span>
-                          <span className="ml-2 font-medium text-gray-900 dark:text-white">
-                            {product.supplier_info.lead_time || 'N/A'}
-                          </span>
-                        </div>
-
-                        {/* Estimated Price */}
-                        <div>
-                          <span className="text-gray-600 dark:text-gray-400">Est. Price:</span>
-                          <span className="ml-2 font-bold text-green-600 dark:text-green-400">
-                            {product.supplier_info.estimated_price || 'N/A'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* ✅ Colorful Verification Badges Section - Below Est. Price */}
-                      <div>
-                        <span className="text-gray-600 dark:text-gray-400 mb-2 block">Verification Badges:</span>
-                        <div className="flex flex-wrap gap-2">
-
-                          {/* 1. Gold Supplier Badge - Score +15 (Highest bonus) */}
-                          {(product.supplier_info.verification_badge === 'Gold Supplier' ||
-                            product.supplier_info.verification_status === 'Gold Supplier' ||
-                            product.supplier_info.is_gold) && (
-                              <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                <Shield className="w-3 h-3 fill-current" />
-                                Gold Supplier
-                              </span>
-                            )}
-
-                          {/* 2. Verified Pro Badge - Score +12 */}
-                          {(product.supplier_info.verification_badge === 'Verified Pro' ||
-                            product.supplier_info.verified_pro) && (
-                              <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                <Shield className="w-3 h-3 fill-current" />
-                                Verified Pro
-                              </span>
-                            )}
-
-                          {/* 3. Verified Supplier Badge - Score +10 */}
-                          {!product.supplier_info.verified_pro &&
-                            (product.supplier_info.verification_badge === 'Verified Supplier' ||
-                              product.supplier_info.verification_status === 'Verified' ||
-                              product.supplier_info.verified_supplier) && (
-                              <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                <Shield className="w-3 h-3 fill-current" />
-                                Verified
-                              </span>
-                            )}
-
-                          {/* 4. Alibaba Guaranteed Badge - Score +8 */}
-                          {product.supplier_info.alibaba_guaranteed && (
-                            <span className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                              <Shield className="w-3 h-3 fill-current" />
-                              Alibaba Guaranteed
-                            </span>
-                          )}
-
-                          {/* 5. Trade Assurance Badge - Score +8 */}
-                          {product.supplier_info.trade_assurance && (
-                            <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                              <Shield className="w-3 h-3 fill-current" />
-                              Trade Assurance
-                            </span>
-                          )}
-
-                          {/* 6. Assessed Supplier Badge - Score +5 */}
-                          {!product.supplier_info.verified_pro &&
-                            !product.supplier_info.verified_supplier &&
-                            product.supplier_info.is_assessed && (
-                              <span className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                                <Shield className="w-3 h-3 fill-current" />
-                                Assessed
-                              </span>
-                            )}
-
-                          {/* Store Age Badge */}
-                          {product.supplier_info.years_in_business !== undefined && product.supplier_info.years_in_business > 0 && (
-                            <span className="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
-                              <Shield className="w-3 h-3 fill-current" />
-                              {product.supplier_info.years_in_business} {product.supplier_info.years_in_business === 1 ? 'Year' : 'Years'}
-                            </span>
-                          )}
-
-                          {/* Rating Badge */}
-                          {product.supplier_info.rating !== undefined && product.supplier_info.rating > 0 && (
-                            <span className="bg-gradient-to-r from-green-500 to-green-700 text-xs flex items-center justify-center font-semibold rounded-full text-white px-3 py-[6px]">
-                              <Shield className="w-3 h-3 fill-current" />
-                              {product.supplier_info.rating}/5 ⭐
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
+
 
                 {/* Display Amazon/TikTok seller info if no supplier_info */}
                 {!product.supplier_info && hasAmazonData && (

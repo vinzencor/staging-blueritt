@@ -17,16 +17,6 @@ import {
   getCategory,
   createCategory,
 } from "@/api/savedProducts";
-import Input from "@/components/common/input/Input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/common/select/Select";
-import Button from "@/components/common/button/Button";
 import { Package, Truck, Star, Shield } from "lucide-react";
 import { COUNTRY_OPTIONS } from "@/utils/constants";
 import type { TAlibabaProduct, TAmazonProduct } from "@/types/product";
@@ -35,7 +25,6 @@ import { useUserSubscriptionAndSearchQuota } from "@/hooks/useUserDetails";
 import { EAccessTypes, QuotaNames } from "@/enum";
 import FormInput from "@/pages/ProfitPro/components/FormInput";
 import SliderInput from "@/pages/ProfitPro/components/SliderInput";
-import AlibabaCard from "@/pages/ProfitPro/components/AlibabaCard";
 import AmazonCard from "@/pages/ProfitPro/components/AmazonCard";
 import RevenueCalculationCard from "@/pages/ProfitPro/components/RevenueCalculationCard";
 
@@ -496,9 +485,6 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
 
   // If the user is coming after saving the listing.
   const { saveID } = useParams();
-  // Search for Amazon Product if user is not coming from matcher
-  const [searchString, setSearchString] = useState("");
-  const [country, setCountry] = useState(COUNTRY_OPTIONS[0].value);
 
   // Amazon Product to be used in this page
   const [amazonProduct, setAmazonProduct] = useState<TAmazonProduct | null>(
@@ -566,35 +552,11 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
     staleTime: 0,
     enabled: !!saveID,
   });
+
   const {
-    quotaDetails,
-    updateQuota,
-    isLoading: isQuotaLoading,
     checkAccess,
   } = useUserSubscriptionAndSearchQuota(QuotaNames.NoOfNetProfitCalculations);
 
-  // API to get Amazon Product Detail in case of a new search
-  const {
-    data: amazonProductFromAPI,
-    refetch: productDetailRefetch,
-    isLoading: isAmazonProductLoading,
-    error: amazonProductError,
-  } = useQuery({
-    queryKey: [
-      "getAmazonProductDetail",
-      searchString,
-      country,
-      QuotaNames.NoOfNetProfitCalculations,
-    ],
-    queryFn: () =>
-      getAmazonProductDetail({
-        asin: searchString,
-        country: country,
-        source: QuotaNames.NoOfNetProfitCalculations,
-      }),
-    enabled: false, // Disable automatic fetching
-    retry: false,
-  });
 
   const { mutate: saveProductsMutate } = useMutation({
     mutationFn: saveProducts,
@@ -693,9 +655,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
   };
 
   const getInitialValues = () => {
-    const selectedProductRegion = amazonProduct
-      ? amazonProduct.parameters.country
-      : COUNTRY_OPTIONS[0].value;
+    const selectedProductRegion = amazonProduct?.parameters?.country || COUNTRY_OPTIONS[0].value;
     const taxRegion = TAX_OPTIONS.find(
       (opt) => opt.code === selectedProductRegion
     );
@@ -1012,12 +972,32 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
 
     if (!saveID) {
       // Include Amazon product data with source tracking
-      const amazonProductData = product || amazonProduct || {};
+      let amazonProductData = product || amazonProduct || {};
 
-      // ✅ Add source field to track where the product came from
-      // Check if source already exists, otherwise determine from profitProSource
-      if (!amazonProductData.source) {
-        amazonProductData.source = profitProSource === 'amazon_trends' ? 'amazon_trends' : 'amazon_explorer';
+      // ✅ Normalize Amazon Explorer product structure to match TAmazonProduct format
+      // Amazon Explorer products have a flat structure, but we need to wrap them in a 'data' property
+      // to match the expected TAmazonProduct structure for consistent display
+      if (amazonProductData && !amazonProductData.data) {
+        // This is an Amazon Explorer product (flat structure)
+        // Wrap it in the expected structure
+        amazonProductData = {
+          data: {
+            ...amazonProductData,
+            // Ensure rating fields are properly set
+            product_star_rating: amazonProductData.product_star_rating || amazonProductData.rating || "0",
+            product_num_ratings: amazonProductData.product_num_ratings || amazonProductData.reviews || 0,
+          },
+          parameters: {
+            country: amazonProductData.country || 'US'
+          },
+          source: profitProSource === 'amazon_trends' ? 'amazon_trends' : 'amazon_explorer'
+        };
+      } else {
+        // This is already in TAmazonProduct format or has a data property
+        // Just add source field if it doesn't exist
+        if (!amazonProductData.source) {
+          amazonProductData.source = profitProSource === 'amazon_trends' ? 'amazon_trends' : 'amazon_explorer';
+        }
       }
 
       console.log('🔍 SAVING AMAZON PRODUCT WITH SOURCE:', {
@@ -1471,6 +1451,24 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
     }
   }, [scannerSelectedSupplier]);
 
+  // ✅ Set product and supplier from props (for Amazon Explorer)
+  useEffect(() => {
+    if (product) {
+      console.log('📦 Setting Amazon product from props:', product);
+      setAmazonProduct(product);
+    }
+
+    if (supplier) {
+      console.log('🏭 Setting supplier from props:', supplier);
+      // Transform SupplierInfo to TAlibabaProduct structure
+      const transformedSupplier = {
+        supplier: supplier
+      };
+      setAlibabaProduct(transformedSupplier as any);
+      setIsComingFromMatcher(false);
+    }
+  }, [product, supplier]);
+
   // On change of any of the formik values, calculate the final profit and revenue
   useEffect(() => {
     calculateFinalProfitAndRevenue(formik.values);
@@ -1494,32 +1492,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoadingProfitProCalculations]);
 
-  useEffect(() => {
-    const error = amazonProductError as AxiosError;
-    if (error) {
-      if (error.status === 402) {
-        let remainingQuota = (error.response?.data as any).remaining_searches;
-        remainingQuota = remainingQuota ? +remainingQuota : null;
-        toast.error(
-          "You have already exceeded your search quota. Please upgrade your plan or purchase more searches."
-        );
-        updateQuota(remainingQuota);
-      }
-      // else {
-      //   toast.error("No Product Found with this ASIN");
-      // }
-    }
-  }, [amazonProductError]);
 
-  useEffect(() => {
-    // If the search button is clicked, the API is called.
-    // If the API is called, the product retrieved from the API is set to the state.
-    if (amazonProductFromAPI) {
-      updateQuota(amazonProductFromAPI.remaining_quota);
-      setAmazonProduct(amazonProductFromAPI);
-      setAlibabaProduct(null);
-    }
-  }, [amazonProductFromAPI]);
 
   useEffect(() => {
     if (saveID) {
@@ -1604,7 +1577,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     </div>
 
                     {/* Product Info Grid */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                       {(product.product_price || product.price !== undefined || product.data?.product_price) && (
                         <div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">Price</p>
@@ -1685,7 +1658,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                       )}
 
                       {product.delivery && (
-                        <div className="col-span-2">
+                        <div className="col-span-4">
                           <p className="text-xs text-gray-500 dark:text-gray-400">Delivery</p>
                           <p className="text-xs font-medium text-gray-900 dark:text-white">
                             {product.delivery}
@@ -1768,7 +1741,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     </div>
 
                     {/* Supplier Info Grid */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                       {(supplier.estimated_price || supplier.price_per_unit || supplier.item?.sku?.def?.priceModule?.priceList?.[0]) && (
                         <div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">Price</p>
@@ -1886,46 +1859,58 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                     {/* Certifications/Badges */}
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Certifications & Badges</p>
-                      <div className="flex flex-wrap gap-2">
-                        {(supplier.verification_badge || supplier.verification_status) && (
-                          <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded-full flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-600" />
-                            {supplier.verification_badge || supplier.verification_status}
+                      <div className="flex flex-wrap gap-1.5">
+                        {/* 1. Verified Supplier Badge (First) - Green */}
+                        {(supplier.is_assessed || supplier.item?.company_details?.status?.assessed) && (
+                          <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                            <Shield className="w-3 h-3 fill-current" />
+                            Verified
                           </span>
                         )}
-                        {(supplier.is_gold || supplier.item?.company_details?.status?.gold) && (
-                          <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded-full flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-yellow-600" />
-                            Gold Supplier
-                          </span>
-                        )}
-                        {(supplier.verified_supplier || supplier.item?.company_details?.status?.verified) && (
-                          <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs font-medium rounded-full flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
-                            Verified Supplier
-                          </span>
-                        )}
+
+                        {/* 2. Trade Assurance Badge (Second) - Blue */}
                         {(supplier.trade_assurance || supplier.item?.company_details?.status?.tradeAssurance) && (
-                          <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs font-medium rounded-full flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
+                          <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                            <Shield className="w-3 h-3 fill-current" />
                             Trade Assurance
                           </span>
                         )}
-                        {(supplier.is_assessed || supplier.item?.company_details?.status?.assessed) && (
-                          <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 text-xs font-medium rounded-full flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
-                            Assessed
+
+                        {/* 3. Years in Business Badge (Third) - Sky */}
+                        {(supplier.years_in_business || supplier.item?.seller_store?.storeAge) && supplier.years_in_business > 0 && (
+                          <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md">
+                            {supplier.years_in_business} {supplier.years_in_business === 1 ? 'yr' : 'yrs'}
                           </span>
                         )}
+
+                        {/* 4. Gold Supplier Badge (Fourth) - Yellow */}
+                        {(supplier.verification_badge === 'Gold Supplier' ||
+                          supplier.verification_status === 'Gold Supplier' ||
+                          supplier.verification_badge === 'Gold' ||
+                          supplier.is_gold ||
+                          supplier.item?.company_details?.status?.gold) && (
+                            <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                              <Shield className="w-3 h-3 fill-current" />
+                              Gold
+                            </span>
+                          )}
+
+                        {/* 5. Star Rating Badge (Fifth) - Purple - Always show rating */}
+                        <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-current" />
+                          {supplier.rating || supplier.item?.seller_store?.storeEvaluates?.[0]?.score || '0'}
+                        </span>
+
+                        {/* Additional badges */}
                         {supplier.verified_pro && (
-                          <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
+                          <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                            <Shield className="w-3 h-3 fill-current" />
                             Verified Pro
                           </span>
                         )}
                         {supplier.alibaba_guaranteed && (
-                          <span className="px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-xs font-medium rounded-full flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
+                          <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                            <Shield className="w-3 h-3 fill-current" />
                             Alibaba Guaranteed
                           </span>
                         )}
@@ -1948,7 +1933,7 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
             </div>
 
             {/* Calculator Content */}
-              {isLoadingProfitProCalculations || isAmazonProductLoading ? (
+              {isLoadingProfitProCalculations ? (
                 <div className="p-6 space-y-6 mt-10 box min-h-screen">
                   <div className="flex items-center gap-4">
                     <div className="h-12 w-1/2 bg-gray-300 rounded animate-pulse"></div>
@@ -1982,70 +1967,6 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                   </div>
 
                   <div className="box p-5">
-                    {/* Show search for Amazon Product when the user NOT coming from the matcher flow */}
-                    {!isComingFromMatcher ? (
-                      <div className="flex w-full flex-col gap-y-4 lg:gap-y-0 lg:flex-row gap-x-2 rounded-md text-black">
-                        <div className="w-full lg:w-3/5 flex flex-col">
-                          <Input
-                            containerClassName="w-full"
-                            placeholder={"Search ASIN"}
-                            value={searchString}
-                            onChange={(e) => setSearchString(e.target.value)}
-                          />
-                        </div>
-
-                        <Select
-                          value={country}
-                          onValueChange={(value) => setCountry(value)}
-                        >
-                          <SelectTrigger className="w-full lg:w-1/5 h-[50px] bg-white dark:bg-transparent dark:text-white/80 text-black border border-gray-300 shadow-none">
-                            <SelectValue placeholder="Select Country" />
-                          </SelectTrigger>
-                          <SelectContent
-                            position="popper"
-                            className="bg-white dark:bg-light"
-                          >
-                            <SelectGroup>
-                              <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
-                                {COUNTRY_OPTIONS.map((option) => (
-                                  <SelectItem
-                                    key={option.value}
-                                    className="cursor-pointer"
-                                    value={option.value}
-                                  >
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </div>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-
-                        <div>
-                          <Button
-                            className="cursor-pointer  p-2 text-sm duration-150 border border-success bg-success text-white ti-btn ti-btn-success-full !rounded-full ti-btn-wave"
-                            variant="success"
-                            onClick={async () => {
-                              if (!searchString || searchString.trim() === "") {
-                                toast.error("Please enter ASIN.");
-                                return;
-                              }
-                              productDetailRefetch();
-                              // ✅ Quota will be updated from backend response - no hardcoded calculation
-                            }}
-                            disabled={
-                              !quotaDetails.quotaValue ||
-                              quotaDetails.quotaValue === 0
-                            }
-                          >
-                            <i className="bi bi-search text-white" />
-                            Search Now
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <></>
-                    )}
                     <div className="flex justify-end">
                       <div className="flex mt-1">
                         <div
@@ -2093,18 +2014,6 @@ const AmazonProfitCalculatorModal: React.FC<AmazonProfitCalculatorModalProps> = 
                           )}
                         </>
                       )}
-
-                      {/* Alibaba product card */}
-                      {alibabaProduct ? (
-                        <div className="box flex-1 border rounded-md flex flex-col">
-                          <div className="font-bold p-4 text-gray-700">
-                            <i className="bi bi-journal-bookmark-fill"></i>
-                            {"  "}
-                            Selected Supplier
-                          </div>
-                          <AlibabaCard alibabaProduct={alibabaProduct} />
-                        </div>
-                      ) : null}
                     </div>
 
                     {/* Form container */}

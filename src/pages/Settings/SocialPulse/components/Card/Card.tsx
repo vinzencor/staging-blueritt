@@ -326,8 +326,9 @@ const Card: React.FC<TDataTableProps> = ({
     setShowProductModal(true);
   };
 
-  const handleAddToWatchlist = (product: TProductEntryInDataTable) => {
-    toast.success(`Added "${product.productTitle}" to watchlist!`, {
+  const handleAddToWatchlist = (asin: string) => {
+    const product = products.find(p => p.asin === asin);
+    toast.success(`Added "${product?.productTitle || 'Product'}" to watchlist!`, {
       position: "top-right",
       autoClose: 3000,
     });

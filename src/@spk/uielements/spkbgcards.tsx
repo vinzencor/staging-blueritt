@@ -151,7 +151,7 @@ const SpkbgCards: React.FC<ProductCardProps> = (props) => {
         />
       )}
       {props.isGoldMember && <Badge label="Gold" color="success" />}
-      {props.StarRating && (
+      {props.StarRating !== undefined && props.StarRating !== null && (
         <Badge
           label={<StarRating rating={props.StarRating} />}
           color="primary"
@@ -188,7 +188,7 @@ const SpkbgCards: React.FC<ProductCardProps> = (props) => {
           </div>
 
           <div className="flex items-center justify-left flex-wrap gap-3 mt-2">
-            <InfoItem label="ASIN" value={props.Asin} />
+            {props.Asin && <InfoItem label="ASIN" value={props.Asin} />}
             <InfoItem
               label="Price"
               value={`${props.Currency} ${props.Price.toLocaleString()}`}

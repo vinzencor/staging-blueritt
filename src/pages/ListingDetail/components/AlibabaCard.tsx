@@ -28,88 +28,122 @@ const AlibabaCard: React.FC<{ alibabaProduct: TAlibabaProduct | any }> = ({
     // Handle simplified supplier structure from Amazon Explorer
     const supplier = alibabaProduct.supplier;
 
+    // Get product image
+    const productImage = supplier.supplier_product_image ||
+                        supplier._raw_item?.images?.[0] ||
+                        supplier.image ||
+                        '';
+
     return (
       <div className="h-full p-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Supplier Name */}
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Supplier Name</div>
-              <div className="font-semibold text-gray-900">{supplier.name || 'N/A'}</div>
-            </div>
-
-            {/* Location */}
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Location</div>
-              <div className="font-medium text-gray-700">{supplier.location || 'N/A'}</div>
-            </div>
-
-            {/* Estimated Price */}
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Estimated Price</div>
-              <div className="font-semibold text-green-600">{supplier.estimated_price || supplier.price_per_unit || 'N/A'}</div>
-            </div>
-
-            {/* Minimum Order */}
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Minimum Order (MOQ)</div>
-              <div className="font-medium text-gray-700">{supplier.minimum_order || supplier.moq || 'N/A'}</div>
-            </div>
-
-            {/* Rating */}
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Supplier Rating</div>
-              <div className="font-medium text-gray-700">
-                {supplier.rating ? `${supplier.rating}/5.0` : 'N/A'}
-              </div>
-            </div>
-
-            {/* Total Transactions */}
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Total Transactions</div>
-              <div className="font-medium text-gray-700">{supplier.total_transactions || 'N/A'}</div>
-            </div>
-
-            {/* Lead Time */}
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Lead Time</div>
-              <div className="font-medium text-gray-700">{supplier.lead_time || 'N/A'}</div>
-            </div>
-
-            {/* Response Rate */}
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Response Rate</div>
-              <div className="font-medium text-gray-700">{supplier.response_rate || 'N/A'}</div>
-            </div>
-
-            {/* Verification Status */}
-            <div>
-              <div className="text-xs text-gray-500 mb-1">Verification Status</div>
-              <div className="font-medium text-blue-600">{supplier.verification_status || 'N/A'}</div>
-            </div>
-
-            {/* AI Match Score */}
-            {supplier.ai_match_score && (
-              <div>
-                <div className="text-xs text-gray-500 mb-1">AI Match Score</div>
-                <div className="font-semibold text-purple-600">{supplier.ai_match_score}%</div>
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          {/* Flex container with image on left and details on right */}
+          <div className="flex gap-4">
+            {/* Small Product Image on Left */}
+            {productImage && (
+              <div className="flex-shrink-0">
+                <img
+                  src={productImage.startsWith('//') ? `https:${productImage}` : productImage}
+                  alt={supplier._raw_item?.title || supplier.name || 'Supplier Product'}
+                  className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                  onError={(e) => {
+                    e.currentTarget.src = '/api/placeholder/400/320';
+                  }}
+                />
               </div>
             )}
 
-            {/* Contact URL */}
-            {supplier.contact_url && (
-              <div className="col-span-2">
-                <div className="text-xs text-gray-500 mb-1">Contact Supplier</div>
-                <a
-                  href={supplier.contact_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline text-sm"
-                >
-                  View on Alibaba →
-                </a>
+            {/* Details in Flex Layout */}
+            <div className="flex-1 flex flex-col gap-3">
+              {/* Product Title */}
+              {supplier._raw_item?.title && (
+                <h3 className="font-semibold text-gray-900 text-base line-clamp-2">
+                  {supplier._raw_item.title}
+                </h3>
+              )}
+
+              {/* Info Items in Flex Wrap - 4-5 items per row */}
+              <div className="flex flex-wrap gap-3">
+                {/* Supplier Name */}
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-md">
+                  <span className="text-xs text-gray-500">Supplier:</span>
+                  <span className="text-sm font-semibold text-gray-900">{supplier.name || 'N/A'}</span>
+                </div>
+
+                {/* Location */}
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-md">
+                  <span className="text-xs text-gray-500">Location:</span>
+                  <span className="text-sm font-medium text-gray-700">{supplier.location || 'N/A'}</span>
+                </div>
+
+                {/* Estimated Price */}
+                <div className="flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-md">
+                  <span className="text-xs text-gray-500">Price:</span>
+                  <span className="text-sm font-semibold text-green-600">{supplier.estimated_price || supplier.price_per_unit || 'N/A'}</span>
+                </div>
+
+                {/* Minimum Order */}
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-md">
+                  <span className="text-xs text-gray-500">MOQ:</span>
+                  <span className="text-sm font-medium text-gray-700">{supplier.minimum_order || supplier.moq || 'N/A'}</span>
+                </div>
+
+                {/* Rating */}
+                <div className="flex items-center gap-2 bg-yellow-50 px-3 py-1.5 rounded-md">
+                  <span className="text-xs text-gray-500">Rating:</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {supplier.rating ? `${supplier.rating}/5.0` : 'N/A'}
+                  </span>
+                </div>
+
+                {/* Total Transactions */}
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-md">
+                  <span className="text-xs text-gray-500">Transactions:</span>
+                  <span className="text-sm font-medium text-gray-700">{supplier.total_transactions || 'N/A'}</span>
+                </div>
+
+                {/* Lead Time */}
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-md">
+                  <span className="text-xs text-gray-500">Lead Time:</span>
+                  <span className="text-sm font-medium text-gray-700">{supplier.lead_time || 'N/A'}</span>
+                </div>
+
+                {/* Response Rate */}
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-md">
+                  <span className="text-xs text-gray-500">Response:</span>
+                  <span className="text-sm font-medium text-gray-700">{supplier.response_rate || 'N/A'}</span>
+                </div>
+
+                {/* Verification Status */}
+                <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-md">
+                  <span className="text-xs text-gray-500">Verified:</span>
+                  <span className="text-sm font-medium text-blue-600">{supplier.verification_status || 'N/A'}</span>
+                </div>
+
+                {/* AI Match Score */}
+                {supplier.ai_match_score && (
+                  <div className="flex items-center gap-2 bg-purple-50 px-3 py-1.5 rounded-md">
+                    <span className="text-xs text-gray-500">AI Match:</span>
+                    <span className="text-sm font-semibold text-purple-600">{supplier.ai_match_score}%</span>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Contact URL */}
+              {supplier.contact_url && (
+                <div className="mt-auto">
+                  <a
+                    href={supplier.contact_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm"
+                  >
+                    <Icon icon="mdi:open-in-new" className="mr-1" />
+                    View on Alibaba
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

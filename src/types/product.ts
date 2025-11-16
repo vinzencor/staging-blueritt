@@ -85,7 +85,7 @@ type TAmazonProduct = {
 };
 
 type TAlibabaProduct = {
-  item: {
+  item?: {
     available: boolean;
     itemId: string;
     title: string;
@@ -174,7 +174,29 @@ type TAlibabaProduct = {
       };
     };
   };
-  score: number;
+  supplier?: {
+    supplier_product_image?: string;
+    _raw_item?: {
+      images?: Array<string>;
+      title?: string;
+    };
+    image?: string;
+    name?: string;
+    location?: string;
+    estimated_price?: string;
+    price_per_unit?: string;
+    minimum_order?: string;
+    moq?: string;
+    rating?: number;
+    total_transactions?: string;
+    lead_time?: string;
+    response_rate?: string;
+    verification_status?: string;
+    ai_match_score?: number;
+    contact_url?: string;
+    [key: string]: any;
+  };
+  score?: number;
 };
 
 type TProductRating = {

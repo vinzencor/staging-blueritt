@@ -781,7 +781,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       <div className="flex items-center gap-1">
                         <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">TikTok Trend Searches</div>
                         <div className="hs-tooltip ti-main-tooltip inline-block">
-                          <Info className="w-3 h-3 text-gray-400 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
+                          <Info className="w-5 h-5 text-gray-900 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
                           <span className="hs-tooltip-content ti-main-tooltip-content !py-2 !px-3 !bg-gray-900 dark:!bg-gray-700 !text-xs !text-white !max-w-xs !whitespace-normal" role="tooltip">
                             Smart Search Credit Saver: Repeat the same search within 7 days - no credit used. In other cases, a search credit will apply. 7-day window ensures fresh results from BlueRitt
                           </span>
@@ -797,7 +797,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                       <div className="flex items-center gap-1">
                         <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Supplier Discoveries</div>
                         <div className="hs-tooltip ti-main-tooltip inline-block">
-                          <Info className="w-3 h-3 text-gray-400 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
+                          <Info className="w-5 h-5 text-gray-900 dark:text-gray-500 cursor-help hs-tooltip-toggle" />
                           <span className="hs-tooltip-content ti-main-tooltip-content !py-2 !px-3 !bg-gray-900 dark:!bg-gray-700 !text-xs !text-white !max-w-xs !whitespace-normal" role="tooltip">
                             Discover Smart - Save Your Credit Search: With Suppliers for the same product again within 7 days no credits deducted. After 7 days, one Discover Supplier credit applies per new search. Matches are refreshed regularly to keep results timely and relevant
                           </span>
@@ -1466,7 +1466,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {activeModalTab === 'suppliers' ? 'BlueRitt SourceLink' :
                   activeModalTab === 'shop-analysis' ? 'TikTok Product Analysis' :
-                    'BlueRitt Product Details'}
+                    'TikTok Product Details'}
               </h2>
               <button
                 onClick={handleCloseModal}
@@ -1486,22 +1486,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   }`}
               >
                 <Package className="w-4 h-4" />
-                Overview
-              </button>
-              <button
-                onClick={() => setActiveModalTab('suppliers')}
-                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${activeModalTab === 'suppliers'
-                  ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                  }`}
-              >
-                <Truck className="w-4 h-4" />
-                Suppliers
-                {suppliers.length > 0 && (
-                  <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-0.5 rounded-full text-xs font-bold">
-                    {suppliers.length}
-                  </span>
-                )}
+                TikTok Product Details
               </button>
               <button
                 onClick={() => setActiveModalTab('shop-analysis')}
@@ -1511,20 +1496,35 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   }`}
               >
                 <TrendingUp className="w-4 h-4" />
-                Shop Analysis
+                TikTok Product Analysis
                 {shopAnalysisData?.products && shopAnalysisData.products.length > 0 && (
                   <span className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-0.5 rounded-full text-xs font-bold">
                     {shopAnalysisData.products.length}
                   </span>
                 )}
               </button>
+
+              <button
+                onClick={() => setActiveModalTab('suppliers')}
+                className={`flex-1 px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${activeModalTab === 'suppliers'
+                  ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-600 dark:border-purple-400 bg-white dark:bg-gray-800'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+              >
+                <Truck className="w-4 h-4" />
+                BlueRitt SourceLink
+                {suppliers.length > 0 && (
+                  <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {suppliers.length}
+                  </span>
+                )}
+              </button>
+
             </div>
 
             {/* Action Buttons Bar */}
             <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                {selectedProduct.url_title || 'TikTok Product'}
-
               </div>
 
               <div className="flex items-center gap-3">
@@ -1577,7 +1577,7 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   {/* Show content only after AI analysis completes */}
                   {!isShopAnalysisLoading && (shopAnalysisData || shopAnalysisError) && (
                     <>
-                      <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4>
+                      <h4 className="md:text-sm lg:text-base xl:text-lg font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4>
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Product Image with Pexels Fallback */}
                         <div className="space-y-4">
@@ -1602,363 +1602,363 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                             </h3>
                           </div>
 
-                      {/* Price Information from Shop Analysis - Show only first matching product */}
-                      {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border-2">
-                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            TikTok Shop Price
-                          </h4>
-                          {(() => {
-                            const firstProduct = shopAnalysisData.products[0];
-                            return (
-                              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
-                                
-                                <div className="text-center">
-                                  {/* Clickable Price - Opens Calculator */}
-                                  <button
-                                    onClick={() => {
-                                      // TODO: Add new implementation here
-                                    }}
-                                    className="group cursor-pointer inline-block w-full"
-                                  >
-                                    <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">
-                                      ${firstProduct.price.toFixed(2)}
-                                    </div>
-                                    <div className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors font-medium">
-                                      💰 Click to Calculate Profit
-                                    </div>
-                                  </button>
+                          {/* Price Information from Shop Analysis - Show only first matching product */}
+                          {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
+                            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border-2">
+                              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                TikTok Shop Price
+                              </h4>
+                              {(() => {
+                                const firstProduct = shopAnalysisData.products[0];
+                                return (
+                                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
 
-                                  {/* <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3 mt-3">
+                                    <div className="text-center">
+                                      {/* Clickable Price - Opens Calculator */}
+                                      <button
+                                        onClick={() => {
+                                          // TODO: Add new implementation here
+                                        }}
+                                        className="group cursor-pointer inline-block w-full"
+                                      >
+                                        <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2 group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors">
+                                          ${firstProduct.price.toFixed(2)}
+                                        </div>
+                                        <div className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors font-medium">
+                                          💰 Click to Calculate Profit
+                                        </div>
+                                      </button>
+
+                                      {/* <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3 mt-3">
                                     Currency: {firstProduct.currency}
                                   </div> */}
-                                  <div className="text-sm text-gray-700 dark:text-gray-200 mb-4 line-clamp-2 font-medium">
-                                    {firstProduct.title}
-                                  </div>
+                                      <div className="text-sm text-gray-700 dark:text-gray-200 mb-4 line-clamp-2 font-medium">
+                                        {firstProduct.title}
+                                      </div>
 
-                                  {/* Product Details Grid */}
-                                  <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                                    {firstProduct.sales_count > 0 && (
-                                      <div className="bg-green-100 dark:bg-green-900/50 rounded-lg p-3 border border-green-200 dark:border-green-700">
-                                        <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Sales</div>
-                                        <div className="font-bold text-green-700 dark:text-green-300 text-base">
-                                          {firstProduct.sales_count.toLocaleString()}
-                                        </div>
-                                      </div>
-                                    )}
-                                    {firstProduct.product_rating > 0 && (
-                                      <div className="bg-yellow-100 dark:bg-yellow-900/50 rounded-lg p-3 border border-yellow-200 dark:border-yellow-700">
-                                        <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Rating</div>
-                                        <div className="font-bold text-yellow-700 dark:text-yellow-300 text-base">
-                                          ⭐ {firstProduct.product_rating.toFixed(1)}
-                                        </div>
-                                      </div>
-                                    )}
-                                    {firstProduct.shop_name && (
-                                      <div className="bg-blue-100 dark:bg-blue-900/50 rounded-lg p-3 col-span-2 border border-blue-200 dark:border-blue-700">
-                                        <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Shop</div>
-                                        <div className="font-bold text-blue-700 dark:text-blue-300 truncate">
-                                          {firstProduct.shop_name}
-                                        </div>
-                                      </div>
-                                    )}
-                                    
-                                  </div>
+                                      {/* Product Details Grid */}
+                                      <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                                        {firstProduct.sales_count > 0 && (
+                                          <div className="bg-green-100 dark:bg-green-900/50 rounded-lg p-3 border border-green-200 dark:border-green-700">
+                                            <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Sales</div>
+                                            <div className="font-bold text-green-700 dark:text-green-300 text-base">
+                                              {firstProduct.sales_count.toLocaleString()}
+                                            </div>
+                                          </div>
+                                        )}
+                                        {firstProduct.product_rating > 0 && (
+                                          <div className="bg-yellow-100 dark:bg-yellow-900/50 rounded-lg p-3 border border-yellow-200 dark:border-yellow-700">
+                                            <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Rating</div>
+                                            <div className="font-bold text-yellow-700 dark:text-yellow-300 text-base">
+                                              ⭐ {firstProduct.product_rating.toFixed(1)}
+                                            </div>
+                                          </div>
+                                        )}
+                                        {firstProduct.shop_name && (
+                                          <div className="bg-blue-100 dark:bg-blue-900/50 rounded-lg p-3 col-span-2 border border-blue-200 dark:border-blue-700">
+                                            <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">Shop</div>
+                                            <div className="font-bold text-blue-700 dark:text-blue-300 truncate">
+                                              {firstProduct.shop_name}
+                                            </div>
+                                          </div>
+                                        )}
 
-                                  {/* View All Products Link */}
-                                  <button
-                                    onClick={() => setActiveModalTab('shop-analysis')}
-                                    className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm shadow-md"
-                                  >
-                                    View All {shopAnalysisData.products.length} Products →
-                                  </button>
+                                      </div>
+
+                                      {/* View All Products Link */}
+                                      <button
+                                        onClick={() => setActiveModalTab('shop-analysis')}
+                                        className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-sm shadow-md"
+                                      >
+                                        View All {shopAnalysisData.products.length} Products →
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          )}
+
+                          {/* Loading state for price information */}
+                          {isShopAnalysisLoading && (
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
+                              <div className="flex items-center justify-center gap-3">
+                                <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+                                <span className="text-gray-600 dark:text-gray-300">Loading pricing data...</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Error state for price information */}
+                          {shopAnalysisError && !isShopAnalysisLoading && (
+                            <div className="bg-red-50 dark:bg-red-900/30 rounded-xl p-6 border border-red-200 dark:border-red-700">
+                              <div className="flex items-center justify-center gap-3 text-red-600 dark:text-red-400">
+                                <AlertCircle className="w-5 h-5" />
+                                <span>Unable to load TikTok Shop pricing data</span>
+                              </div>
+                              <p className="text-sm text-red-500 dark:text-red-400 text-center mt-2">
+                                Please try selecting a different product or check back later
+                              </p>
+                            </div>
+                          )}
+
+                          {/* No products found state */}
+                          {!isShopAnalysisLoading && !shopAnalysisError && shopAnalysisData && shopAnalysisData.products.length === 0 && (
+                            <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700">
+                              <div className="flex items-center justify-center gap-3 text-yellow-600 dark:text-yellow-400">
+                                <AlertCircle className="w-5 h-5" />
+                                <span>No products found for this category</span>
+                              </div>
+                              <p className="text-sm text-yellow-500 dark:text-yellow-400 text-center mt-2">
+                                Try selecting a different trending product
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Statistics Grid */}
+                          <div className="grid grid-cols-2 gap-4">
+                            {selectedProduct.post && (
+                              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-700">
+                                <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
+                                  <Play className="w-5 h-5" />
+                                  <span className="font-medium">Posts</span>
+                                </div>
+                                <div className="text-2xl font-bold text-blue-800 dark:text-blue-300">
+                                  {selectedProduct.post.toLocaleString()}
                                 </div>
                               </div>
-                            );
-                          })()}
-                        </div>
-                      )}
+                            )}
 
-                      {/* Loading state for price information */}
-                      {isShopAnalysisLoading && (
-                        <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
-                          <div className="flex items-center justify-center gap-3">
-                            <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
-                            <span className="text-gray-600 dark:text-gray-300">Loading pricing data...</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Error state for price information */}
-                      {shopAnalysisError && !isShopAnalysisLoading && (
-                        <div className="bg-red-50 dark:bg-red-900/30 rounded-xl p-6 border border-red-200 dark:border-red-700">
-                          <div className="flex items-center justify-center gap-3 text-red-600 dark:text-red-400">
-                            <AlertCircle className="w-5 h-5" />
-                            <span>Unable to load TikTok Shop pricing data</span>
-                          </div>
-                          <p className="text-sm text-red-500 dark:text-red-400 text-center mt-2">
-                            Please try selecting a different product or check back later
-                          </p>
-                        </div>
-                      )}
-
-                      {/* No products found state */}
-                      {!isShopAnalysisLoading && !shopAnalysisError && shopAnalysisData && shopAnalysisData.products.length === 0 && (
-                        <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700">
-                          <div className="flex items-center justify-center gap-3 text-yellow-600 dark:text-yellow-400">
-                            <AlertCircle className="w-5 h-5" />
-                            <span>No products found for this category</span>
-                          </div>
-                          <p className="text-sm text-yellow-500 dark:text-yellow-400 text-center mt-2">
-                            Try selecting a different trending product
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Statistics Grid */}
-                      <div className="grid grid-cols-2 gap-4">
-                        {selectedProduct.post && (
-                          <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-700">
-                            <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
-                              <Play className="w-5 h-5" />
-                              <span className="font-medium">Posts</span>
-                            </div>
-                            <div className="text-2xl font-bold text-blue-800 dark:text-blue-300">
-                              {selectedProduct.post.toLocaleString()}
-                            </div>
-                          </div>
-                        )}
-
-                        {selectedProduct.like && (
-                          <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 rounded-lg p-4 text-center border border-red-200 dark:border-red-700">
-                            <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400 mb-2">
-                              <Heart className="w-5 h-5" />
-                              <span className="font-medium">Likes</span>
-                            </div>
-                            <div className="text-2xl font-bold text-red-800 dark:text-red-300">
-                              {selectedProduct.like.toLocaleString()}
-                            </div>
-                          </div>
-                        )}
-
-                        {selectedProduct.share && selectedProduct.share > 0 && (
-                          <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
-                            <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
-                              <Share2 className="w-5 h-5" />
-                              <span className="font-medium">Shares</span>
-                            </div>
-                            <div className="text-2xl font-bold text-green-800 dark:text-green-300">
-                              {selectedProduct.share.toLocaleString()}
-                            </div>
-                          </div>
-                        )}
-
-                        {selectedProduct.comment && selectedProduct.comment > 0 && (
-                          <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
-                            <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
-                              <MessageCircle className="w-5 h-5" />
-                              <span className="font-medium">Comments</span>
-                            </div>
-                            <div className="text-2xl font-bold text-purple-800 dark:text-purple-300">
-                              {selectedProduct.comment.toLocaleString()}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Additional Metrics */}
-                      <div className="space-y-4">
-                        {/* Only show heading after AI analysis completes */}
-                        {!isShopAnalysisLoading && (shopAnalysisData || shopAnalysisError) && (
-                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Additional Metrics</h4>
-                        )}
-                        <div className="grid grid-cols-2 gap-4">
-                          {selectedProduct.impression && (
-                            <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700 text-center">
-                              <div className="flex items-center justify-center gap-2 text-yellow-600 dark:text-yellow-400 mb-2">
-                                <Eye className="w-5 h-5" />
-                                <span className="font-medium">Impressions</span>
+                            {selectedProduct.like && (
+                              <div className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 rounded-lg p-4 text-center border border-red-200 dark:border-red-700">
+                                <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400 mb-2">
+                                  <Heart className="w-5 h-5" />
+                                  <span className="font-medium">Likes</span>
+                                </div>
+                                <div className="text-2xl font-bold text-red-800 dark:text-red-300">
+                                  {selectedProduct.like.toLocaleString()}
+                                </div>
                               </div>
-                              <span className="font-semibold text-gray-900 dark:text-white">
-                                {selectedProduct.impression.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
-                          {selectedProduct.ctr && (
-                            <div className="bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/30 dark:to-pink-800/30 rounded-lg p-4 text-center border border-pink-200 dark:border-pink-700">
-                              <div className="flex items-center justify-center gap-2 text-pink-600 dark:text-pink-400 mb-2">
-                                <MousePointer className="w-5 h-5" />
-                                <span className="font-medium">CTR</span>
-                              </div>
-                              <span className="font-semibold text-gray-900 dark:text-white">
-                                {selectedProduct.ctr}
-                              </span>
-                            </div>
-                          )}
-                          {selectedProduct.cvr && (
-                            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
-                              <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
-                                <TrendingUp className="w-5 h-5" />
-                                <span className="font-medium">CVR</span>
-                              </div>
-                              <span className="font-semibold text-gray-900 dark:text-white">
-                                {selectedProduct.cvr}
-                              </span>
-                            </div>
-                          )}
-                          {selectedProduct.cpa && (
-                            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-700">
-                              <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
-                                <DollarSign className="w-5 h-5" />
-                                <span className="font-medium">CPA</span>
-                              </div>
-                              <span className="font-semibold text-gray-900 dark:text-white">
-                                {selectedProduct.cpa}
-                              </span>
-                            </div>
-                          )}
-                          {/* ✅ Show Shop Analysis Price instead of cost */}
-                          {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
-                            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
-                              <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
-                                <DollarSign className="w-5 h-5" />
-                                <span className="font-medium">TikTok Shop Price</span>
-                              </div>
-                              <span className="font-semibold text-gray-900 dark:text-white">
-                                ${shopAnalysisData.products[0].price.toFixed(2)}
-                              </span>
-                            </div>
-                          )}
-                          {selectedProduct.play_six_rate && (
-                            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
-                              <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
-                                <Play className="w-5 h-5" />
-                                <span className="font-medium">6s View Rate</span>
-                              </div>
-                              <span className="font-semibold text-gray-900 dark:text-white">
-                                {selectedProduct.play_six_rate}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                            )}
 
-                      {/* Loading state for Creative Center data - Show FIRST */}
-                      {isCreativeCenterLoading && (
-                        <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
-                          <div className="flex items-center justify-center gap-3">
-                            <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                            <span className="text-gray-600 dark:text-gray-300">Loading audience insights...</span>
+                            {selectedProduct.share && selectedProduct.share > 0 && (
+                              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
+                                <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
+                                  <Share2 className="w-5 h-5" />
+                                  <span className="font-medium">Shares</span>
+                                </div>
+                                <div className="text-2xl font-bold text-green-800 dark:text-green-300">
+                                  {selectedProduct.share.toLocaleString()}
+                                </div>
+                              </div>
+                            )}
+
+                            {selectedProduct.comment && selectedProduct.comment > 0 && (
+                              <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
+                                <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
+                                  <MessageCircle className="w-5 h-5" />
+                                  <span className="font-medium">Comments</span>
+                                </div>
+                                <div className="text-2xl font-bold text-purple-800 dark:text-purple-300">
+                                  {selectedProduct.comment.toLocaleString()}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      )}
 
-                      {/* Creative Center Data - Age Demographics and Hashtags */}
-                      {!isCreativeCenterLoading && (
-                        <div className="space-y-6">
-                          {/* Only show heading after AI analysis completes */}
-                          {!isShopAnalysisLoading && (shopAnalysisData || shopAnalysisError) && (
-                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Audience Insights</h4>
+                          {/* Additional Metrics */}
+                          <div className="space-y-4">
+                            {/* Only show heading after AI analysis completes */}
+                            {!isShopAnalysisLoading && (shopAnalysisData || shopAnalysisError) && (
+                              <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Additional Metrics</h4>
+                            )}
+                            <div className="grid grid-cols-2 gap-4">
+                              {selectedProduct.impression && (
+                                <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700 text-center">
+                                  <div className="flex items-center justify-center gap-2 text-yellow-600 dark:text-yellow-400 mb-2">
+                                    <Eye className="w-5 h-5" />
+                                    <span className="font-medium">Impressions</span>
+                                  </div>
+                                  <span className="font-semibold text-gray-900 dark:text-white">
+                                    {selectedProduct.impression.toLocaleString()}
+                                  </span>
+                                </div>
+                              )}
+                              {selectedProduct.ctr && (
+                                <div className="bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/30 dark:to-pink-800/30 rounded-lg p-4 text-center border border-pink-200 dark:border-pink-700">
+                                  <div className="flex items-center justify-center gap-2 text-pink-600 dark:text-pink-400 mb-2">
+                                    <MousePointer className="w-5 h-5" />
+                                    <span className="font-medium">CTR</span>
+                                  </div>
+                                  <span className="font-semibold text-gray-900 dark:text-white">
+                                    {selectedProduct.ctr}
+                                  </span>
+                                </div>
+                              )}
+                              {selectedProduct.cvr && (
+                                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
+                                  <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
+                                    <TrendingUp className="w-5 h-5" />
+                                    <span className="font-medium">CVR</span>
+                                  </div>
+                                  <span className="font-semibold text-gray-900 dark:text-white">
+                                    {selectedProduct.cvr}
+                                  </span>
+                                </div>
+                              )}
+                              {selectedProduct.cpa && (
+                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-4 text-center border border-blue-200 dark:border-blue-700">
+                                  <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
+                                    <DollarSign className="w-5 h-5" />
+                                    <span className="font-medium">CPA</span>
+                                  </div>
+                                  <span className="font-semibold text-gray-900 dark:text-white">
+                                    {selectedProduct.cpa}
+                                  </span>
+                                </div>
+                              )}
+                              {/* ✅ Show Shop Analysis Price instead of cost */}
+                              {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
+                                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 text-center border border-green-200 dark:border-green-700">
+                                  <div className="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 mb-2">
+                                    <DollarSign className="w-5 h-5" />
+                                    <span className="font-medium">TikTok Shop Price</span>
+                                  </div>
+                                  <span className="font-semibold text-gray-900 dark:text-white">
+                                    ${shopAnalysisData.products[0].price.toFixed(2)}
+                                  </span>
+                                </div>
+                              )}
+                              {selectedProduct.play_six_rate && (
+                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 text-center border border-purple-200 dark:border-purple-700">
+                                  <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400 mb-2">
+                                    <Play className="w-5 h-5" />
+                                    <span className="font-medium">6s View Rate</span>
+                                  </div>
+                                  <span className="font-semibold text-gray-900 dark:text-white">
+                                    {selectedProduct.play_six_rate}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Loading state for Creative Center data - Show FIRST */}
+                          {isCreativeCenterLoading && (
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
+                              <div className="flex items-center justify-center gap-3">
+                                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                                <span className="text-gray-600 dark:text-gray-300">Loading audience insights...</span>
+                              </div>
+                            </div>
                           )}
 
-                          {/* Debug Info - Enable to troubleshoot */}
-                          {/* <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded max-h-40 overflow-y-auto">
+                          {/* Creative Center Data - Age Demographics and Hashtags */}
+                          {!isCreativeCenterLoading && (
+                            <div className="space-y-6">
+                              {/* Only show heading after AI analysis completes */}
+                              {!isShopAnalysisLoading && (shopAnalysisData || shopAnalysisError) && (
+                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Audience Insights</h4>
+                              )}
+
+                              {/* Debug Info - Enable to troubleshoot */}
+                              {/* <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded max-h-40 overflow-y-auto">
                             Debug: creativeCenterData = {creativeCenterData ? 'EXISTS' : 'NULL'} |
                             Code: {creativeCenterData?.code} | Msg: {creativeCenterData?.msg} |
                             Data: {creativeCenterData ? JSON.stringify(creativeCenterData, null, 2) : 'No data'}
                           </div> */}
 
-                          {/* Age Demographics Chart - Real Data */}
-                          {Array.isArray(creativeCenterData?.data?.info?.audience_ages) && creativeCenterData.data.info.audience_ages.length > 0 ? (
-                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
-                              <h5 className="text-md font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                                Age Demographics
-                              </h5>
-                              <div className="space-y-3">
-                                {creativeCenterData.data.info.audience_ages.map((ageData, index) => (
-                                  <div key={index} className="flex items-center gap-3">
-                                    <div className="w-16 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                      {ageData.age_level}+
-                                    </div>
-                                    <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 relative overflow-hidden">
-                                      <div
-                                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 rounded-full transition-all duration-500"
-                                        style={{ width: `${Math.min(ageData.score, 100)}%` }}
-                                      />
-                                    </div>
-                                    <div className="w-12 text-sm font-semibold text-blue-600 dark:text-blue-400 text-right">
-                                      {ageData.score}%
-                                    </div>
+                              {/* Age Demographics Chart - Real Data */}
+                              {Array.isArray(creativeCenterData?.data?.info?.audience_ages) && creativeCenterData.data.info.audience_ages.length > 0 ? (
+                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
+                                  <h5 className="text-md font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                    Age Demographics
+                                  </h5>
+                                  <div className="space-y-3">
+                                    {creativeCenterData.data.info.audience_ages.map((ageData, index) => (
+                                      <div key={index} className="flex items-center gap-3">
+                                        <div className="w-16 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                          {ageData.age_level}+
+                                        </div>
+                                        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3 relative overflow-hidden">
+                                          <div
+                                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 rounded-full transition-all duration-500"
+                                            style={{ width: `${Math.min(ageData.score, 100)}%` }}
+                                          />
+                                        </div>
+                                        <div className="w-12 text-sm font-semibold text-blue-600 dark:text-blue-400 text-right">
+                                          {ageData.score}%
+                                        </div>
+                                      </div>
+                                    ))}
                                   </div>
-                                ))}
-                              </div>
-                            </div>
-                          ) : null}
+                                </div>
+                              ) : null}
 
-                          {/* Trending Hashtags - Real Data */}
-                          {Array.isArray(creativeCenterData?.data?.info?.hashtags) && creativeCenterData.data.info.hashtags.length > 0 ? (
-                            <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/30 dark:to-rose-900/30 rounded-xl p-6 border border-pink-200 dark:border-pink-700">
-                              <h5 className="text-md font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                <Hash className="w-5 h-5 text-pink-600 dark:text-pink-400" />
-                                Trending Hashtags
-                              </h5>
-                              <div className="flex flex-wrap gap-2">
-                                {creativeCenterData.data.info.hashtags.slice(0, 10).map((hashtag, index) => (
-                                  <span
-                                    key={index}
-                                    className="inline-block bg-gradient-to-r from-pink-100 to-rose-100 dark:from-pink-900/50 dark:to-rose-900/50 text-pink-800 dark:text-pink-300 px-3 py-1 rounded-full text-sm font-medium border border-pink-200 dark:border-pink-700 hover:shadow-md transition-shadow"
-                                  >
-                                    #{hashtag}
-                                  </span>
-                                ))}
-                              </div>
-                              {(creativeCenterData.data.info.hashtags.length || 0) > 10 && (
-                                <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-                                  +{(creativeCenterData.data.info.hashtags.length || 0) - 10} more hashtags
+                              {/* Trending Hashtags - Real Data */}
+                              {Array.isArray(creativeCenterData?.data?.info?.hashtags) && creativeCenterData.data.info.hashtags.length > 0 ? (
+                                <div className="bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/30 dark:to-rose-900/30 rounded-xl p-6 border border-pink-200 dark:border-pink-700">
+                                  <h5 className="text-md font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                    <Hash className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+                                    Trending Hashtags
+                                  </h5>
+                                  <div className="flex flex-wrap gap-2">
+                                    {creativeCenterData.data.info.hashtags.slice(0, 10).map((hashtag, index) => (
+                                      <span
+                                        key={index}
+                                        className="inline-block bg-gradient-to-r from-pink-100 to-rose-100 dark:from-pink-900/50 dark:to-rose-900/50 text-pink-800 dark:text-pink-300 px-3 py-1 rounded-full text-sm font-medium border border-pink-200 dark:border-pink-700 hover:shadow-md transition-shadow"
+                                      >
+                                        #{hashtag}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  {(creativeCenterData.data.info.hashtags.length || 0) > 10 && (
+                                    <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                                      +{(creativeCenterData.data.info.hashtags.length || 0) - 10} more hashtags
+                                    </div>
+                                  )}
+                                </div>
+                              ) : null}
+
+                              {/* No data message - Show when code is not 0 and no data */}
+                              {creativeCenterData && creativeCenterData.code !== 0 && !Array.isArray(creativeCenterData?.data?.info?.audience_ages) && !Array.isArray(creativeCenterData?.data?.info?.hashtags) && (
+                                <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700">
+                                  <div className="flex items-center justify-center gap-3 text-yellow-600 dark:text-yellow-400">
+                                    <AlertCircle className="w-5 h-5" />
+                                    <span>No audience insights available for this product</span>
+                                  </div>
+                                  <p className="text-sm text-yellow-500 dark:text-yellow-400 text-center mt-2">
+                                    {creativeCenterData.msg || 'Unable to fetch audience data'}
+                                  </p>
                                 </div>
                               )}
                             </div>
-                          ) : null}
-
-                          {/* No data message - Show when code is not 0 and no data */}
-                          {creativeCenterData && creativeCenterData.code !== 0 && !Array.isArray(creativeCenterData?.data?.info?.audience_ages) && !Array.isArray(creativeCenterData?.data?.info?.hashtags) && (
-                            <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700">
-                              <div className="flex items-center justify-center gap-3 text-yellow-600 dark:text-yellow-400">
-                                <AlertCircle className="w-5 h-5" />
-                                <span>No audience insights available for this product</span>
-                              </div>
-                              <p className="text-sm text-yellow-500 dark:text-yellow-400 text-center mt-2">
-                                {creativeCenterData.msg || 'Unable to fetch audience data'}
-                              </p>
-                            </div>
                           )}
-                        </div>
-                      )}
 
-                      {/* Action Buttons */}
-                      <div className="flex gap-3 pt-4">
-                        {selectedProduct.url && (
-                          <a
-                            href={selectedProduct.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
-                          >
-                            <ExternalLink className="w-5 h-5" />
-                            View Product
-                          </a>
-                        )}
-                        <button
-                          onClick={handleCloseModal}
-                          className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
-                        >
-                          Close
-                        </button>
+                          {/* Action Buttons */}
+                          <div className="flex gap-3 pt-4">
+                            {selectedProduct.url && (
+                              <a
+                                href={selectedProduct.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-6 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-200 font-medium text-center flex items-center justify-center gap-2"
+                              >
+                                <ExternalLink className="w-5 h-5" />
+                                View Product
+                              </a>
+                            )}
+                            <button
+                              onClick={handleCloseModal}
+                              className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
                     </>
                   )}
                 </div>
@@ -1968,13 +1968,37 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
 
                 <div className="p-6">
                   <div className=" flex justify-between">
-                    {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
-                      <h4 className=" font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4>
-                    )}
-                    {activeModalTab === 'suppliers' && suppliers && suppliers.length > 0 && (
-                      <h4 className="font-bold text-gray-900 dark:text-white mb-4 text-base sm:text-sm sm:flex-wrap sm:ml-[70px] md:ml-[217px] md:text-lg lg:text-xl xl:text-2xl">
-                        Recommended Alibaba Suppliers for Your Product & AI Match Scores
-                      </h4>
+                    <h4 className=" font-bold text-gray-900 dark:text-white mb-4 md:text-sm lg:text-base xl:text-lg">Your Selected Product</h4>
+                    {suppliers && suppliers.length > 0 && (
+                      <div className="flex items-start gap-2 mb-4">
+                        <div className="relative inline-block group">
+                          <Info className="w-5 h-5 text-gray-900 dark:text-gray-500 cursor-help" />
+
+                          <span
+                            className="
+        absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2
+        rounded-md px-3 py-2 text-xs text-white
+        bg-gray-900 dark:bg-gray-700
+        whitespace-normal w-80
+        opacity-0 invisible
+        group-hover:opacity-100 group-hover:visible
+        transition-opacity duration-150
+      "
+                            role="tooltip"
+                          >
+                            Discover Smart - Save Your Credit Search: With suppliers for the same product again within 7 days no credits deducted.
+                            After 7 days, one Discover Supplier credit applies per new search. Matches are refreshed regularly to keep results
+                            timely and relevant.
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-gray-900 dark:text-white text-base sm:text-sm md:text-sm lg:text-base xl:text-lg">
+                          Recommended Alibaba Suppliers for Your Product & AI Match Scores
+                        </h4>
+
+                        {/* Tooltip wrapper */}
+
+                      </div>
+
                     )}
                   </div>
                   <SuppliersTab
@@ -2087,9 +2111,21 @@ interface SuppliersTabProps {
   analysisTime: number;
   onCalculateClick: (supplier: SupplierInfo) => void;
   product?: any; // TikTok product data
+  shopAnalysisData?: any; // TikTok Shop Analysis data
+  isSupplierDiscoveryLoading?: boolean; // Loading state for supplier discovery
+  onDiscoverSuppliers?: () => void; // Callback to trigger supplier discovery
 }
 
-const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analysisTime, onCalculateClick, product }) => {
+const SuppliersTab: React.FC<SuppliersTabProps> = ({
+  suppliers,
+  isLoading,
+  analysisTime,
+  onCalculateClick,
+  product,
+  shopAnalysisData,
+  isSupplierDiscoveryLoading = false,
+  onDiscoverSuppliers
+}) => {
   // ✅ Show ALL suppliers (both verified and unverified)
   const displaySuppliers = suppliers || [];
 
@@ -2100,7 +2136,8 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     unverifiedCount: displaySuppliers.filter(s => s.verification_status?.toLowerCase() === 'unverified').length,
     isLoading,
     analysisTime,
-    hasProduct: !!product
+    hasProduct: !!product,
+    hasShopAnalysisData: !!shopAnalysisData
   });
 
   const [progress, setProgress] = useState(0);
@@ -2145,64 +2182,64 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
     note: 'Backend filters to show only verified suppliers with badges'
   });
 
-  if (isLoading) {
-    return (
-      <div className="text-center py-12">
-        <div className="max-w-md mx-auto">
-          {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+  // Render loading state content for right side
+  const LoadingContent = () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="max-w-md mx-auto text-center">
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mb-6">
+          <div
+            className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+
+        {/* Progress Percentage */}
+        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-3">
+          {Math.round(progress)}%
+        </div>
+
+        {/* Dynamic Status Text */}
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          {getStatusText()}
+        </h3>
+
+        {/* Constant Message */}
+        <p className="text-gray-400 dark:text-gray-500 text-sm mb-6">
+          This process may take 30–45 seconds. Please wait while our AI engine generates the results
+        </p>
+
+        {/* Animated Dots */}
+        <div className="flex justify-center items-center gap-1 mb-6">
+          {[1, 2, 3].map((dot) => (
             <div
-              className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${progress}%` }}
+              key={dot}
+              className="w-2 h-2 bg-purple-600 dark:bg-purple-400 rounded-full animate-pulse"
+              style={{ animationDelay: `${dot * 0.2}s` }}
             ></div>
+          ))}
+        </div>
+
+        {/* AI Powered Section */}
+        <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-100 dark:border-blue-700">
+          <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 mb-2">
+            <Zap className="w-5 h-5 animate-pulse" />
+            <span className="font-medium">AI-Powered Matching</span>
           </div>
 
-          {/* Progress Percentage */}
-          <div className="text-2xl font-bold text-purple-600 mb-3">
-            {Math.round(progress)}%
-          </div>
-
-          {/* Dynamic Status Text */}
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {getStatusText()}
-          </h3>
-
-          {/* Constant Message */}
-          <p className="text-gray-400 text-sm mb-6">
-            This process may take 30–45 seconds. Please wait while our AI engine generates the results
+          {/* Dynamic Sub-status */}
+          <p className="text-blue-600 dark:text-blue-300 text-sm">
+            {getSubStatusText()}
           </p>
-
-          {/* Animated Dots */}
-          <div className="flex justify-center items-center gap-1 mb-6">
-            {[1, 2, 3].map((dot) => (
-              <div
-                key={dot}
-                className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"
-                style={{ animationDelay: `${dot * 0.2}s` }}
-              ></div>
-            ))}
-          </div>
-
-          {/* AI Powered Section */}
-          <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-            <div className="flex items-center gap-2 text-blue-700 mb-2">
-              <Zap className="w-5 h-5 animate-pulse" />
-              <span className="font-medium">AI-Powered Matching</span>
-            </div>
-
-            {/* Dynamic Sub-status */}
-            <p className="text-blue-600 text-sm">
-              {getSubStatusText()}
-            </p>
-          </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (!displaySuppliers || displaySuppliers.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12">
+  // Render empty state content for right side
+  const EmptyContent = () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="flex flex-col items-center justify-center">
         <Truck className="w-16 h-16 text-gray-400 mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
           No Suppliers Found
@@ -2211,17 +2248,16 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
           We couldn't find any suppliers for this product. Try clicking "Discover Suppliers" to search again.
         </p>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="flex gap-6 h-[600px]">
 
-      {/* Left Side - Product Details (Fixed) */}
+      {/* Left Side - Product Details (Fixed) - Always visible */}
       <div className="w-1/3 flex-shrink-0">
         <div className="sticky top-0 bg-white dark:bg-gray-700 rounded-xl border-2 border-purple-200 dark:border-purple-600 p-4 shadow-lg h-[600px] flex flex-col">
           {/* Product Image */}
-
           <div className="mb-3">
             <ProductImageWithFallback product={product} className="rounded-xl w-full h-48 object-cover" />
           </div>
@@ -2230,6 +2266,15 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
           <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
             {product?.url_title || 'TikTok Product'}
           </h3>
+
+          {/* TikTok Shop Price from Shop Analysis */}
+          {shopAnalysisData && shopAnalysisData.products && shopAnalysisData.products.length > 0 && (
+            <div className="mb-3 text-center">
+              <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                ${shopAnalysisData.products[0].price.toFixed(2)}
+              </span>
+            </div>
+          )}
 
           {/* Category */}
           {product?.first_ecom_category && (
@@ -2274,258 +2319,296 @@ const SuppliersTab: React.FC<SuppliersTabProps> = ({ suppliers, isLoading, analy
             )}
           </div>
 
+          {/* Action Buttons */}
+          <div className="mt-auto space-y-2">
+            {product?.url && (
+              <a
+                href={product.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2 px-3 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-colors flex items-center justify-center gap-2 text-sm"
+              >
+                <ExternalLink className="w-4 h-4" />
+                View on TikTok
+              </a>
+            )}
+
+            <button
+              onClick={onDiscoverSuppliers}
+              disabled={isSupplierDiscoveryLoading}
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
+            >
+              {isSupplierDiscoveryLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Discovering...
+                </>
+              ) : (
+                <>
+                  <Truck className="w-4 h-4" />
+                  Discover Suppliers
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Right Side - Suppliers List (Scrollable) */}
+      {/* Right Side - Dynamic Content (Loading, Empty, or Suppliers List) */}
       <div className="flex-1 overflow-y-auto pr-2 h-[600px]">
+        {isLoading ? (
+          <LoadingContent />
+        ) : !displaySuppliers || displaySuppliers.length === 0 ? (
+          <EmptyContent />
+        ) : (
 
-        <div className="space-y-3">
-          {displaySuppliers.map((supplier) => (
-            <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
-              {/* ✅ Supplier Product Image - Always show */}
-              <div className="mb-2 bg-gray-100 dark:bg-gray-600 rounded-lg overflow-hidden h-32 flex items-center justify-center">
-                {supplier.supplier_product_image ? (
-                  <img
-                    src={supplier.supplier_product_image}
-                    alt={supplier.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // Show placeholder on error
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const parent = target.parentElement;
-                      if (parent) {
-                        parent.innerHTML = '<div class="flex items-center justify-center w-full h-full"><svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>';
-                      }
-                    }}
-                  />
-                ) : (
-                  <Package className="w-12 h-12 text-gray-400" />
-                )}
-              </div>
+          <div className="space-y-3">
+            {displaySuppliers.map((supplier) => (
+              <div key={supplier.id} className="bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl p-3 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-lg transition-all duration-200">
+                {/* ✅ Supplier Product Image - Always show */}
+                <div className="mb-2 bg-gray-100 dark:bg-gray-600 rounded-lg overflow-hidden h-32 flex items-center justify-center">
+                  {supplier.supplier_product_image ? (
+                    <img
+                      src={supplier.supplier_product_image}
+                      alt={supplier.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Show placeholder on error
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = '<div class="flex items-center justify-center w-full h-full"><svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div>';
+                        }
+                      }}
+                    />
+                  ) : (
+                    <Package className="w-12 h-12 text-gray-400" />
+                  )}
+                </div>
 
-              {/* Header with Name, Verification, and AI Score */}
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1 min-w-0 pr-2">
-                  <h5 className="font-bold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1">{supplier.name}</h5>
-                  <p className="text-gray-600 dark:text-gray-300 text-xs mb-2">{supplier.location}</p>
+                {/* Header with Name, Verification, and AI Score */}
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <h5 className="font-bold text-gray-900 dark:text-white text-sm mb-1 line-clamp-1">{supplier.name}</h5>
+                    <p className="text-gray-600 dark:text-gray-300 text-xs mb-2">{supplier.location}</p>
 
-                  {/* ✅ Verification Badges - Larger and more visible */}
-                  <div className="flex flex-wrap gap-1.5 mb-1">
-                    {/* 1. Verified Supplier Badge (First) */}
-                    {(supplier.verification_badge === 'Verified Pro' ||
-                      supplier.verified_pro) && (
-                        <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
-                          <Shield className="w-3 h-3 fill-current" />
-                          Verified Pro
-                        </span>
-                      )}
+                    {/* ✅ Verification Badges - Larger and more visible */}
+                    <div className="flex flex-wrap gap-1.5 mb-1">
+                      {/* 1. Verified Supplier Badge (First) */}
+                      {(supplier.verification_badge === 'Verified Pro' ||
+                        supplier.verified_pro) && (
+                          <span className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                            <Shield className="w-3 h-3 fill-current" />
+                            Verified Pro
+                          </span>
+                        )}
 
-                    {!supplier.verified_pro &&
-                      (supplier.verification_badge === 'Verified Supplier' ||
-                        supplier.verification_status === 'Verified' ||
-                        supplier.verified_supplier) && (
-                        <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                      {/* {!supplier.verified_pro &&
+                        (supplier.verification_badge === 'Verified Supplier' ||
+                          supplier.verification_status === 'Verified' ||
+                          supplier.verified_supplier) && (
+                          <span className="bg-gradient-to-r from-red-500 to-red-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                            <Shield className="w-3 h-3 fill-current" />
+                            Verified
+                          </span>
+                        )} */}
+
+                      {supplier.is_assessed && (
+                        <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
                           <Shield className="w-3 h-3 fill-current" />
                           Verified
                         </span>
                       )}
 
-                    {supplier.is_assessed && (
-                      <span className="bg-gradient-to-r from-green-500 to-green-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
-                        <Shield className="w-3 h-3 fill-current" />
-                        Verified
-                      </span>
-                    )}
-
-                    {/* 2. Trade Assurance Badge (Second) */}
-                    {supplier.trade_assurance && (
-                      <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
-                        <Shield className="w-3 h-3 fill-current" />
-                        Trade Assurance
-                      </span>
-                    )}
-
-                    {supplier.years_in_business && supplier.years_in_business > 0 && (
-                      <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md">
-                        {supplier.years_in_business} {supplier.years_in_business === 1 ? 'yr' : 'yrs'}
-                      </span>
-                    )}
-
-                    {/* 4. Gold Supplier Badge (Fourth) */}
-                    {(supplier.verification_badge === 'Gold Supplier' ||
-                      supplier.verification_status === 'Gold Supplier' ||
-                      supplier.verification_badge === 'Gold' ||
-                      supplier.is_gold) && (
-                        <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                      {/* 2. Trade Assurance Badge (Second) */}
+                      {supplier.trade_assurance && (
+                        <span className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
                           <Shield className="w-3 h-3 fill-current" />
-                          Gold
+                          Trade Assurance
                         </span>
                       )}
 
-                    {/* 6. Star Rating Badge (Sixth) - Always show rating */}
-                    <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-current" />
-                      {supplier.rating ? supplier.rating.toFixed(1) : '0'}
-                    </span>
+                      {supplier.years_in_business && supplier.years_in_business > 0 && (
+                        <span className="bg-gradient-to-r from-sky-400 to-sky-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md">
+                          {supplier.years_in_business} {supplier.years_in_business === 1 ? 'yr' : 'yrs'}
+                        </span>
+                      )}
+
+                      {/* 4. Gold Supplier Badge (Fourth) */}
+                      {(supplier.verification_badge === 'Gold Supplier' ||
+                        supplier.verification_status === 'Gold Supplier' ||
+                        supplier.verification_badge === 'Gold' ||
+                        supplier.is_gold) && (
+                          <span className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                            <Shield className="w-3 h-3 fill-current" />
+                            Gold
+                          </span>
+                        )}
+
+                      {/* 6. Star Rating Badge (Sixth) - Always show rating */}
+                      <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-2 py-1 rounded-md text-xs font-bold shadow-md flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-current" />
+                        {supplier.rating ? supplier.rating.toFixed(1) : '0'}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* AI Match Score - Circular Progress (Smaller) */}
-                <div className="flex items-center justify-end">
-                  <div className="relative h-[90px] w-[90px]">
-                    {/* Circular Progress Bar */}
-                    <svg className="transform -rotate-90" width="90" height="90">
-                      <circle
-                        cx="45"
-                        cy="45"
-                        r="40"
-                        stroke="#e5e7eb"
-                        strokeWidth="8"
-                        fill="none"
-                      />
-                      <circle
-                        cx="45"
-                        cy="45"
-                        r="40"
-                        stroke={
-                          (supplier.ai_match_score || 0) >= 80
-                            ? '#22c55e'
-                            : (supplier.ai_match_score || 0) >= 60
-                              ? '#eab308'
-                              : '#ef4444'
-                        }
-                        strokeWidth="8"
-                        strokeLinecap="round"
-                        fill="none"
-                        strokeDasharray={2 * Math.PI * 40}
-                        strokeDashoffset={
-                          2 * Math.PI * 40 * (1 - (supplier.ai_match_score || 0) / 100)
-                        }
-                      />
-                    </svg>
+                  {/* AI Match Score - Circular Progress (Smaller) */}
+                  <div className="flex items-center justify-end">
+                    <div className="relative h-[90px] w-[90px]">
+                      {/* Circular Progress Bar */}
+                      <svg className="transform -rotate-90" width="90" height="90">
+                        <circle
+                          cx="45"
+                          cy="45"
+                          r="40"
+                          stroke="#e5e7eb"
+                          strokeWidth="8"
+                          fill="none"
+                        />
+                        <circle
+                          cx="45"
+                          cy="45"
+                          r="40"
+                          stroke={
+                            (supplier.ai_match_score || 0) >= 80
+                              ? '#22c55e'
+                              : (supplier.ai_match_score || 0) >= 60
+                                ? '#eab308'
+                                : '#ef4444'
+                          }
+                          strokeWidth="8"
+                          strokeLinecap="round"
+                          fill="none"
+                          strokeDasharray={2 * Math.PI * 40}
+                          strokeDashoffset={
+                            2 * Math.PI * 40 * (1 - (supplier.ai_match_score || 0) / 100)
+                          }
+                        />
+                      </svg>
 
-                    {/* Content in center */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
-                      <div className="font-bold text-purple-600 dark:text-purple-400">
-                        {(supplier.ai_match_score || 0).toFixed(2)}%
+                      {/* Content in center */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">AI Match</div>
+                        <div className="font-bold text-purple-600 dark:text-purple-400">
+                          {(supplier.ai_match_score || 0).toFixed(2)}%
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Key Details Grid - Compact */}
-              <div className="grid grid-cols-2 gap-2 mb-2">
-                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
-                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Minimum Order QTY</div>
-                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
-                    {supplier.moq?.toLocaleString() || 'N/A'}
-                  </div>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
-                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Lead Time</div>
-                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
-                    {supplier.lead_time}
-                  </div>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
-                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Manufacturing Cost</div>
-                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
-                    {supplier.estimated_price}
-                  </div>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
-                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Response</div>
-                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
-                    {supplier.response_rate}
-                  </div>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
-                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Item id</div>
-                  <div className="font-semibold text-xs text-gray-900 dark:text-white">
-                    {supplier.id}
-                  </div>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 mb-2">
-                  <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-1 text-center">Supplier Rating</div>
-                  <div className="flex items-center justify-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-3 h-3 ${star <= (supplier.rating || 0)
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'fill-gray-300 text-gray-300 dark:fill-gray-500 dark:text-gray-500'
-                          }`}
-                      />
-                    ))}
-                    <span className="ml-1 text-xs font-semibold text-gray-900 dark:text-white">
-                      {supplier.rating ? supplier.rating.toFixed(1) : '0.0'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-
-              {/* ✅ Star Rating Display - Separate Row */}
-
-
-              {/* Additional Info - Compact */}
-              <div className="space-y-1 mb-2">
-                <div className="flex items-start gap-1">
-                  <span className="text-gray-600 dark:text-gray-300 whitespace-nowrap">Products:</span>
-                  <span className="font-medium text-gray-900 dark:text-white  line-clamp-1">
-                    {Array.isArray(supplier.main_products)
-                      ? supplier.main_products.join(', ')
-                      : supplier.main_products}
-                  </span>
-                </div>
-                {supplier.certifications && supplier.certifications.length > 0 && (
-                  <div className="flex items-start gap-1 text-xs">
-                    <span className="text-gray-600 dark:text-gray-300 text-[10px] whitespace-nowrap">Certs:</span>
-                    <div className="flex flex-wrap gap-0.5">
-                      {supplier.certifications.slice(0, 2).map((cert, certIndex) => (
-                        <span key={certIndex} className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-1 py-0.5 rounded text-[9px]">
-                          {cert}
-                        </span>
-                      ))}
-                      {supplier.certifications.length > 2 && (
-                        <span className="text-gray-500 dark:text-gray-400 text-[9px]">+{supplier.certifications.length - 2}</span>
-                      )}
+                {/* Key Details Grid - Compact */}
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                    <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Minimum Order QTY</div>
+                    <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                      {supplier.moq?.toLocaleString() || 'N/A'}
                     </div>
                   </div>
-                )}
-              </div>
+                  <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                    <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Lead Time</div>
+                    <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                      {supplier.lead_time}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                    <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Manufacturing Cost</div>
+                    <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                      {supplier.estimated_price}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                    <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Response</div>
+                    <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                      {supplier.response_rate}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 text-center">
+                    <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-0.5">Item id</div>
+                    <div className="font-semibold text-xs text-gray-900 dark:text-white">
+                      {supplier.id}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-600 rounded-lg p-2 mb-2">
+                    <div className="text-[10px] text-gray-600 dark:text-gray-300 mb-1 text-center">Supplier Rating</div>
+                    <div className="flex items-center justify-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-3 h-3 ${star <= (supplier.rating || 0)
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'fill-gray-300 text-gray-300 dark:fill-gray-500 dark:text-gray-500'
+                            }`}
+                        />
+                      ))}
+                      <span className="ml-1 text-xs font-semibold text-gray-900 dark:text-white">
+                        {supplier.rating ? supplier.rating.toFixed(1) : '0.0'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-              {/* Action Buttons - Compact */}
-              <div className="flex justify-end gap-1.5">
-                {/* Calculate Button */}
-                <button
-                  onClick={() => onCalculateClick(supplier)}
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
-                >
-                  <DollarSign className="w-3.5 h-3.5" />
-                  Calculate Profit
-                </button>
 
-                {/* Contact Supplier Button */}
-                {supplier.contact_url && (
-                  <a
-                    href={supplier.contact_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
+                {/* ✅ Star Rating Display - Separate Row */}
+
+
+                {/* Additional Info - Compact */}
+                <div className="space-y-1 mb-2">
+                  <div className="flex items-start gap-1">
+                    <span className="text-gray-600 dark:text-gray-300 whitespace-nowrap">Products:</span>
+                    <span className="font-medium text-gray-900 dark:text-white  line-clamp-1">
+                      {Array.isArray(supplier.main_products)
+                        ? supplier.main_products.join(', ')
+                        : supplier.main_products}
+                    </span>
+                  </div>
+                  {supplier.certifications && supplier.certifications.length > 0 && (
+                    <div className="flex items-start gap-1 text-xs">
+                      <span className="text-gray-600 dark:text-gray-300 text-[10px] whitespace-nowrap">Certs:</span>
+                      <div className="flex flex-wrap gap-0.5">
+                        {supplier.certifications.slice(0, 2).map((cert, certIndex) => (
+                          <span key={certIndex} className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-1 py-0.5 rounded text-[9px]">
+                            {cert}
+                          </span>
+                        ))}
+                        {supplier.certifications.length > 2 && (
+                          <span className="text-gray-500 dark:text-gray-400 text-[9px]">+{supplier.certifications.length - 2}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons - Compact */}
+                <div className="flex justify-end gap-1.5">
+                  {/* Calculate Button */}
+                  <button
+                    onClick={() => onCalculateClick(supplier)}
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
                   >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    Contact Supplier
-                  </a>
-                )}
+                    <DollarSign className="w-3.5 h-3.5" />
+                    Calculate Profit
+                  </button>
+
+                  {/* Contact Supplier Button */}
+                  {supplier.contact_url && (
+                    <a
+                      href={supplier.contact_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-1.5 px-3 rounded-lg transition-all duration-200 font-medium text-sm flex items-center gap-1.5"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Contact Supplier
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
