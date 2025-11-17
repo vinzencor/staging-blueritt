@@ -1577,7 +1577,12 @@ const TikTokTrends: React.FC<TikTokTrendsProps> = ({ onProductSelect }) => {
                   {/* Show content only after AI analysis completes */}
                   {!isShopAnalysisLoading && (shopAnalysisData || shopAnalysisError) && (
                     <>
-                      <h4 className="md:text-sm lg:text-base xl:text-lg font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4>
+                     <div className="flex justify-around mb-3">
+                        <h4 className="md:text-sm lg:text-base xl:text-lg font-bold text-gray-900 dark:text-white mb-4">Your Selected Product</h4>
+                        <h4 className="font-bold text-gray-900 dark:text-white text-base sm:text-sm md:text-sm lg:text-base xl:text-lg">
+                          TikTok stats
+                        </h4>
+                      </div> 
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Product Image with Pexels Fallback */}
                         <div className="space-y-4">

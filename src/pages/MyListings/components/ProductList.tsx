@@ -1134,7 +1134,7 @@ const ProductList: React.FC<ProductListProps> = ({
                     </p>
                   </div>
                 )}
-                <div className="p-4 space-y-4">
+                <div className="">
                   <div className="flex items-start gap-4">
 
                     {/* Supplier Image */}
@@ -1161,7 +1161,7 @@ const ProductList: React.FC<ProductListProps> = ({
                       <div className="flex-1 flex flex-col space-y-4">
 
                         {/* Supplier Name */}
-                        <div className="text-sm md:text-base font-semibold text-gray-900 dark:text-white">
+                        <div className="p-[18.5px] bg-yellow-50 dark:bg-yellow-900/20 border-b border-gray-200 dark:border-gray-700">
                           {product.supplier_info.name ||
                             product.supplier_info.supplier_name ||
                             "N/A"}
